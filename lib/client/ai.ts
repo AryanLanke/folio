@@ -31,8 +31,10 @@ export function useAiUsesLeft() {
 export async function callAi<T>(
   path: string,
   body: object | FormData,
+  // Chat messages don't count; only actions that produce something (enhance, import, ...) do
+  { count = true }: { count?: boolean } = {},
 ): Promise<{ ok: true; data: T } | { ok: false; message: string }> {
-  if (aiUsesLeft() <= 0) return { ok: false, message: MESSAGES.limit };
+  if (count && aiUsesLeft() <= 0) return { ok: false, message: MESSAGES.limit };
   try {
     const response = await fetch(path, {
       method: "POST",
@@ -44,8 +46,10 @@ export async function callAi<T>(
     if (!response.ok || !data) {
       return { ok: false, message: MESSAGES[data?.error] ?? "Something went wrong. Try again." };
     }
-    recordAiUse();
-    listeners.forEach((listener) => listener());
+    if (count) {
+      recordAiUse();
+      listeners.forEach((listener) => listener());
+    }
     return { ok: true, data: data as T };
   } catch {
     return { ok: false, message: "Couldn't reach the AI. Check your connection and try again." };

@@ -1,6 +1,7 @@
 // Import: AI sorts the text of an existing resume into Folio's fields. It copies, it doesn't
 // rewrite: polishing is a separate, optional step the user chooses afterwards.
 
+import { plainCharacters } from "@/lib/enhance";
 import {
   CORE_SECTIONS,
   type ExtraKind,
@@ -50,7 +51,8 @@ export function buildImportMessages(text: string) {
   ];
 }
 
-const str = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+// Every value goes through plainCharacters: models write look-alike hyphens and spaces
+const str = (value: unknown) => (typeof value === "string" ? plainCharacters(value).trim() : "");
 
 const list = (value: unknown): Record<string, unknown>[] =>
   Array.isArray(value) ? value.filter((v): v is Record<string, unknown> => Boolean(v) && typeof v === "object") : [];
@@ -58,7 +60,7 @@ const list = (value: unknown): Record<string, unknown>[] =>
 const lines = (value: unknown) =>
   (Array.isArray(value) ? value : typeof value === "string" ? value.split("\n") : [])
     .filter((line): line is string => typeof line === "string")
-    .map((line) => line.trim().replace(/^[•\-*–▪●◦]\s*/, ""))
+    .map((line) => plainCharacters(line).trim().replace(/^[•\-*–▪●◦]\s*/, ""))
     .filter(Boolean)
     .join("\n");
 
@@ -112,7 +114,9 @@ export function parseImport(raw: unknown): Resume | null {
       end: /^(present|current|now|till date|to date)$/i.test(str(job.end)) ? PRESENT : str(job.end),
       bullets: lines(job.bullets),
     }))
-    .filter((job) => job.role || job.company || job.bullets);
+    .filter((job) => job.role || job.company || job.bullets)
+    // "2019 – 2019" reads better as "2019"
+    .map((job) => (job.end && job.end === job.start ? { ...job, end: "" } : job));
 
   resume.education = list(data.education)
     .map((school) => ({
@@ -133,7 +137,7 @@ export function parseImport(raw: unknown): Resume | null {
   const skills = Array.isArray(data.skills) ? data.skills : typeof data.skills === "string" ? data.skills.split(",") : [];
   resume.skills = skills
     .filter((s): s is string => typeof s === "string")
-    .map((s) => s.trim())
+    .map((s) => str(s))
     .filter(Boolean)
     .join(", ");
 

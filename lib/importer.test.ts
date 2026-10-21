@@ -41,6 +41,25 @@ describe("parseImport", () => {
     expect(normalizeResume(JSON.parse(JSON.stringify(resume)))).toEqual(resume);
   });
 
+  it("converts look-alike characters the model writes into plain ones", () => {
+    const resume = parseImport(
+      JSON.stringify({
+        basics: { name: "Ravi" },
+        summary: "Cut defects by 20 percent",
+        experience: [{ role: "Tester", company: "TCS", bullets: ["Ran a six‑month pilot"] }],
+        skills: ["CI‑CD"],
+      }),
+    )!;
+    expect(resume.summary).toBe("Cut defects by 20 percent");
+    expect(resume.experience[0].bullets).toBe("Ran a six-month pilot");
+    expect(resume.skills).toBe("CI-CD");
+  });
+
+  it("shows a same-year job as one date", () => {
+    const resume = parseImport(JSON.stringify({ basics: { name: "Ravi" }, experience: [{ role: "Intern", start: "2019", end: "2019" }] }))!;
+    expect([resume.experience[0].start, resume.experience[0].end]).toEqual(["2019", ""]);
+  });
+
   it("turns an all-caps name into normal capitalization", () => {
     expect(parseImport(JSON.stringify({ basics: { name: "PRIYA SHAH" } }))!.basics.name).toBe("Priya Shah");
     expect(parseImport(JSON.stringify({ basics: { name: "Priya McKay" } }))!.basics.name).toBe("Priya McKay");

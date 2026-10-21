@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import ChatBuilder from "@/components/builder/ChatBuilder";
 import CoverLetterEditor from "@/components/builder/CoverLetterEditor";
 import Editor from "@/components/builder/Editor";
 import ImportDialog from "@/components/builder/ImportDialog";
@@ -13,6 +14,7 @@ import ResumePreview from "@/components/resume/ResumePreview";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
 import { exportName, saveBlob } from "@/lib/export/text";
+import type { ChatTurn } from "@/lib/interview";
 import {
   type Library,
   addEntry,
@@ -107,6 +109,9 @@ export default function Builder() {
   const [editorView, setEditorView] = useState<"resume" | "letter">("resume");
   const [previewView, setPreviewView] = useState<PreviewView>(startingView);
   const [importing, setImporting] = useState(false);
+  // "?chat" (from the home page) opens the "Tell AI about yourself" chat straight away
+  const [chatOpen, setChatOpen] = useState(() => new URLSearchParams(window.location.search).has("chat"));
+  const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [exporting, setExporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -196,6 +201,7 @@ export default function Builder() {
 
   const onImported = (imported: Resume) => {
     setImporting(false);
+    setChatOpen(false);
     const blank = !resume.basics.name && !resume.summary && !resume.experience.some(hasExperience);
     const name = imported.basics.name ? `${imported.basics.name.split(" ")[0]}'s resume` : "Imported resume";
     // An empty current resume is simply filled in; otherwise the import becomes a new resume
@@ -300,6 +306,9 @@ export default function Builder() {
             </button>
             <button type="button" className={menuItemClass} onClick={() => setImporting(true)}>
               Import an existing resume…
+            </button>
+            <button type="button" className={menuItemClass} onClick={() => setChatOpen(true)}>
+              Build one by chatting with AI…
             </button>
             <MenuDivider />
             <button type="button" className={menuItemClass} onClick={rename}>
@@ -418,18 +427,27 @@ export default function Builder() {
           {editorView === "resume" ? (
             <>
               {resumeIsEmpty && (
-                <section className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-accent/40 bg-accent/5 p-4">
-                  <div>
-                    <p className="text-sm font-bold">Already have a resume?</p>
-                    <p className="text-sm text-muted">Import it and Folio fills in every field for you.</p>
+                <section className="mb-4 rounded-lg border border-accent/40 bg-accent/5 p-4">
+                  <p className="text-sm font-bold">Don&apos;t want to fill in forms?</p>
+                  <p className="text-sm text-muted">
+                    Tell AI about your work in your own words, or import the resume you already have.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setChatOpen(true)}
+                      className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
+                    >
+                      💬 Tell AI about yourself
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImporting(true)}
+                      className="rounded-full border border-border px-4 py-1.5 text-sm font-bold transition-colors hover:border-foreground"
+                    >
+                      Import resume
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setImporting(true)}
-                    className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
-                  >
-                    Import resume
-                  </button>
                 </section>
               )}
               <Editor resume={resume} onChange={update} />
@@ -491,6 +509,17 @@ export default function Builder() {
       </div>
 
       {importing && <ImportDialog onImported={onImported} onClose={() => setImporting(false)} />}
+      {chatOpen && (
+        <ChatBuilder
+          turns={chatTurns}
+          onTurnsChange={setChatTurns}
+          onCreated={(created) => {
+            setChatTurns([]);
+            onImported(created);
+          }}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </div>
   );
 }

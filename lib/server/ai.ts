@@ -36,7 +36,8 @@ function provider() {
 // Best-effort backstop against abuse, on top of the per-browser daily limit. It lives in
 // server memory, so it resets when the server restarts; enough for a free, small-scale tool.
 const usage = new Map<string, { day: string; count: number }>();
-const SERVER_LIMIT = DAILY_LIMIT * 2;
+// Chat turns count here (but not toward the user's visible allowance), so leave room for them
+const SERVER_LIMIT = DAILY_LIMIT * 5;
 
 export function overServerLimit(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
@@ -60,7 +61,8 @@ export async function chatJson(
     maxTokens = 1500,
     timeoutMs = 20_000,
     reasoning = "low",
-  }: { maxTokens?: number; timeoutMs?: number; reasoning?: "low" | "medium" } = {},
+    temperature = 0.3,
+  }: { maxTokens?: number; timeoutMs?: number; reasoning?: "low" | "medium"; temperature?: number } = {},
 ): Promise<{ content: string } | { error: AiErrorCode }> {
   const ai = provider();
   if (!ai) return { error: "not_configured" };
@@ -73,7 +75,7 @@ export async function chatJson(
       body: JSON.stringify({
         model: ai.model,
         messages,
-        temperature: 0.3,
+        temperature,
         // Room for the model's thinking as well as the answer
         max_tokens: maxTokens,
         response_format: { type: "json_object" },

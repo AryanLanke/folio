@@ -25,7 +25,8 @@ const sections = [
   {
     title: "AI only sees what you choose to send",
     body: [
-      "Nothing is sent to AI unless you click an AI button. When you do, only the text that action needs is sent: the one box you're enhancing, the job posting you paste, the resume you import, or your resume text when you ask for a cover letter.",
+      "Nothing is sent to AI unless you click an AI button. When you do, only the text that action needs is sent: the one box you're enhancing, the job posting you paste, the resume you import, your messages in the \"Tell AI about yourself\" chat, or your resume text when you ask for a cover letter.",
+      "Voice typing in the chat uses your browser's own speech recognition. In Chrome and Edge, your browser sends the audio to Google or Microsoft to turn it into text. Folio never receives the audio, only the text you send.",
       "That text goes through Folio's server to our AI provider, Groq, to produce a suggestion, and is sent back to you. Folio doesn't store it or log its contents. Groq's terms say it doesn't train on what it receives; it may keep requests for a limited time for its own security and abuse checks.",
       "An uploaded PDF is read in memory to get its text, then discarded.",
     ],

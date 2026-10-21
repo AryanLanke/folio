@@ -35,8 +35,9 @@ Most resume builders let you spend half an hour writing, then charge before you 
 - **ATS check:** a readiness checklist and the exact plain text tracking systems pull from your PDF
 
 **AI that stays honest** (optional, 15 free actions a day)
+- **Tell AI about yourself:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
 - **Import:** upload an old resume PDF or paste its text, and every field fills in using your exact words
-- **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. It never adds numbers, skills or experience you didn't write
+- **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write
 - **Cover letters:** written only from your resume, then checked by a second AI pass that strikes anything your resume doesn't support
 
 **Download**

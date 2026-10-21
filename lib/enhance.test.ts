@@ -15,6 +15,8 @@ describe("validateRequest", () => {
     expect(validateRequest({ kind: "bullets", text: "  built things  ", role: "Dev", current: true, focus: ["Go", 3, ""] })).toEqual({
       kind: "bullets",
       text: "built things",
+      style: "polish",
+      previous: undefined,
       role: "Dev",
       current: true,
       focus: ["Go"],
@@ -46,6 +48,23 @@ describe("buildMessages", () => {
     expect(tailored).toContain("Kubernetes, Go");
     expect(tailored).toContain("Never add a skill");
     expect(buildMessages({ kind: "bullets", text: "x" })[0].content).not.toContain("looks for");
+  });
+
+  it("accepts known styles and falls back to polish", () => {
+    expect((validateRequest({ kind: "summary", text: "x", style: "shorter" }) as { style: string }).style).toBe("shorter");
+    expect((validateRequest({ kind: "summary", text: "x", style: "poem" }) as { style: string }).style).toBe("polish");
+  });
+
+  it("adds the style instruction only for refinements", () => {
+    expect(buildMessages({ kind: "summary", text: "x", style: "shorter" })[0].content).toContain("noticeably shorter");
+    expect(buildMessages({ kind: "summary", text: "x", style: "polish" })[0].content).not.toContain("noticeably shorter");
+  });
+
+  it("refines the previous version but keeps the original as the only source of facts", () => {
+    const [system, user] = buildMessages({ kind: "summary", text: "my original", previous: "ai version", style: "formal" });
+    expect(system.content).toContain("Facts may only come from the original text");
+    expect(user.content).toContain("Original text (the only source of facts):\n<<<\nmy original");
+    expect(user.content).toContain("Current version to refine:\n<<<\nai version");
   });
 
   it("includes the role and the text for the model", () => {

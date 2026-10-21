@@ -3,9 +3,38 @@
 
 export type EnhanceKind = "summary" | "bullets";
 
+// Ways to enhance. "polish" is the first pass; the others refine a suggestion further.
+export const ENHANCE_STYLES = {
+  polish: { label: "✨ Polish", instruction: "" },
+  shorter: {
+    label: "Shorter",
+    instruction: "Make it noticeably shorter and tighter. Cut filler words and repetition, but keep every fact.",
+  },
+  impact: {
+    label: "More impact",
+    instruction:
+      "Make it more impactful: lead with the result or the strongest action, and put any numbers early. Only use results and numbers that are in the original.",
+  },
+  formal: { label: "More formal", instruction: "Use a more formal, corporate tone suitable for large companies and senior roles." },
+  simple: {
+    label: "Simpler words",
+    instruction: "Use simpler, everyday English words and shorter sentences that anyone can read quickly.",
+  },
+  another: {
+    label: "↻ Another version",
+    instruction: "Write a noticeably different version from the current one: different structure and word choices, same facts.",
+  },
+} as const;
+
+export type EnhanceStyle = keyof typeof ENHANCE_STYLES;
+
 export type EnhanceRequest = {
   kind: EnhanceKind;
+  // The person's own text: the only source of facts
   text: string;
+  style?: EnhanceStyle;
+  // The latest suggestion, when refining it further
+  previous?: string;
   // Job title and company, so wording fits the role
   role?: string;
   // Current jobs read better in present tense
@@ -40,9 +69,14 @@ export function validateRequest(body: unknown): EnhanceRequest | string {
   if (src.kind !== "summary" && src.kind !== "bullets") return "Unknown text type.";
   if (typeof src.text !== "string" || !src.text.trim()) return "There's no text to enhance.";
   if (src.text.length > MAX_INPUT_LENGTH) return `Text is too long (max ${MAX_INPUT_LENGTH} characters).`;
+  const style = typeof src.style === "string" && src.style in ENHANCE_STYLES ? (src.style as EnhanceStyle) : "polish";
+  const previous =
+    typeof src.previous === "string" && src.previous.trim() ? src.previous.trim().slice(0, MAX_INPUT_LENGTH) : undefined;
   return {
     kind: src.kind,
     text: src.text.trim(),
+    style,
+    previous,
     role: typeof src.role === "string" ? src.role.slice(0, 200) : undefined,
     current: src.current === true,
     focus: Array.isArray(src.focus)
@@ -57,8 +91,16 @@ export function buildMessages(request: EnhanceRequest) {
       ? `The text is a list of resume bullet points, one per line. Return the same number of bullets in the same order, one per item in "lines". Start each with a strong, ordinary action verb in ${request.current ? "present" : "past"} tense. No first person (I, my, we). No bullet symbols. No period at the end.`
       : `The text is a professional summary. Return it as a single item in "lines". Use implied first person (no "I"), confident and plain, under 70 words.`;
 
+  const restyle = request.style && request.style !== "polish" ? ENHANCE_STYLES[request.style].instruction : "";
+
   const system = [
     "You polish resume text for working professionals. The person wrote it themselves; make it read as if a skilled human editor improved it.",
+    ...(restyle
+      ? [
+          "",
+          `YOUR MAIN TASK: ${restyle} The result must read clearly different from the current version, while following every rule below.`,
+        ]
+      : []),
     "",
     "Rules:",
     "- Keep every fact exactly as given. Never add, remove or change numbers, dates, names, companies, tools, skills or achievements. Never invent metrics.",
@@ -71,12 +113,19 @@ export function buildMessages(request: EnhanceRequest) {
           `- This is for a job that looks for: ${request.focus.join(", ")}. Where the text already shows one of these, use the job's exact wording for it. Never add a skill, tool or experience that is not already in the text.`,
         ]
       : []),
+    ...(request.previous
+      ? [
+          "- You are refining the current version below. Facts may only come from the original text; if the current version contains anything the original doesn't say, remove it.",
+        ]
+      : []),
     "",
     'Respond with JSON only, in exactly this shape: {"lines": ["..."], "tip": "..." or null}',
   ].join("\n");
 
   const context = request.role ? `Role: ${request.role}\n\n` : "";
-  const user = `${context}Text to polish:\n<<<\n${request.text}\n>>>`;
+  const user = request.previous
+    ? `${context}Original text (the only source of facts):\n<<<\n${request.text}\n>>>\n\nCurrent version to refine:\n<<<\n${request.previous}\n>>>${restyle ? `\n\nRewrite the current version. ${restyle}` : ""}`
+    : `${context}Text to polish:\n<<<\n${request.text}\n>>>${restyle ? `\n\n${restyle}` : ""}`;
 
   return [
     { role: "system" as const, content: system },
@@ -86,7 +135,7 @@ export function buildMessages(request: EnhanceRequest) {
 
 // Models sometimes write look-alike characters (non-breaking hyphens, curly quotes, special
 // spaces) that some ATS parsers misread, so convert them to plain ones
-function plainCharacters(text: string) {
+export function plainCharacters(text: string) {
   return text
     .replace(/[‐‑‒−]/g, "-")
     .replace(/[   ]/g, " ")

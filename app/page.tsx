@@ -5,6 +5,10 @@ import SiteHeader from "@/components/site/SiteHeader";
 
 const features = [
   {
+    title: "Just talk about yourself",
+    body: "Type or speak about your work in your own words. AI asks a few questions and writes the resume, using only what you said.",
+  },
+  {
     title: "Match it to the job",
     body: "Paste a job posting and see your match score, the keywords you already cover, and the ones you're missing.",
   },
@@ -14,7 +18,7 @@ const features = [
   },
   {
     title: "AI that doesn't make things up",
-    body: "✨ Enhance fixes grammar and wording. It never adds numbers, skills or experience you didn't write.",
+    body: "✨ Enhance fixes grammar and wording, then make it shorter, more formal, simpler or more impactful. It never adds facts you didn't write.",
   },
   {
     title: "Five ATS-safe templates",
@@ -88,12 +92,21 @@ export default function Home() {
               Start building
             </Link>
             <Link
-              href="/builder?example"
-              className="inline-flex h-12 items-center rounded-full border border-border px-8 text-base font-bold transition-colors hover:border-foreground"
+              href="/builder?chat"
+              className="inline-flex h-12 items-center rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
             >
-              See an example
+              💬 Tell AI about yourself
+            </Link>
+            <Link
+              href="/builder?example"
+              className="inline-flex h-12 items-center px-4 text-base font-bold text-muted transition-colors hover:text-foreground"
+            >
+              See an example →
             </Link>
           </div>
+          <p className="mt-4 text-sm text-muted">
+            Not sure where to start? Just chat or talk about your work, and AI writes the resume for you.
+          </p>
         </section>
 
         <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">

@@ -8,7 +8,10 @@ export async function POST(request: Request) {
   if (typeof enhanceRequest === "string") return aiError("bad_request");
   if (overServerLimit(request)) return aiError("limit");
 
-  const reply = await chatJson(buildMessages(enhanceRequest));
+  // "Another version" should actually come out different, so it gets more variety
+  const reply = await chatJson(buildMessages(enhanceRequest), {
+    temperature: enhanceRequest.style === "another" ? 0.8 : 0.3,
+  });
   if ("error" in reply) return aiError(reply.error);
 
   const result = parseResult(reply.content, enhanceRequest.kind);
