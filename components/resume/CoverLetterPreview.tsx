@@ -1,3 +1,4 @@
+import { contactItems } from "@/lib/links";
 import { PAGE_MARGIN, PAPER, type PaperSize, type Resume } from "@/lib/resume";
 import { HTML_FONT, layoutFor } from "@/lib/templates";
 
@@ -6,7 +7,7 @@ export default function CoverLetterPreview({ resume, paper }: { resume: Resume; 
   const { basics } = resume;
   const size = PAPER[paper];
   const { spec, fontSize } = layoutFor(resume.style);
-  const contact = [basics.email, basics.phone, basics.location, basics.link].filter(Boolean);
+  const contact = contactItems(basics, resume.style.links);
   const paragraphs = resume.coverLetter.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
 
   return (
@@ -34,7 +35,22 @@ export default function CoverLetterPreview({ resume, paper }: { resume: Resume; 
         >
           {basics.name || "Your Name"}
         </h1>
-        {contact.length > 0 && <p className="mt-1 text-neutral-600">{contact.join("  |  ")}</p>}
+        {contact.length > 0 && (
+          <p className="mt-1 text-neutral-600">
+            {contact.map((item, i) => (
+              <span key={i}>
+                {i > 0 && <span className="px-2 text-neutral-400">|</span>}
+                {item.href ? (
+                  <a href={item.href} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+                    {item.text}
+                  </a>
+                ) : (
+                  item.text
+                )}
+              </span>
+            ))}
+          </p>
+        )}
       </header>
 
       <div className="mt-8 space-y-4">

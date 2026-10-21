@@ -176,10 +176,10 @@ export default function Editor({
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Project name" value={item.name} onChange={(v) => setProject(item.id, { name: v })} />
                   <Field
-                    label="Link"
+                    label="Links (code, live demo)"
                     value={item.link}
                     onChange={(v) => setProject(item.id, { link: v })}
-                    placeholder="github.com/you/project"
+                    placeholder="github.com/you/project, project.com"
                     warning={checkLink(item.link)}
                   />
                 </div>
@@ -339,10 +339,10 @@ export default function Editor({
           />
           <Field label="Location" value={basics.location} onChange={(v) => setBasics({ location: v })} placeholder="Austin, TX" />
           <Field
-            label="LinkedIn or website"
+            label="Links (LinkedIn, GitHub, portfolio)"
             value={basics.link}
             onChange={(v) => setBasics({ link: v })}
-            placeholder="linkedin.com/in/you"
+            placeholder="linkedin.com/in/you, github.com/you"
             warning={checkLink(basics.link)}
           />
         </div>

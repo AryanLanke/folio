@@ -1,4 +1,4 @@
-import { atsChecks, resumeToPlainText } from "@/lib/ats";
+import { atsChecks, linksHiddenFromAts, resumeToPlainText } from "@/lib/ats";
 import type { Resume } from "@/lib/resume";
 
 // Things that are true of every Folio PDF, whatever the user types
@@ -39,6 +39,14 @@ export default function AtsView({ resume }: { resume: Resume }) {
             </li>
           ))}
         </ul>
+        {linksHiddenFromAts(resume) && (
+          <p className="mt-4 rounded-md bg-background p-3 text-sm text-muted">
+            <b className="text-foreground">About your links:</b> they show as short labels like &quot;LinkedIn&quot;, which
+            look clean and stay clickable. But most ATS software reads only the visible text, so it won&apos;t see the
+            actual addresses. If a job portal needs your profile URL, set <b className="text-foreground">Links</b> to{" "}
+            <b className="text-foreground">Full</b> above the page.
+          </p>
+        )}
         <div className="mt-5 border-t border-border pt-4">
           <p className="text-xs font-semibold text-muted">Built into every Folio template</p>
           <ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">

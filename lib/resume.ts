@@ -95,9 +95,11 @@ export type ResumeStyle = {
   template: TemplateName;
   fontSize: "small" | "medium" | "large";
   spacing: "compact" | "normal" | "relaxed";
+  // Links as short clickable labels ("LinkedIn") or as full addresses
+  links: "label" | "url";
 };
 
-export const DEFAULT_STYLE: ResumeStyle = { template: "classic", fontSize: "medium", spacing: "normal" };
+export const DEFAULT_STYLE: ResumeStyle = { template: "classic", fontSize: "medium", spacing: "normal", links: "label" };
 
 // The job this resume is aimed at, used by job match and cover letters
 export type JobTarget = {
@@ -187,7 +189,7 @@ export function createSampleResume(): Resume {
       email: "jordan.patel@email.com",
       phone: "(555) 123-4567",
       location: "Austin, TX",
-      link: "linkedin.com/in/jordanpatel",
+      link: "linkedin.com/in/jordanpatel, github.com/jordanpatel",
     },
     summary:
       "Frontend developer with 3 years of experience building fast, accessible web apps in React and TypeScript. Comfortable owning features end to end, from design handoff to production.",
@@ -317,6 +319,7 @@ export function normalizeResume(data: unknown): Resume | null {
       template: pickOne(style.template, Object.keys(TEMPLATES) as TemplateName[], DEFAULT_STYLE.template),
       fontSize: pickOne(style.fontSize, ["small", "medium", "large"], DEFAULT_STYLE.fontSize),
       spacing: pickOne(style.spacing, ["compact", "normal", "relaxed"], DEFAULT_STYLE.spacing),
+      links: pickOne(style.links, ["label", "url"], DEFAULT_STYLE.links),
     },
     target: {
       description: text(target.description),

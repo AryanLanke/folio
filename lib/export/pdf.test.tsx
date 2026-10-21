@@ -1,5 +1,5 @@
 import { type DocumentProps, renderToBuffer } from "@react-pdf/renderer";
-import { extractText } from "unpdf";
+import { extractLinks, extractText } from "unpdf";
 import { describe, expect, it } from "vitest";
 import { CoverLetterDocument, ResumeDocument } from "@/lib/export/pdf";
 import { type Resume, TEMPLATES, type TemplateName, createSampleResume } from "@/lib/resume";
@@ -14,7 +14,8 @@ async function readBack(element: React.ReactElement<DocumentProps>) {
 describe("resume PDF", () => {
   for (const template of Object.keys(TEMPLATES) as TemplateName[]) {
     it(`${template}: text is extractable, in order, on one page`, async () => {
-      const resume: Resume = { ...createSampleResume(), style: { template, fontSize: "medium", spacing: "normal" } };
+      const sample = createSampleResume();
+      const resume: Resume = { ...sample, style: { ...sample.style, template } };
       const { text, totalPages } = await readBack(ResumeDocument({ resume, paper: "letter" }));
 
       expect(totalPages).toBe(1);
@@ -42,6 +43,34 @@ describe("resume PDF", () => {
     resume.summary = "Managed a ₹40 lakh budget";
     const { text } = await readBack(ResumeDocument({ resume, paper: "a4" }));
     expect(text).toContain("Rs. 40 lakh");
+  });
+});
+
+describe("links in the PDF", () => {
+  it("show as short labels that stay clickable and open the full address", async () => {
+    const resume = createSampleResume();
+    const buffer = await renderToBuffer(ResumeDocument({ resume, paper: "letter" }));
+    const { text } = await extractText(new Uint8Array(buffer), { mergePages: true });
+    const { links } = await extractLinks(new Uint8Array(buffer));
+
+    expect(text).toContain("LinkedIn");
+    expect(text).toContain("GitHub");
+    expect(text).not.toContain("linkedin.com/in");
+    expect(links).toEqual(
+      expect.arrayContaining([
+        "mailto:jordan.patel@email.com",
+        "https://linkedin.com/in/jordanpatel",
+        "https://github.com/jordanpatel",
+        "https://github.com/jordanpatel/budget-buddy",
+      ]),
+    );
+  });
+
+  it("can show the full addresses instead", async () => {
+    const sample = createSampleResume();
+    const resume = { ...sample, style: { ...sample.style, links: "url" as const } };
+    const { text } = await readBack(ResumeDocument({ resume, paper: "letter" }));
+    expect(text).toContain("linkedin.com/in/jordanpatel");
   });
 });
 

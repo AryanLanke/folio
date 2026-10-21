@@ -1,5 +1,6 @@
 import { Document, Link, Page, Text, View, pdf } from "@react-pdf/renderer";
-import { pdfSafe, webHref } from "@/lib/export/text";
+import { pdfSafe } from "@/lib/export/text";
+import { contactItems, resumeLinks } from "@/lib/links";
 import {
   EXTRA_KINDS,
   type ExtraSection,
@@ -123,11 +124,14 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
           <Text>
             <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(project.name)}</Text>
             {project.link ? " — " : ""}
-            {project.link ? (
-              <Link src={webHref(project.link)} style={LINK}>
-                {pdfSafe(project.link)}
-              </Link>
-            ) : null}
+            {resumeLinks(project.link, resume.style.links).map((link, i) => (
+              <Text key={i}>
+                {i > 0 ? ", " : ""}
+                <Link src={link.href} style={LINK}>
+                  {pdfSafe(link.text)}
+                </Link>
+              </Text>
+            ))}
           </Text>
           <Bullets text={project.bullets} />
         </View>
@@ -146,15 +150,31 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
   }
 }
 
+// Email, phone, city and links on one line; links stay clickable in the PDF
+function ContactLine({ resume, style }: { resume: Resume; style: { marginTop: number } }) {
+  const items = contactItems(resume.basics, resume.style.links);
+  if (items.length === 0) return null;
+  return (
+    <Text style={{ ...style, color: MUTED }}>
+      {items.map((item, i) => (
+        <Text key={i}>
+          {i > 0 ? "   |   " : ""}
+          {item.href ? (
+            <Link src={item.href} style={LINK}>
+              {pdfSafe(item.text)}
+            </Link>
+          ) : (
+            pdfSafe(item.text)
+          )}
+        </Text>
+      ))}
+    </Text>
+  );
+}
+
 function Header({ resume, l }: { resume: Resume; l: Layout }) {
   const { basics } = resume;
   const { spec, size } = l;
-  const contact = [
-    basics.email && { text: basics.email, href: `mailto:${basics.email}` },
-    basics.phone && { text: basics.phone },
-    basics.location && { text: basics.location },
-    basics.link && { text: basics.link, href: webHref(basics.link) },
-  ].filter((item): item is { text: string; href?: string } => Boolean(item));
 
   return (
     <View
@@ -189,22 +209,7 @@ function Header({ resume, l }: { resume: Resume; l: Layout }) {
           {pdfSafe(basics.title)}
         </Text>
       ) : null}
-      {contact.length > 0 && (
-        <Text style={{ marginTop: 4, color: MUTED }}>
-          {contact.map((item, i) => (
-            <Text key={i}>
-              {i > 0 ? "   |   " : ""}
-              {item.href ? (
-                <Link src={item.href} style={LINK}>
-                  {pdfSafe(item.text)}
-                </Link>
-              ) : (
-                pdfSafe(item.text)
-              )}
-            </Text>
-          ))}
-        </Text>
-      )}
+      <ContactLine resume={resume} style={{ marginTop: 4 }} />
     </View>
   );
 }
@@ -235,7 +240,6 @@ export function ResumeDocument({ resume, paper }: { resume: Resume; paper: Paper
 export function CoverLetterDocument({ resume, paper }: { resume: Resume; paper: PaperSize }) {
   const l = layout(resume);
   const { basics } = resume;
-  const contact = [basics.email, basics.phone, basics.location, basics.link].filter(Boolean).join("   |   ");
   const paragraphs = resume.coverLetter.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const rule = l.spec.headerRule ?? { width: 1, color: "#d4d4d4" };
   return (
@@ -248,7 +252,7 @@ export function CoverLetterDocument({ resume, paper }: { resume: Resume; paper: 
           <Text style={{ fontSize: l.size * 1.9, fontWeight: l.spec.name.bold ? "bold" : "normal", color: "#0a0a0a", lineHeight: 1.2 }}>
             {pdfSafe(basics.name || "Your Name")}
           </Text>
-          {contact ? <Text style={{ marginTop: 3, color: MUTED }}>{pdfSafe(contact)}</Text> : null}
+          <ContactLine resume={resume} style={{ marginTop: 3 }} />
         </View>
         <View style={{ marginTop: 24, gap: 10 }}>
           {paragraphs.map((paragraph, i) => (

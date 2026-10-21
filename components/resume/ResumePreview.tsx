@@ -13,6 +13,7 @@ import {
   toList,
   visibleSections,
 } from "@/lib/resume";
+import { type LinkMode, resumeLinks } from "@/lib/links";
 import { HTML_FONT, type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // The resume as a web page. Its look comes from lib/templates.ts, shared with the PDF and Word
@@ -76,18 +77,28 @@ function Bullets({ text }: { text: string }) {
   );
 }
 
-// Links stay clickable in the downloaded PDF
-function WebLink({ text }: { text: string }) {
-  const href = /^https?:\/\//i.test(text) ? text : `https://${text}`;
-  return <a href={href}>{text}</a>;
+// Links show as short labels ("LinkedIn") or full addresses, and always open the full address
+function WebLinks({ field, mode }: { field: string; mode: LinkMode }) {
+  return resumeLinks(field, mode).map((link, i) => (
+    <span key={link.href + i}>
+      {i > 0 && ", "}
+      <a href={link.href} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+        {link.text}
+      </a>
+    </span>
+  ));
 }
 
-function Contact({ basics }: { basics: Resume["basics"] }) {
+function Contact({ basics, mode }: { basics: Resume["basics"]; mode: LinkMode }) {
   const items = [
     basics.email && <a key="email" href={`mailto:${basics.email}`}>{basics.email}</a>,
     basics.phone && <span key="phone">{basics.phone}</span>,
     basics.location && <span key="location">{basics.location}</span>,
-    basics.link && <WebLink key="link" text={basics.link} />,
+    ...resumeLinks(basics.link, mode).map((link) => (
+      <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+        {link.text}
+      </a>
+    )),
   ].filter(Boolean);
   if (items.length === 0) return null;
   return (
@@ -151,7 +162,7 @@ function CoreContent({ resume, sectionKey }: { resume: Resume; sectionKey: strin
             {item.link && (
               <>
                 {" — "}
-                <WebLink text={item.link} />
+                <WebLinks field={item.link} mode={resume.style.links} />
               </>
             )}
           </p>
@@ -219,7 +230,7 @@ export default function ResumePreview({ resume, paper }: { resume: Resume; paper
             {basics.title}
           </p>
         )}
-        <Contact basics={basics} />
+        <Contact basics={basics} mode={resume.style.links} />
       </header>
 
       {visibleSections(resume).map((section) => (

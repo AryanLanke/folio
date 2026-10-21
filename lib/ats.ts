@@ -13,6 +13,13 @@ import {
   visibleSections,
 } from "@/lib/resume";
 import { checkDate, checkEmail, checkPhone } from "@/lib/validate";
+import { contactItems, resumeLinks, splitLinks } from "@/lib/links";
+
+// True when links show as labels, so ATS software (which reads visible text) won't see the addresses
+export function linksHiddenFromAts(resume: Resume) {
+  if (resume.style.links !== "label") return false;
+  return splitLinks(resume.basics.link).length > 0 || resume.projects.some((p) => splitLinks(p.link).length > 0);
+}
 
 function joinParts(parts: string[], separator = " | ") {
   return parts.map((part) => part.trim()).filter(Boolean).join(separator);
@@ -32,7 +39,8 @@ export function resumeToPlainText(resume: Resume): string {
 
   if (basics.name.trim()) lines.push(basics.name.trim().toUpperCase());
   if (basics.title.trim()) lines.push(basics.title.trim());
-  const contact = joinParts([basics.email, basics.phone, basics.location, basics.link]);
+  // The visible text only: with short link labels, ATS software sees "LinkedIn", not the address
+  const contact = joinParts(contactItems(basics, resume.style.links).map((item) => item.text));
   if (contact) lines.push(contact);
 
   for (const section of visibleSections(resume)) {
@@ -64,7 +72,7 @@ export function resumeToPlainText(resume: Resume): string {
         break;
       case "projects":
         for (const project of resume.projects.filter(hasProject)) {
-          lines.push(joinParts([project.name, project.link]));
+          lines.push(joinParts([project.name, ...resumeLinks(project.link, resume.style.links).map((link) => link.text)]));
           lines.push(...bullets(project.bullets));
         }
         break;

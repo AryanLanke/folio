@@ -1,6 +1,7 @@
 // Gentle checks for fields that have an expected format. They return a short
 // warning to show under the field, or null. They never block typing.
 
+import { splitLinks } from "@/lib/links";
 import { PRESENT } from "@/lib/resume";
 
 const MONTHS = [
@@ -23,11 +24,13 @@ export function checkPhone(value: string): string | null {
   return null;
 }
 
+// A link field may hold several links separated by commas; each must look like a web address
 export function checkLink(value: string): string | null {
-  const text = value.trim();
-  if (!text) return null;
-  const looksLikeUrl = /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(text);
-  return looksLikeUrl ? null : "Use a web address, like linkedin.com/in/you";
+  const bad = splitLinks(value).filter((link) => !/^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i.test(link));
+  if (bad.length === 0) return null;
+  return value.includes(",") || bad.length > 1 || splitLinks(value).length > 1
+    ? `"${bad[0]}" isn't a web address. Separate links with commas, like linkedin.com/in/you, github.com/you`
+    : "Use a web address, like linkedin.com/in/you";
 }
 
 function toYear(text: string) {

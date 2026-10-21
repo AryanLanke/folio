@@ -68,6 +68,12 @@ const SPACING_OPTIONS: { value: ResumeStyle["spacing"]; label: string }[] = [
 
 const PAPER_OPTIONS = (Object.keys(PAPER) as PaperSize[]).map((value) => ({ value, label: PAPER[value].label }));
 
+// "Labels" shows LinkedIn / GitHub as clickable words; "Full" shows the addresses (better for ATS)
+const LINK_OPTIONS: { value: ResumeStyle["links"]; label: string }[] = [
+  { value: "label", label: "Labels" },
+  { value: "url", label: "Full" },
+];
+
 type PreviewView = "page" | "ats" | "job";
 
 // "?view=job" or "?view=ats" opens that tab, so links can point straight at a feature
@@ -263,6 +269,7 @@ export default function Builder() {
       <Segmented label="Text" options={FONT_OPTIONS} value={resume.style.fontSize} onChange={(fontSize) => setStyle({ fontSize })} />
       <Segmented label="Spacing" options={SPACING_OPTIONS} value={resume.style.spacing} onChange={(spacing) => setStyle({ spacing })} />
       <Segmented label="Paper" options={PAPER_OPTIONS} value={paper} onChange={changePaper} />
+      <Segmented label="Links" options={LINK_OPTIONS} value={resume.style.links} onChange={(links) => setStyle({ links })} />
     </>
   );
 

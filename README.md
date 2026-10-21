@@ -27,6 +27,7 @@ Most resume builders let you spend half an hour writing, then charge before you 
 - Five ATS-safe templates: Classic, Modern, Executive, Compact and Serif
 - Text size and spacing controls to fit everything on one page
 - Any section order, plus certifications, awards, volunteering, languages or custom sections
+- Clean links: LinkedIn, GitHub and other profiles show as short labels ("LinkedIn", "GitHub") that open the full address, on screen, in the PDF and in Word. Switch to full addresses for job portals whose ATS needs them
 - Gentle warnings for phone numbers, emails, links and dates that look wrong
 - Multiple resumes (one per job type), duplicate, rename, undo, autosave and backup files
 

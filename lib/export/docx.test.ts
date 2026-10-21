@@ -15,7 +15,8 @@ async function wordText(document: ReturnType<typeof resumeDocx>) {
 describe("Word export", () => {
   for (const template of Object.keys(TEMPLATES) as TemplateName[]) {
     it(`${template}: contains every section and entry`, async () => {
-      const resume = { ...createSampleResume(), style: { template, fontSize: "medium" as const, spacing: "normal" as const } };
+      const sample = createSampleResume();
+      const resume = { ...sample, style: { ...sample.style, template } };
       const text = await wordText(resumeDocx(resume, "letter"));
       expect(text).toContain("Jordan Patel");
       expect(text).toContain("jordan.patel@email.com");
@@ -27,6 +28,18 @@ describe("Word export", () => {
       }
     });
   }
+
+  it("shows link labels that open the full address", async () => {
+    const document = resumeDocx(createSampleResume(), "letter");
+    const text = await wordText(document);
+    expect(text).toContain("LinkedIn");
+    expect(text).not.toContain("linkedin.com/in");
+    const { default: JSZip } = await import("jszip");
+    const zip = await JSZip.loadAsync(await Packer.toBuffer(resumeDocx(createSampleResume(), "letter")));
+    const rels = await zip.file("word/_rels/document.xml.rels")!.async("string");
+    expect(rels).toContain('Target="https://linkedin.com/in/jordanpatel"');
+    expect(rels).toContain('Target="https://github.com/jordanpatel/budget-buddy"');
+  });
 
   it("writes the cover letter paragraphs", async () => {
     const resume = createSampleResume();

@@ -28,6 +28,7 @@ export function buildImportMessages(text: string) {
     `- For a current job, set "end" to "${PRESENT}".`,
     "- Put each bullet point or achievement as its own item in \"bullets\", without bullet symbols.",
     "- Split skills into individual items.",
+    '- Put every profile link (LinkedIn, GitHub, portfolio, and so on) in basics "link", separated by commas. Put each project\'s links in its "link", separated by commas.',
     "- Ignore page numbers, headers and footers.",
     "",
     "Respond with JSON only, in exactly this shape:",

@@ -34,6 +34,11 @@ describe("checkLink", () => {
     expect(checkLink("https://github.com/you")).toBeNull();
   });
 
+  it("accepts several links separated by commas and names a bad one", () => {
+    expect(checkLink("linkedin.com/in/you, github.com/you")).toBeNull();
+    expect(checkLink("linkedin.com/in/you, my portfolio")).toContain('"my"');
+  });
+
   it("flags text that isn't a link", () => {
     expect(checkLink("my linkedin")).not.toBeNull();
     expect(checkLink("hello")).not.toBeNull();

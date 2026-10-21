@@ -9,7 +9,7 @@ import {
   TabStopType,
   TextRun,
 } from "docx";
-import { webHref } from "@/lib/export/text";
+import { contactItems, resumeLinks } from "@/lib/links";
 import {
   EXTRA_KINDS,
   type ExtraSection,
@@ -89,7 +89,7 @@ function plain(text: string, ctx: Ctx) {
   return new Paragraph({ children: [new TextRun({ text, font: ctx.font, size: ctx.half })] });
 }
 
-function link(text: string, ctx: Ctx, href = webHref(text)) {
+function link(text: string, ctx: Ctx, href: string) {
   return new ExternalHyperlink({
     link: href,
     // Clickable, but styled like the surrounding text so it prints cleanly
@@ -126,7 +126,11 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
           spacing: { before: i === 0 ? 0 : Math.round(ctx.gap * 160) },
           children: [
             new TextRun({ text: project.name, bold: true, font: ctx.font, size: ctx.half }),
-            ...(project.link ? [new TextRun({ text: " — ", font: ctx.font, size: ctx.half }), link(project.link, ctx)] : []),
+            ...(project.link ? [new TextRun({ text: " — ", font: ctx.font, size: ctx.half })] : []),
+            ...resumeLinks(project.link, resume.style.links).flatMap((item, j) => [
+              ...(j > 0 ? [new TextRun({ text: ", ", font: ctx.font, size: ctx.half })] : []),
+              link(item.text, ctx, item.href),
+            ]),
           ],
         }),
         ...bullets(project.bullets, ctx),
@@ -164,10 +168,9 @@ function header(resume: Resume, ctx: Ctx, nameScale = ctx.spec.name.scale): Para
     if (contact.length > 0) contact.push(new TextRun({ text: "  |  ", color: MUTED, font: ctx.font, size: ctx.half }));
     contact.push(child);
   };
-  if (basics.email) add(link(basics.email, ctx, `mailto:${basics.email}`));
-  if (basics.phone) add(new TextRun({ text: basics.phone, color: MUTED, font: ctx.font, size: ctx.half }));
-  if (basics.location) add(new TextRun({ text: basics.location, color: MUTED, font: ctx.font, size: ctx.half }));
-  if (basics.link) add(link(basics.link, ctx));
+  for (const item of contactItems(basics, resume.style.links)) {
+    add(item.href ? link(item.text, ctx, item.href) : new TextRun({ text: item.text, color: MUTED, font: ctx.font, size: ctx.half }));
+  }
 
   const rule = spec.headerRule;
   return [

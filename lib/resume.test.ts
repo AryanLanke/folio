@@ -58,7 +58,7 @@ describe("normalizeResume", () => {
     expect(resume.extras).toHaveLength(1);
     expect(resume.extras[0].kind).toBe("custom");
     expect(resume.order).toContain(resume.extras[0].id);
-    expect(resume.style).toEqual({ template: "classic", fontSize: "large", spacing: "normal" });
+    expect(resume.style).toEqual({ template: "classic", fontSize: "large", spacing: "normal", links: "label" });
   });
 
   it("rejects things that aren't resumes", () => {

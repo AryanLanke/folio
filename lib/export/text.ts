@@ -14,10 +14,6 @@ export function pdfSafe(text: string) {
     .replace(/[▪●◦‣⁃]/g, "•");
 }
 
-export function webHref(text: string) {
-  return /^https?:\/\//i.test(text) ? text : `https://${text}`;
-}
-
 export function exportName(resume: Resume, kind: "resume" | "cover-letter", extension: "pdf" | "docx") {
   const name = resume.basics.name.trim().replace(/[^\w\- ]+/g, "").replace(/\s+/g, "-");
   return `${name || "folio"}-${kind}.${extension}`;
