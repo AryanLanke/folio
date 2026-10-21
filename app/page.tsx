@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const steps = [
   {
     title: "Add your details",
@@ -17,10 +19,16 @@ export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b border-border">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center px-6">
+        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
           <span className="text-lg font-bold tracking-tight">
             Folio<span className="text-accent">.</span>
           </span>
+          <Link
+            href="/builder"
+            className="text-sm font-bold text-muted transition-colors hover:text-foreground"
+          >
+            Open editor
+          </Link>
         </div>
       </header>
 
@@ -33,6 +41,12 @@ export default function Home() {
             Write it once, make it look good, and download it ready to send.
             No sign-up, no clutter.
           </p>
+          <Link
+            href="/builder"
+            className="mt-10 inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
+          >
+            Start building
+          </Link>
         </section>
 
         <section className="mt-20 grid gap-4 sm:grid-cols-3">
