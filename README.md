@@ -94,7 +94,7 @@ GROQ_API_KEY=your-key-here
 | `npm run typecheck` | Check TypeScript types |
 | `npm run build` | Build for production |
 
-Every push to GitHub runs lint, type checks, tests and a production build automatically.
+Every push to GitHub runs lint, type checks, tests and a production build automatically. When they all pass on `main`, GitHub Actions triggers the Vercel production deploy through a deploy hook (stored as the `VERCEL_DEPLOY_HOOK` repository secret), so a failing build never goes live.
 
 ## Feedback
 

@@ -21,3 +21,14 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # Ships to Vercel only after every check above passes, so a broken build never goes live
+  deploy:
+    needs: check
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel production deploy
+        run: curl --fail --silent --show-error --request POST "$DEPLOY_HOOK" > /dev/null
+        env:
+          DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
