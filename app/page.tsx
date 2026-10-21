@@ -19,7 +19,7 @@ export default function Home() {
       <header className="border-b border-border">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center px-6">
           <span className="text-lg font-bold tracking-tight">
-            Short<span className="text-accent">list</span>
+            Folio<span className="text-accent">.</span>
           </span>
         </div>
       </header>
@@ -51,7 +51,7 @@ export default function Home() {
 
       <footer className="border-t border-border">
         <div className="mx-auto w-full max-w-5xl px-6 py-6 text-sm text-muted">
-          Shortlist
+          Folio
         </div>
       </footer>
     </div>

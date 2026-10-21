@@ -8,7 +8,7 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "Shortlist",
+  title: "Folio",
   description: "Build a clean, professional resume in minutes.",
 };
 
