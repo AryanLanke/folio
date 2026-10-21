@@ -1,64 +1,84 @@
+import Image from "next/image";
 import Link from "next/link";
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteHeader from "@/components/site/SiteHeader";
 
-const steps = [
+const features = [
   {
-    title: "Add your details",
-    body: "Fill in your experience, education and skills. Put the sections in any order you like.",
+    title: "Match it to the job",
+    body: "Paste a job posting and see your match score, the keywords you already cover, and the ones you're missing.",
   },
   {
-    title: "Pick a template",
-    body: "Choose Classic, Modern or Serif, and see exactly where page one ends as you type.",
+    title: "Import your old resume",
+    body: "Upload a PDF or paste the text. Every field fills in, in your own words.",
   },
   {
-    title: "Check and download",
-    body: "See what applicant tracking software reads, then save a clean PDF and start applying.",
+    title: "AI that doesn't make things up",
+    body: "✨ Enhance fixes grammar and wording. It never adds numbers, skills or experience you didn't write.",
+  },
+  {
+    title: "Five ATS-safe templates",
+    body: "Classic, Modern, Executive, Compact and Serif. All single-column, real text, standard headings.",
+  },
+  {
+    title: "See what the ATS sees",
+    body: "A readiness check and the exact plain text that Workday, Greenhouse and Taleo pull from your PDF.",
+  },
+  {
+    title: "PDF, Word and cover letters",
+    body: "One-click PDF or Word download, plus a cover letter written from your real experience.",
   },
 ];
 
-const promises = [
+const comparison = [
+  ["Downloading your resume", "Free PDF and Word, no watermark", "Usually paid, or watermarked"],
+  ["Getting started", "No account. Just start typing", "Sign-up required"],
+  ["Job match and keywords", "Free", "Paid plans"],
+  ["AI writing help", "Free daily, never invents facts", "Paid, and known to inflate claims"],
+  ["Where your resume lives", "In your own browser", "On their servers"],
+];
+
+const faqs = [
   {
-    title: "Free PDF, no watermark",
-    body: "No paywall at the download button. Ever.",
+    q: "Is it really free?",
+    a: "Yes. Writing, all five templates, PDF and Word downloads, the ATS check, job match and multiple resumes are free, with no trial and no watermark. AI actions are free up to 15 a day.",
   },
   {
-    title: "No sign-up",
-    body: "Open the editor and start typing. No account, no email.",
+    q: "Will my resume get through applicant tracking systems?",
+    a: "Every template is built the way ATS software reads best: one column, real selectable text, standard section headings, and no tables, icons or images. The ATS check tab shows you exactly what the software will read.",
   },
   {
-    title: "Your data stays with you",
-    body: "Your resume is saved in your own browser, not on our servers. AI only sees the text you choose to enhance.",
+    q: "Does the AI make things up?",
+    a: "It's instructed not to, and checked for it: AI only rewords what you wrote, and cover letters go through a separate fact-check against your resume. Still, read everything before you send it.",
   },
   {
-    title: "Built to pass ATS",
-    body: "Single column, real text, standard headings, and a built-in check.",
+    q: "Where is my data stored?",
+    a: "In your own browser, on your device. Folio has no accounts and no database. Text you choose to send to AI is processed and not stored. See the privacy page for details.",
+  },
+  {
+    q: "Can I use it on my phone?",
+    a: "Yes. The editor switches to Edit and Preview tabs on small screens, and downloads work on phones too.",
+  },
+  {
+    q: "How do I move my resume to another computer?",
+    a: "Use More → Save backup file, then More → Open backup file on the other device.",
   },
 ];
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border">
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-6">
-          <span className="text-lg font-bold tracking-tight">
-            Folio<span className="text-accent">.</span>
-          </span>
-          <Link
-            href="/builder"
-            className="text-sm font-bold text-muted transition-colors hover:text-foreground"
-          >
-            Open editor
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6 py-20 sm:py-28">
-        <section className="max-w-2xl">
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-            Your resume, done right.
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
+        <section className="max-w-3xl pt-20 sm:pt-28">
+          <p className="text-sm font-bold text-accent">Free resume builder · no sign-up · no watermark</p>
+          <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
+            The resume builder that&apos;s actually free.
           </h1>
-          <p className="mt-6 text-lg leading-8 text-muted">
-            Write it once, make it look good, and download it ready to send. Free, with no sign-up and
-            no clutter.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
+            Write your resume, match it to the job, polish it with honest AI, and download a PDF or Word file.
+            No account, no paywall at the download button.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
@@ -76,51 +96,107 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-20 grid gap-4 sm:grid-cols-3">
-          {steps.map((step, i) => (
-            <div
-              key={step.title}
-              className="rounded-lg bg-surface p-6 transition-colors hover:bg-surface-hover"
-            >
-              <span className="text-sm font-bold text-accent">0{i + 1}</span>
-              <h2 className="mt-3 text-lg font-bold">{step.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted">{step.body}</p>
-            </div>
-          ))}
-        </section>
+        <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
+          <Image
+            src="/screenshots/editor.png"
+            alt="The Folio editor: a form on the left and the resume on a real page on the right"
+            width={1440}
+            height={900}
+            priority
+            className="h-auto w-full"
+          />
+        </div>
 
-        <section className="mt-20">
-          <h2 className="text-2xl font-bold tracking-tight">What you won&apos;t find here</h2>
-          <p className="mt-2 text-muted">
-            Most resume builders let you write for free, then charge you to download. Folio doesn&apos;t.
-          </p>
-          <div className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-            {promises.map((promise) => (
-              <div key={promise.title} className="flex gap-3">
-                <span className="mt-0.5 font-bold text-accent" aria-hidden>
-                  ✓
-                </span>
-                <div>
-                  <h3 className="font-bold">{promise.title}</h3>
-                  <p className="mt-1 text-sm leading-6 text-muted">{promise.body}</p>
-                </div>
+        <section className="mt-24">
+          <h2 className="text-3xl font-bold tracking-tight">Everything the paid builders charge for</h2>
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <div key={feature.title} className="rounded-lg bg-surface p-6 transition-colors hover:bg-surface-hover">
+                <h3 className="text-lg font-bold">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-muted">{feature.body}</p>
               </div>
             ))}
           </div>
         </section>
+
+        <section className="mt-24 grid items-center gap-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Know your match before you apply</h2>
+            <p className="mt-4 leading-7 text-muted">
+              Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
+              resume against them as you type, and tailors ✨ Enhance to the job&apos;s wording, without adding
+              anything you haven&apos;t done.
+            </p>
+            <Link
+              href="/builder?example&view=job"
+              className="mt-6 inline-block font-bold text-accent transition-colors hover:text-accent-hover"
+            >
+              Try job match on the example →
+            </Link>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-border shadow-2xl">
+            <Image
+              src="/screenshots/job-match.png"
+              alt="Job match: a 75% score, missing keywords GraphQL and Jest, and the keywords already on the resume"
+              width={1440}
+              height={900}
+              className="h-auto w-full"
+            />
+          </div>
+        </section>
+
+        <section className="mt-24">
+          <h2 className="text-3xl font-bold tracking-tight">Folio vs. most resume builders</h2>
+          <div className="mt-8 overflow-x-auto rounded-lg border border-border">
+            <table className="w-full min-w-[560px] text-left text-sm">
+              <thead className="bg-surface">
+                <tr>
+                  <th className="p-4 font-semibold text-muted" />
+                  <th className="p-4 font-bold text-accent">Folio</th>
+                  <th className="p-4 font-semibold text-muted">Most resume builders</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.map(([label, folio, others]) => (
+                  <tr key={label} className="border-t border-border">
+                    <td className="p-4 font-semibold">{label}</td>
+                    <td className="p-4">✓ {folio}</td>
+                    <td className="p-4 text-muted">{others}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="mt-24 max-w-3xl">
+          <h2 className="text-3xl font-bold tracking-tight">Questions</h2>
+          <div className="mt-8 divide-y divide-border border-y border-border">
+            {faqs.map((faq) => (
+              <details key={faq.q} className="group py-5">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold [&::-webkit-details-marker]:hidden">
+                  {faq.q}
+                  <span className="text-muted transition-transform group-open:rotate-45">+</span>
+                </summary>
+                <p className="mt-3 leading-7 text-muted">{faq.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section className="my-24 rounded-xl bg-surface p-10 text-center">
+          <h2 className="text-3xl font-bold tracking-tight">Your next resume, done right.</h2>
+          <p className="mt-3 text-muted">Free, private, and ready in minutes.</p>
+          <Link
+            href="/builder"
+            className="mt-8 inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
+          >
+            Start building
+          </Link>
+        </section>
       </main>
 
-      <footer className="border-t border-border">
-        <div className="mx-auto flex w-full max-w-5xl justify-between gap-4 px-6 py-6 text-sm text-muted">
-          <span>Folio</span>
-          <a
-            href="https://github.com/AryanLanke/resume-builder"
-            className="transition-colors hover:text-foreground"
-          >
-            Source on GitHub
-          </a>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

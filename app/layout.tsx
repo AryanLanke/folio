@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -8,14 +9,26 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
-  title: "Folio",
-  description: "Build a clean, professional resume in minutes.",
+  title: "Folio · Free resume builder, no sign-up",
+  description:
+    "Build an ATS-friendly resume for free. Job match, honest AI, five templates, PDF and Word downloads. No sign-up, no watermark.",
+  openGraph: {
+    title: "Folio · The resume builder that's actually free",
+    description: "Job match, honest AI, five ATS-safe templates, PDF and Word downloads. No sign-up, no watermark.",
+    images: ["/screenshots/editor.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${figtree.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        {children}
+        {/* Vercel Web Analytics: cookieless page-view counts, only on the live site */}
+        {process.env.VERCEL_ENV === "production" && (
+          <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
+        )}
+      </body>
     </html>
   );
 }
