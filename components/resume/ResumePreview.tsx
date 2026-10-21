@@ -5,8 +5,6 @@ import {
   PAPER,
   type PaperSize,
   type Resume,
-  type ResumeStyle,
-  type TemplateName,
   hasEducation,
   hasExperience,
   hasExtraItem,
@@ -15,58 +13,39 @@ import {
   toList,
   visibleSections,
 } from "@/lib/resume";
+import { HTML_FONT, type TemplateSpec, layoutFor } from "@/lib/templates";
 
-// Every template is single-column plain text with standard headings, so all of them stay
-// ATS-readable. They differ only in typeface, alignment and heading style.
-
-const FONT_SIZE: Record<ResumeStyle["fontSize"], number> = { small: 11.5, medium: 12.5, large: 13.5 };
-const SPACING: Record<ResumeStyle["spacing"], { gap: number; lineHeight: number }> = {
-  compact: { gap: 0.7, lineHeight: 1.35 },
-  normal: { gap: 1, lineHeight: 1.45 },
-  relaxed: { gap: 1.3, lineHeight: 1.55 },
-};
-
-const TEMPLATE_STYLES: Record<
-  TemplateName,
-  { font: string; header: string; name: string; title: string; heading: string }
-> = {
-  classic: {
-    font: "Arial, Helvetica, sans-serif",
-    header: "text-center",
-    name: "text-[2.08em] font-bold",
-    title: "text-neutral-700",
-    heading: "border-b border-neutral-300 pb-1 text-[0.88em] font-bold uppercase tracking-[0.12em] text-neutral-900",
-  },
-  modern: {
-    font: "Arial, Helvetica, sans-serif",
-    header: "text-left",
-    name: "text-[2.3em] font-bold tracking-tight",
-    title: "font-semibold text-[#1d6b45]",
-    heading: "border-b-2 border-[#1d6b45] pb-1 text-[0.9em] font-bold uppercase tracking-[0.08em] text-[#1d6b45]",
-  },
-  serif: {
-    font: "Georgia, 'Times New Roman', serif",
-    header: "text-center",
-    name: "text-[2.1em] font-normal tracking-wide",
-    title: "italic text-neutral-700",
-    heading: "border-b border-neutral-400 pb-0.5 text-[1.08em] font-bold tracking-[0.06em] text-neutral-900 [font-variant:small-caps]",
-  },
-};
+// The resume as a web page. Its look comes from lib/templates.ts, shared with the PDF and Word
+// exports. Every template is single-column plain text with standard headings (ATS-readable).
 
 function Section({
   title,
   gap,
-  headingClass,
+  spec,
   children,
 }: {
   title: string;
   gap: number;
-  headingClass: string;
+  spec: TemplateSpec;
   children: React.ReactNode;
 }) {
+  const { heading } = spec;
   return (
     <section style={{ marginTop: 20 * gap }}>
-      <h2 className={`break-after-avoid ${headingClass}`}>{title}</h2>
+      <h2
+        className="break-after-avoid font-bold"
+        style={{
+          fontSize: `${heading.scale}em`,
+          letterSpacing: `${heading.letterSpacing}em`,
+          textTransform: heading.uppercase ? "uppercase" : "none",
+          fontVariant: heading.smallCaps ? "small-caps" : "normal",
+          color: heading.color,
+          borderBottom: heading.rule ? `${heading.rule}px solid ${heading.ruleColor}` : "none",
+          paddingBottom: heading.rule ? 3 : 0,
+        }}
+      >
+        {title}
+      </h2>
       <div className="flex flex-col" style={{ marginTop: 8 * gap, gap: 12 * gap }}>
         {children}
       </div>
@@ -193,37 +172,58 @@ function CoreContent({ resume, sectionKey }: { resume: Resume; sectionKey: strin
   }
 }
 
-export default function ResumePreview({
-  resume,
-  paper,
-  mode = "screen",
-}: {
-  resume: Resume;
-  paper: PaperSize;
-  // "print" drops the page box, since the printed page's own margins take over
-  mode?: "screen" | "print";
-}) {
-  const { basics, style } = resume;
+export default function ResumePreview({ resume, paper }: { resume: Resume; paper: PaperSize }) {
+  const { basics } = resume;
   const size = PAPER[paper];
-  const template = TEMPLATE_STYLES[style.template];
-  const { gap, lineHeight } = SPACING[style.spacing];
-
-  const pageStyle =
-    mode === "screen" ? { width: size.width, minHeight: size.height, padding: PAGE_MARGIN } : {};
+  const { spec, fontSize, gap, lineHeight } = layoutFor(resume.style);
 
   return (
     <article
-      style={{ fontFamily: template.font, fontSize: FONT_SIZE[style.fontSize], lineHeight, ...pageStyle }}
+      style={{
+        fontFamily: spec.serif ? HTML_FONT.serif : HTML_FONT.sans,
+        fontSize,
+        lineHeight,
+        width: size.width,
+        minHeight: size.height,
+        padding: PAGE_MARGIN,
+      }}
       className="bg-white text-neutral-800"
     >
-      <header className={template.header}>
-        <h1 className={`leading-tight text-neutral-950 ${template.name}`}>{basics.name || "Your Name"}</h1>
-        {basics.title && <p className={`mt-0.5 text-[1.12em] ${template.title}`}>{basics.title}</p>}
+      <header
+        style={{
+          textAlign: spec.align,
+          borderBottom: spec.headerRule ? `${spec.headerRule.width}px solid ${spec.headerRule.color}` : "none",
+          paddingBottom: spec.headerRule ? 10 : 0,
+        }}
+      >
+        <h1
+          className="leading-tight text-neutral-950"
+          style={{
+            fontSize: `${spec.name.scale}em`,
+            fontWeight: spec.name.bold ? 700 : 400,
+            letterSpacing: `${spec.name.letterSpacing}em`,
+          }}
+        >
+          {basics.name || "Your Name"}
+        </h1>
+        {basics.title && (
+          <p
+            className="mt-0.5"
+            style={{
+              fontSize: "1.12em",
+              color: spec.title.color,
+              fontWeight: spec.title.bold ? 600 : 400,
+              fontStyle: spec.title.italic ? "italic" : "normal",
+            }}
+          >
+            {basics.title}
+          </p>
+        )}
         <Contact basics={basics} />
       </header>
 
       {visibleSections(resume).map((section) => (
-        <Section key={section.key} title={section.title} gap={gap} headingClass={template.heading}>
+        <Section key={section.key} title={section.title} gap={gap} spec={spec}>
           {section.extra ? (
             <ExtraContent section={section.extra} />
           ) : (

@@ -68,6 +68,8 @@ export default function Editor({
     );
 
   const { basics } = resume;
+  // Job keywords from Job match, so AI wording leans toward the target job
+  const focus = resume.target.keywords.length > 0 ? resume.target.keywords : undefined;
 
   const renderCore = (key: CoreSection) => {
     switch (key) {
@@ -75,6 +77,7 @@ export default function Editor({
         return (
           <EnhanceTextArea
             kind="summary"
+            focus={focus}
             role={resume.basics.title}
             label="A few lines about you"
             hint="2–3 sentences"
@@ -135,6 +138,7 @@ export default function Editor({
                   <div className="mt-4">
                     <EnhanceTextArea
                       kind="bullets"
+                      focus={focus}
                       role={[item.role, item.company].filter(Boolean).join(" at ")}
                       current={current}
                       label="What you did"
@@ -182,6 +186,7 @@ export default function Editor({
                 <div className="mt-4">
                   <EnhanceTextArea
                     kind="bullets"
+                    focus={focus}
                     role={item.name ? `Project: ${item.name}` : undefined}
                     label="What it is"
                     hint="One bullet per line"
@@ -287,6 +292,7 @@ export default function Editor({
               <div className="mt-4">
                 <EnhanceTextArea
                   kind="bullets"
+                  focus={focus}
                   role={[item.title, item.subtitle].filter(Boolean).join(" at ") || undefined}
                   label="Details"
                   hint="One bullet per line"

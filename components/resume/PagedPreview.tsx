@@ -1,20 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ResumePreview from "@/components/resume/ResumePreview";
 import { countPages, pageBreaks } from "@/lib/pages";
-import { PAGE_MARGIN, PAPER, type PaperSize, type Resume } from "@/lib/resume";
+import { PAGE_MARGIN, PAPER, type PaperSize } from "@/lib/resume";
 
-// Shows the resume as a real page: scaled down to fit narrow screens,
-// with dashed lines where the printed PDF will break onto a new page.
+// Shows a document as a real page: scaled down to fit narrow screens, with dashed lines
+// where the downloaded PDF will start a new page.
 export default function PagedPreview({
-  resume,
   paper,
   toolbar,
+  children,
 }: {
-  resume: Resume;
   paper: PaperSize;
   toolbar?: React.ReactNode;
+  // The page itself, drawn at full paper width
+  children: React.ReactNode;
 }) {
   const size = PAPER[paper];
   const frameRef = useRef<HTMLDivElement>(null);
@@ -40,7 +40,7 @@ export default function PagedPreview({
 
   return (
     <div className="mx-auto w-full" style={{ maxWidth: size.width }}>
-      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">{toolbar}</div>
+      {toolbar && <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">{toolbar}</div>}
       <p
         className={`mb-3 rounded-md px-3 py-2 text-xs font-bold ${
           pages === 1 ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
@@ -48,7 +48,7 @@ export default function PagedPreview({
       >
         {pages === 1
           ? "Fits on 1 page"
-          : `${pages} pages — most resumes should be 1. Try smaller text or tight spacing.`}
+          : `${pages} pages — most resumes should be 1. Try smaller text, tight spacing or the Compact template.`}
       </p>
 
       <div ref={frameRef} className="w-full">
@@ -58,7 +58,7 @@ export default function PagedPreview({
             className="relative origin-top-left shadow-2xl"
             style={{ width: size.width, transform: `scale(${scale})` }}
           >
-            <ResumePreview resume={resume} paper={paper} />
+            {children}
             {breaks.map((top, i) => (
               <div
                 key={top}

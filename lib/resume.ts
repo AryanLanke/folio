@@ -84,6 +84,8 @@ export const CORE_TITLES: Record<CoreSection, string> = {
 export const TEMPLATES = {
   classic: { label: "Classic" },
   modern: { label: "Modern" },
+  executive: { label: "Executive" },
+  compact: { label: "Compact" },
   serif: { label: "Serif" },
 } as const;
 
@@ -97,6 +99,19 @@ export type ResumeStyle = {
 
 export const DEFAULT_STYLE: ResumeStyle = { template: "classic", fontSize: "medium", spacing: "normal" };
 
+// The job this resume is aimed at, used by job match and cover letters
+export type JobTarget = {
+  description: string;
+  title: string;
+  company: string;
+  // Skills and terms the posting asks for, extracted once by AI
+  keywords: string[];
+};
+
+export function emptyTarget(): JobTarget {
+  return { description: "", title: "", company: "", keywords: [] };
+}
+
 export type Resume = {
   basics: Basics;
   summary: string;
@@ -109,6 +124,8 @@ export type Resume = {
   // Section order on the page: core section names and extra section ids
   order: string[];
   style: ResumeStyle;
+  target: JobTarget;
+  coverLetter: string;
 };
 
 export const PRESENT = "Present";
@@ -148,6 +165,8 @@ export function createEmptyResume(): Resume {
     extras: [],
     order: [...CORE_SECTIONS],
     style: { ...DEFAULT_STYLE },
+    target: emptyTarget(),
+    coverLetter: "",
   };
 }
 
@@ -217,6 +236,15 @@ export function createSampleResume(): Resume {
     extras: [certifications],
     order: [...CORE_SECTIONS, certifications.id],
     style: { ...DEFAULT_STYLE },
+    // A sample job, so the example also shows Job match working
+    target: {
+      description:
+        "Frontend Engineer at Northwind. You'll build fast, accessible interfaces with React and TypeScript, own features end to end, and help grow our shared component library. Experience with Next.js, GraphQL, Jest and accessibility (WCAG) is a strong plus.",
+      title: "Frontend Engineer",
+      company: "Northwind",
+      keywords: ["React", "TypeScript", "Next.js", "component library", "accessibility", "WCAG", "GraphQL", "Jest"],
+    },
+    coverLetter: "",
   };
 }
 
@@ -225,7 +253,8 @@ function pickStrings<T extends Record<string, string>>(source: unknown, base: T)
   const src = (source && typeof source === "object" ? source : {}) as Record<string, unknown>;
   const out: Record<string, string> = { ...base };
   for (const key of Object.keys(base)) {
-    if (key !== "id" && typeof src[key] === "string") out[key] = src[key] as string;
+    // Saved ids are kept, unless missing or empty, in which case the fresh one from base stays
+    if (typeof src[key] === "string" && (key !== "id" || src[key] !== "")) out[key] = src[key] as string;
   }
   return out as T;
 }
@@ -272,6 +301,8 @@ export function normalizeResume(data: unknown): Resume | null {
   const empty = createEmptyResume();
   const extras = normalizeExtras(src.extras);
   const style = (src.style && typeof src.style === "object" ? src.style : {}) as Record<string, unknown>;
+  const target = (src.target && typeof src.target === "object" ? src.target : {}) as Record<string, unknown>;
+  const text = (value: unknown) => (typeof value === "string" ? value : "");
 
   return {
     basics: pickStrings(src.basics, empty.basics),
@@ -287,6 +318,15 @@ export function normalizeResume(data: unknown): Resume | null {
       fontSize: pickOne(style.fontSize, ["small", "medium", "large"], DEFAULT_STYLE.fontSize),
       spacing: pickOne(style.spacing, ["compact", "normal", "relaxed"], DEFAULT_STYLE.spacing),
     },
+    target: {
+      description: text(target.description),
+      title: text(target.title),
+      company: text(target.company),
+      keywords: Array.isArray(target.keywords)
+        ? target.keywords.filter((k): k is string => typeof k === "string" && k.trim() !== "")
+        : [],
+    },
+    coverLetter: text(src.coverLetter),
   };
 }
 

@@ -10,6 +10,8 @@ export type EnhanceRequest = {
   role?: string;
   // Current jobs read better in present tense
   current?: boolean;
+  // Keywords from the job being applied for, so existing experience uses the job's wording
+  focus?: string[];
 };
 
 export type EnhanceResult = {
@@ -19,7 +21,8 @@ export type EnhanceResult = {
 };
 
 export const MAX_INPUT_LENGTH = 2000;
-export const DAILY_LIMIT = 10;
+// Shared by every AI action (enhance, job match, import, cover letter)
+export const DAILY_LIMIT = 15;
 // Model ids per provider; override either with the AI_MODEL environment variable
 export const DEFAULT_MODEL = "anthropic/claude-haiku-5.5";
 export const DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b";
@@ -42,6 +45,9 @@ export function validateRequest(body: unknown): EnhanceRequest | string {
     text: src.text.trim(),
     role: typeof src.role === "string" ? src.role.slice(0, 200) : undefined,
     current: src.current === true,
+    focus: Array.isArray(src.focus)
+      ? src.focus.filter((k): k is string => typeof k === "string" && k.trim() !== "").map((k) => k.slice(0, 60)).slice(0, 25)
+      : undefined,
   };
 }
 
@@ -60,6 +66,11 @@ export function buildMessages(request: EnhanceRequest) {
     `- Write naturally and plainly. Never use these words: ${BANNED_WORDS.join(", ")}.`,
     `- ${shape}`,
     '- If the text would be stronger with a number the person did not give (how many people, how much time saved), ask for it in "tip" as one short question. Otherwise set "tip" to null. Never put made-up numbers in the text.',
+    ...(request.focus?.length
+      ? [
+          `- This is for a job that looks for: ${request.focus.join(", ")}. Where the text already shows one of these, use the job's exact wording for it. Never add a skill, tool or experience that is not already in the text.`,
+        ]
+      : []),
     "",
     'Respond with JSON only, in exactly this shape: {"lines": ["..."], "tip": "..." or null}',
   ].join("\n");

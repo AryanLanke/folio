@@ -12,11 +12,12 @@ import {
 
 describe("validateRequest", () => {
   it("accepts a valid request and trims the text", () => {
-    expect(validateRequest({ kind: "bullets", text: "  built things  ", role: "Dev", current: true })).toEqual({
+    expect(validateRequest({ kind: "bullets", text: "  built things  ", role: "Dev", current: true, focus: ["Go", 3, ""] })).toEqual({
       kind: "bullets",
       text: "built things",
       role: "Dev",
       current: true,
+      focus: ["Go"],
     });
   });
 
@@ -38,6 +39,13 @@ describe("buildMessages", () => {
   it("uses present tense for current jobs and past tense otherwise", () => {
     expect(buildMessages({ kind: "bullets", text: "x", current: true })[0].content).toContain("present tense");
     expect(buildMessages({ kind: "bullets", text: "x" })[0].content).toContain("past tense");
+  });
+
+  it("tailors to job keywords only when given, without adding new skills", () => {
+    const tailored = buildMessages({ kind: "bullets", text: "x", focus: ["Kubernetes", "Go"] })[0].content;
+    expect(tailored).toContain("Kubernetes, Go");
+    expect(tailored).toContain("Never add a skill");
+    expect(buildMessages({ kind: "bullets", text: "x" })[0].content).not.toContain("looks for");
   });
 
   it("includes the role and the text for the model", () => {

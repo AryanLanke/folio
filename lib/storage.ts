@@ -2,11 +2,14 @@
 // blocked site data), so every read and write is wrapped and fails quietly.
 
 import { recordUse, usesLeft } from "@/lib/enhance";
+import { type Library, createLibrary, normalizeLibrary } from "@/lib/library";
 import { type PaperSize, type Resume, normalizeResume } from "@/lib/resume";
 
-const RESUME_KEY = "folio:resume";
+const LIBRARY_KEY = "folio:library";
+const RESUME_PREFIX = "folio:resume:";
+// Where the single resume lived before multiple resumes existed
+const LEGACY_RESUME_KEY = "folio:resume";
 const PAPER_KEY = "folio:paper";
-const PDF_TIP_KEY = "folio:pdf-tip-seen";
 const AI_USES_KEY = "folio:ai-uses";
 
 // The user's own calendar day, so the allowance resets at their midnight
@@ -32,18 +35,50 @@ function write(key: string, value: string) {
   }
 }
 
-export function loadResume(): Resume | null {
-  const raw = read(RESUME_KEY);
+function remove(key: string) {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Nothing to do; the entry just stays behind
+  }
+}
+
+function parse(raw: string | null): unknown {
   if (!raw) return null;
   try {
-    return normalizeResume(JSON.parse(raw));
+    return JSON.parse(raw);
   } catch {
     return null;
   }
 }
 
-export function saveResume(resume: Resume) {
-  return write(RESUME_KEY, JSON.stringify(resume));
+export function loadResume(id: string): Resume | null {
+  return normalizeResume(parse(read(RESUME_PREFIX + id)));
+}
+
+export function saveResume(id: string, resume: Resume) {
+  return write(RESUME_PREFIX + id, JSON.stringify(resume));
+}
+
+export function deleteResume(id: string) {
+  remove(RESUME_PREFIX + id);
+}
+
+export function saveLibrary(library: Library) {
+  return write(LIBRARY_KEY, JSON.stringify(library));
+}
+
+// Loads the list of resumes. On a first visit after the multiple-resume update, the old
+// single resume becomes the first entry. Returns null when nothing was ever saved.
+export function loadLibrary(): Library | null {
+  const library = normalizeLibrary(parse(read(LIBRARY_KEY)));
+  if (library) return library;
+
+  const legacy = normalizeResume(parse(read(LEGACY_RESUME_KEY)));
+  if (!legacy) return null;
+  const migrated = createLibrary("My resume");
+  if (saveResume(migrated.activeId, legacy) && saveLibrary(migrated)) remove(LEGACY_RESUME_KEY);
+  return migrated;
 }
 
 export function loadPaper(): PaperSize {
@@ -52,14 +87,6 @@ export function loadPaper(): PaperSize {
 
 export function savePaper(paper: PaperSize) {
   write(PAPER_KEY, paper);
-}
-
-export function hasSeenPdfTip() {
-  return read(PDF_TIP_KEY) === "1";
-}
-
-export function markPdfTipSeen() {
-  write(PDF_TIP_KEY, "1");
 }
 
 export function aiUsesLeft() {

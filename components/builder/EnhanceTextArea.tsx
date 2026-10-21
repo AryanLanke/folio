@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { TextArea } from "@/components/builder/fields";
+import { callAi, useAiUsesLeft } from "@/lib/client/ai";
 import type { EnhanceKind, EnhanceResult } from "@/lib/enhance";
-import { aiUsesLeft, recordAiUse } from "@/lib/storage";
 
 type State =
   | { status: "idle" }
@@ -11,54 +11,33 @@ type State =
   | { status: "done"; result: EnhanceResult }
   | { status: "error"; message: string };
 
-const ERRORS: Record<string, string> = {
-  not_configured: "AI enhance isn't set up yet.",
-  limit: "You've used today's free enhancements. They reset tomorrow.",
-  busy: "AI is busy right now. Try again in a minute.",
-};
-
 // A text box with an optional "Enhance with AI" button. Nothing is sent anywhere
 // unless the user clicks it, and the suggestion only replaces their text if they accept it.
 export default function EnhanceTextArea({
   kind,
   role,
   current,
+  focus,
   onAccept,
   ...textArea
 }: React.ComponentProps<typeof TextArea> & {
   kind: EnhanceKind;
   role?: string;
   current?: boolean;
+  // Keywords from the target job; when set, wording leans toward the job's terms
+  focus?: string[];
   // Applies the accepted suggestion as one undoable change
   onAccept: (value: string) => void;
 }) {
   const [state, setState] = useState<State>({ status: "idle" });
-  const [left, setLeft] = useState(aiUsesLeft);
+  const left = useAiUsesLeft();
   const empty = !textArea.value.trim();
+  const tailored = Boolean(focus?.length);
 
   const enhance = async () => {
-    if (left <= 0) {
-      setState({ status: "error", message: ERRORS.limit });
-      return;
-    }
     setState({ status: "loading" });
-    try {
-      const response = await fetch("/api/enhance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ kind, text: textArea.value, role, current }),
-      });
-      const data = await response.json().catch(() => null);
-      if (!response.ok || !data?.lines) {
-        setState({ status: "error", message: ERRORS[data?.error] ?? "Couldn't enhance right now. Try again." });
-        return;
-      }
-      recordAiUse();
-      setLeft(aiUsesLeft());
-      setState({ status: "done", result: data as EnhanceResult });
-    } catch {
-      setState({ status: "error", message: "Couldn't reach the AI. Check your connection and try again." });
-    }
+    const reply = await callAi<EnhanceResult>("/api/enhance", { kind, text: textArea.value, role, current, focus });
+    setState(reply.ok ? { status: "done", result: reply.data } : { status: "error", message: reply.message });
   };
 
   const accept = (result: EnhanceResult) => {
@@ -72,7 +51,7 @@ export default function EnhanceTextArea({
 
       <div className="mt-2 flex items-center justify-between gap-3">
         <span className="text-xs text-neutral-500">
-          {left > 0 ? `${left} free AI enhancements left today` : "No AI enhancements left today"}
+          {left > 0 ? `${left} free AI actions left today` : "No AI actions left today"}
         </span>
         <button
           type="button"
@@ -81,7 +60,7 @@ export default function EnhanceTextArea({
           title="Sends only this text to our AI provider to suggest better wording"
           className="rounded-full border border-border px-3 py-1 text-xs font-bold text-foreground transition-colors hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-40"
         >
-          {state.status === "loading" ? "Enhancing…" : "✨ Enhance with AI"}
+          {state.status === "loading" ? "Enhancing…" : tailored ? "✨ Enhance for this job" : "✨ Enhance with AI"}
         </button>
       </div>
 

@@ -1,0 +1,53 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { DAILY_LIMIT } from "@/lib/enhance";
+import { aiUsesLeft, recordAiUse } from "@/lib/storage";
+
+// Calls one of Folio's /api AI routes and turns failures into plain-English messages.
+// Every successful call counts toward the shared daily allowance.
+
+const MESSAGES: Record<string, string> = {
+  not_configured: "AI isn't set up yet.",
+  limit: "You've used today's free AI actions. They reset tomorrow.",
+  busy: "AI is busy right now. Try again in a minute.",
+  too_large: "That file is too big. Use a PDF under 4 MB.",
+  unreadable: "Couldn't read any text from that file. If it's a scanned image, paste the text instead.",
+  bad_request: "There isn't enough text to work with yet.",
+};
+
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+// How many AI actions are left today, kept in sync across every component that shows it
+export function useAiUsesLeft() {
+  return useSyncExternalStore(subscribe, aiUsesLeft, () => DAILY_LIMIT);
+}
+
+export async function callAi<T>(
+  path: string,
+  body: object | FormData,
+): Promise<{ ok: true; data: T } | { ok: false; message: string }> {
+  if (aiUsesLeft() <= 0) return { ok: false, message: MESSAGES.limit };
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      ...(body instanceof FormData
+        ? { body }
+        : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data) {
+      return { ok: false, message: MESSAGES[data?.error] ?? "Something went wrong. Try again." };
+    }
+    recordAiUse();
+    listeners.forEach((listener) => listener());
+    return { ok: true, data: data as T };
+  } catch {
+    return { ok: false, message: "Couldn't reach the AI. Check your connection and try again." };
+  }
+}
