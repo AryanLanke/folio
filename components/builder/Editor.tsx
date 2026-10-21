@@ -1,5 +1,6 @@
 "use client";
 
+import EnhanceTextArea from "@/components/builder/EnhanceTextArea";
 import { AddButton, Card, Field, Item, ItemControls, TextArea } from "@/components/builder/fields";
 import {
   type Basics,
@@ -46,12 +47,12 @@ export default function Editor({
     onChange({ ...resume, ...patch }, checkpoint);
   const setBasics = (patch: Partial<Basics>) => set({ basics: { ...resume.basics, ...patch } });
 
-  const setExperience = (id: string, patch: Partial<Experience>) =>
-    set({ experience: updateItem(resume.experience, id, patch) });
+  const setExperience = (id: string, patch: Partial<Experience>, checkpoint = false) =>
+    set({ experience: updateItem(resume.experience, id, patch) }, checkpoint);
   const setEducation = (id: string, patch: Partial<Education>) =>
     set({ education: updateItem(resume.education, id, patch) });
-  const setProject = (id: string, patch: Partial<Project>) =>
-    set({ projects: updateItem(resume.projects, id, patch) });
+  const setProject = (id: string, patch: Partial<Project>, checkpoint = false) =>
+    set({ projects: updateItem(resume.projects, id, patch) }, checkpoint);
   const setExtra = (id: string, patch: Partial<ExtraSection>) =>
     set({ extras: updateItem(resume.extras, id, patch) });
 
@@ -72,11 +73,14 @@ export default function Editor({
     switch (key) {
       case "summary":
         return (
-          <TextArea
+          <EnhanceTextArea
+            kind="summary"
+            role={resume.basics.title}
             label="A few lines about you"
             hint="2–3 sentences"
             value={resume.summary}
             onChange={(v) => set({ summary: v })}
+            onAccept={(v) => set({ summary: v }, true)}
             placeholder="Frontend developer with 3 years of experience..."
           />
         );
@@ -129,12 +133,16 @@ export default function Editor({
                     </label>
                   </div>
                   <div className="mt-4">
-                    <TextArea
+                    <EnhanceTextArea
+                      kind="bullets"
+                      role={[item.role, item.company].filter(Boolean).join(" at ")}
+                      current={current}
                       label="What you did"
                       hint="One bullet per line"
                       rows={5}
                       value={item.bullets}
                       onChange={(v) => setExperience(item.id, { bullets: v })}
+                      onAccept={(v) => setExperience(item.id, { bullets: v }, true)}
                       placeholder={"Rebuilt the dashboard, cutting load time by 60%\nLed a team of 3 developers"}
                     />
                   </div>
@@ -172,12 +180,15 @@ export default function Editor({
                   />
                 </div>
                 <div className="mt-4">
-                  <TextArea
+                  <EnhanceTextArea
+                    kind="bullets"
+                    role={item.name ? `Project: ${item.name}` : undefined}
                     label="What it is"
                     hint="One bullet per line"
                     rows={3}
                     value={item.bullets}
                     onChange={(v) => setProject(item.id, { bullets: v })}
+                    onAccept={(v) => setProject(item.id, { bullets: v }, true)}
                   />
                 </div>
               </Item>
@@ -246,7 +257,8 @@ export default function Editor({
     const fields = EXTRA_KINDS[section.kind];
     const setItems = (items: ExtraItem[], checkpoint = false) =>
       set({ extras: updateItem(resume.extras, section.id, { items }) }, checkpoint);
-    const setItem = (id: string, patch: Partial<ExtraItem>) => setItems(updateItem(section.items, id, patch));
+    const setItem = (id: string, patch: Partial<ExtraItem>, checkpoint = false) =>
+      setItems(updateItem(section.items, id, patch), checkpoint);
 
     return (
       <div className="space-y-4">
@@ -273,12 +285,15 @@ export default function Editor({
             </div>
             {fields.bullets && (
               <div className="mt-4">
-                <TextArea
+                <EnhanceTextArea
+                  kind="bullets"
+                  role={[item.title, item.subtitle].filter(Boolean).join(" at ") || undefined}
                   label="Details"
                   hint="One bullet per line"
                   rows={3}
                   value={item.bullets}
                   onChange={(v) => setItem(item.id, { bullets: v })}
+                  onAccept={(v) => setItem(item.id, { bullets: v }, true)}
                 />
               </div>
             )}

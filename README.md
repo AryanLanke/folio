@@ -28,12 +28,15 @@ Most resume builders let you spend half an hour writing, then ask for a subscrip
 - **Any section order:** put Education first, or Experience, or anything else
 - **Extra sections:** certifications, awards, volunteering, languages, or your own
 - **ATS check:** readiness checklist plus the plain text that tracking systems extract
+- **Enhance with AI (optional):** click ✨ on your summary or bullets to get clearer, more professional wording. It fixes grammar and phrasing but never adds facts or numbers, and you choose whether to use it. 10 free uses per day
 - **Input checks:** gentle warnings for phone numbers, emails, links and dates that look wrong
 - **Autosave, undo and backup files** to move your resume between devices
 
 ## How it works
 
-Folio is a [Next.js](https://nextjs.org) app with no backend. Your resume lives in your browser's local storage, and the PDF is produced by the browser's own print engine, so the text stays selectable, links stay clickable and ATS software can read it.
+Folio is a [Next.js](https://nextjs.org) app. Your resume lives in your browser's local storage, and the PDF is produced by the browser's own print engine, so the text stays selectable, links stay clickable and ATS software can read it.
+
+The only server code is one route, `/api/enhance`, used when someone clicks ✨ Enhance. It sends just that piece of text to [Groq](https://groq.com) and returns suggested wording. Nothing else is stored or sent anywhere.
 
 ```
 app/                  Pages: home (/) and editor (/builder)
@@ -42,6 +45,8 @@ components/resume/    The resume page, page-break preview and ATS view
 lib/resume.ts         The resume data model and loading of saved data
 lib/validate.ts       Checks for phone, email, link and date fields
 lib/ats.ts            Plain-text export and ATS readiness checks
+lib/enhance.ts        AI enhance rules: prompt, response parsing, daily limit
+app/api/enhance/      Server route that calls the AI
 lib/pages.ts          Page count and page-break math
 lib/storage.ts        Browser storage
 ```
@@ -56,6 +61,14 @@ npm run dev
 ```
 
 Then open [http://localhost:3000](http://localhost:3000).
+
+To try ✨ Enhance locally, get a free API key at [console.groq.com](https://console.groq.com) and add it to a `.env.local` file:
+
+```
+GROQ_API_KEY=your-key-here
+```
+
+Everything else works without it.
 
 | Command | What it does |
 | --- | --- |

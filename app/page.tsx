@@ -26,7 +26,7 @@ const promises = [
   },
   {
     title: "Your data stays with you",
-    body: "Your resume is saved in your own browser, not on our servers.",
+    body: "Your resume is saved in your own browser, not on our servers. AI only sees the text you choose to enhance.",
   },
   {
     title: "Built to pass ATS",
