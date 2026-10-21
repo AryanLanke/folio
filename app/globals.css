@@ -28,3 +28,10 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* The downloaded PDF is a white page, even with "Background graphics" turned on */
+@media print {
+  body {
+    background: #ffffff;
+  }
+}

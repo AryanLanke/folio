@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import ResumePreview from "@/components/resume/ResumePreview";
+import { countPages, pageBreaks } from "@/lib/pages";
 import { PAGE_MARGIN, PAPER, type PaperSize, type Resume } from "@/lib/resume";
 
 // Shows the resume as a real page: scaled down to fit narrow screens,
@@ -34,23 +35,21 @@ export default function PagedPreview({
     return () => observer.disconnect();
   }, [size.width]);
 
-  // Each printed page holds the page height minus its top and bottom margins
-  const usable = size.height - PAGE_MARGIN * 2;
-  const pages = Math.max(1, Math.ceil((height - PAGE_MARGIN * 2 - 1) / usable));
-  const breaks = Array.from({ length: pages - 1 }, (_, i) => PAGE_MARGIN + usable * (i + 1));
+  const pages = countPages(height, size.height, PAGE_MARGIN);
+  const breaks = pageBreaks(pages, size.height, PAGE_MARGIN);
 
   return (
     <div className="mx-auto w-full" style={{ maxWidth: size.width }}>
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-bold ${
-            pages === 1 ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
-          }`}
-        >
-          {pages === 1 ? "Fits on 1 page" : `${pages} pages — most resumes should be 1`}
-        </span>
-        {toolbar}
-      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">{toolbar}</div>
+      <p
+        className={`mb-3 rounded-md px-3 py-2 text-xs font-bold ${
+          pages === 1 ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
+        }`}
+      >
+        {pages === 1
+          ? "Fits on 1 page"
+          : `${pages} pages — most resumes should be 1. Try smaller text or tight spacing.`}
+      </p>
 
       <div ref={frameRef} className="w-full">
         <div style={{ width: size.width * scale, height: height * scale }}>

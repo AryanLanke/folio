@@ -3,52 +3,51 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import Editor from "@/components/builder/Editor";
+import PdfTipDialog from "@/components/builder/PdfTipDialog";
+import AtsView from "@/components/resume/AtsView";
 import PagedPreview from "@/components/resume/PagedPreview";
 import ResumePreview from "@/components/resume/ResumePreview";
+import Segmented from "@/components/ui/Segmented";
 import {
   PAGE_MARGIN,
   PAPER,
   type PaperSize,
   type Resume,
+  type ResumeStyle,
+  TEMPLATES,
+  type TemplateName,
   createEmptyResume,
   createSampleResume,
   normalizeResume,
 } from "@/lib/resume";
+import { hasSeenPdfTip, loadPaper, loadResume, markPdfTipSeen, savePaper, saveResume } from "@/lib/storage";
 
-const STORAGE_KEY = "folio:resume";
-const PAPER_KEY = "folio:paper";
 const MAX_UNDO = 20;
 
-// Storage can be unavailable (private mode, blocked site data), so never let it crash the editor
-function readStorage(key: string) {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
+const TEMPLATE_OPTIONS = (Object.keys(TEMPLATES) as TemplateName[]).map((value) => ({
+  value,
+  label: TEMPLATES[value].label,
+}));
 
-function writeStorage(key: string, value: string) {
-  try {
-    localStorage.setItem(key, value);
-    return true;
-  } catch {
-    return false;
-  }
-}
+const FONT_OPTIONS: { value: ResumeStyle["fontSize"]; label: string }[] = [
+  { value: "small", label: "S" },
+  { value: "medium", label: "M" },
+  { value: "large", label: "L" },
+];
 
-function loadResume(): Resume | null {
-  const raw = readStorage(STORAGE_KEY);
-  if (!raw) return null;
-  try {
-    return normalizeResume(JSON.parse(raw));
-  } catch {
-    return null;
-  }
-}
+const SPACING_OPTIONS: { value: ResumeStyle["spacing"]; label: string }[] = [
+  { value: "compact", label: "Tight" },
+  { value: "normal", label: "Normal" },
+  { value: "relaxed", label: "Airy" },
+];
 
-function loadPaper(): PaperSize {
-  return readStorage(PAPER_KEY) === "a4" ? "a4" : "letter";
+const PAPER_OPTIONS = (Object.keys(PAPER) as PaperSize[]).map((value) => ({ value, label: PAPER[value].label }));
+
+// Saved work always wins; "?example" only fills in a first visit (used by the home page link)
+function initialResume(): Resume {
+  const saved = loadResume();
+  if (saved) return saved;
+  return new URLSearchParams(window.location.search).has("example") ? createSampleResume() : createEmptyResume();
 }
 
 function fileName(resume: Resume, extension: string) {
@@ -72,12 +71,14 @@ const menuItem =
   "block w-full rounded px-3 py-2 text-left text-sm font-semibold text-foreground transition-colors hover:bg-surface-hover";
 
 export default function Builder() {
-  // Only rendered in the browser (see ClientBuilder), so storage is readable here
-  const [resume, setResume] = useState<Resume>(() => loadResume() ?? createEmptyResume());
+  // Only rendered in the browser (see ClientBuilder), so storage and the URL are readable here
+  const [resume, setResume] = useState<Resume>(initialResume);
   const [paper, setPaper] = useState<PaperSize>(loadPaper);
   const [history, setHistory] = useState<Resume[]>([]);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const [previewView, setPreviewView] = useState<"page" | "ats">("page");
+  const [showPdfTip, setShowPdfTip] = useState(false);
   const menuRef = useRef<HTMLDetailsElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -95,19 +96,26 @@ export default function Builder() {
     setSaveState("saving");
   };
 
+  const setStyle = (patch: Partial<ResumeStyle>) => update({ ...resume, style: { ...resume.style, ...patch } });
+
   const changePaper = (next: PaperSize) => {
     setPaper(next);
-    writeStorage(PAPER_KEY, next);
+    savePaper(next);
   };
 
   // Autosave shortly after the user stops typing
   useEffect(() => {
     if (saveState !== "saving") return;
-    const timer = setTimeout(
-      () => setSaveState(writeStorage(STORAGE_KEY, JSON.stringify(resume)) ? "saved" : "failed"),
-      400,
-    );
+    const timer = setTimeout(() => setSaveState(saveResume(resume) ? "saved" : "failed"), 400);
     return () => clearTimeout(timer);
+  }, [resume, saveState]);
+
+  // Save right away if the tab is closed before the autosave delay runs out
+  useEffect(() => {
+    if (saveState !== "saving") return;
+    const flush = () => saveResume(resume);
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
   }, [resume, saveState]);
 
   // Close the "More" menu when clicking anywhere else
@@ -138,16 +146,6 @@ export default function Builder() {
     }
   };
 
-  const saveBackup = () => {
-    closeMenu();
-    downloadBackup(resume);
-  };
-
-  const openBackup = () => {
-    closeMenu();
-    fileInputRef.current?.click();
-  };
-
   const onBackupChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -163,11 +161,30 @@ export default function Builder() {
   };
 
   // The browser's print dialog saves a real text PDF, so links stay clickable and ATS can read it
-  const downloadPdf = () => {
+  const printPdf = () => {
     const previousTitle = document.title;
+    // The title becomes the suggested file name
     document.title = fileName(resume, "pdf").replace(/\.pdf$/, "");
+    window.addEventListener(
+      "afterprint",
+      () => {
+        document.title = previousTitle;
+      },
+      { once: true },
+    );
     window.print();
-    document.title = previousTitle;
+  };
+
+  // First-timers get a short guide to the print window before it opens
+  const downloadPdf = () => {
+    if (hasSeenPdfTip()) printPdf();
+    else setShowPdfTip(true);
+  };
+
+  const continueToPdf = () => {
+    markPdfTipSeen();
+    setShowPdfTip(false);
+    printPdf();
   };
 
   const saveLabel = {
@@ -177,21 +194,28 @@ export default function Builder() {
     failed: "Couldn't save — your browser is blocking storage",
   }[saveState];
 
-  const paperToggle = (
-    <div className="flex rounded-full bg-surface p-0.5">
-      {(Object.keys(PAPER) as PaperSize[]).map((size) => (
-        <button
-          key={size}
-          type="button"
-          onClick={() => changePaper(size)}
-          className={`rounded-full px-3 py-1 text-xs font-bold transition-colors ${
-            paper === size ? "bg-foreground text-background" : "text-muted hover:text-foreground"
-          }`}
-        >
-          {PAPER[size].label}
-        </button>
-      ))}
-    </div>
+  const layoutControls = (
+    <>
+      <Segmented
+        label="Template"
+        options={TEMPLATE_OPTIONS}
+        value={resume.style.template}
+        onChange={(template) => setStyle({ template })}
+      />
+      <Segmented
+        label="Text"
+        options={FONT_OPTIONS}
+        value={resume.style.fontSize}
+        onChange={(fontSize) => setStyle({ fontSize })}
+      />
+      <Segmented
+        label="Spacing"
+        options={SPACING_OPTIONS}
+        value={resume.style.spacing}
+        onChange={(spacing) => setStyle({ spacing })}
+      />
+      <Segmented label="Paper" options={PAPER_OPTIONS} value={paper} onChange={changePaper} />
+    </>
   );
 
   return (
@@ -228,12 +252,37 @@ export default function Builder() {
                 More
               </summary>
               <div className="absolute right-0 z-20 mt-2 w-60 rounded-lg border border-border bg-surface p-1.5 shadow-2xl">
-                <button type="button" className={menuItem} onClick={saveBackup}>
+                <button
+                  type="button"
+                  className={menuItem}
+                  onClick={() => {
+                    closeMenu();
+                    downloadBackup(resume);
+                  }}
+                >
                   Save backup file
                   <span className="block text-xs font-normal text-muted">To move to another device</span>
                 </button>
-                <button type="button" className={menuItem} onClick={openBackup}>
+                <button
+                  type="button"
+                  className={menuItem}
+                  onClick={() => {
+                    closeMenu();
+                    fileInputRef.current?.click();
+                  }}
+                >
                   Open backup file
+                </button>
+                <div className="my-1 border-t border-border" />
+                <button
+                  type="button"
+                  className={menuItem}
+                  onClick={() => {
+                    closeMenu();
+                    setShowPdfTip(true);
+                  }}
+                >
+                  How to save as PDF
                 </button>
                 <div className="my-1 border-t border-border" />
                 <button type="button" className={menuItem} onClick={loadExample}>
@@ -248,7 +297,7 @@ export default function Builder() {
             <button
               type="button"
               onClick={downloadPdf}
-              className="rounded-full bg-accent px-4 py-2 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
+              className="whitespace-nowrap rounded-full bg-accent px-4 py-2 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
             >
               Download PDF
             </button>
@@ -291,9 +340,27 @@ export default function Builder() {
               mobileView === "preview" ? "block" : "hidden"
             }`}
           >
-            <PagedPreview resume={resume} paper={paper} toolbar={paperToggle} />
+            <div className="mx-auto mb-4 w-full max-w-[816px]">
+              <Segmented
+                options={[
+                  { value: "page", label: "Page" },
+                  { value: "ats", label: "ATS check" },
+                ]}
+                value={previewView}
+                onChange={setPreviewView}
+              />
+            </div>
+            {previewView === "page" ? (
+              <PagedPreview resume={resume} paper={paper} toolbar={layoutControls} />
+            ) : (
+              <div className="mx-auto w-full max-w-[816px]">
+                <AtsView resume={resume} />
+              </div>
+            )}
           </div>
         </div>
+
+        {showPdfTip && <PdfTipDialog onCancel={() => setShowPdfTip(false)} onContinue={continueToPdf} />}
       </div>
 
       {/* Only this copy is printed, without the editor around it */}

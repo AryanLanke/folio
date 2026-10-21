@@ -3,15 +3,34 @@ import Link from "next/link";
 const steps = [
   {
     title: "Add your details",
-    body: "Fill in your experience, education and skills in a simple form.",
+    body: "Fill in your experience, education and skills. Put the sections in any order you like.",
   },
   {
-    title: "Pick a layout",
-    body: "Choose a clean template that recruiters can read at a glance.",
+    title: "Pick a template",
+    body: "Choose Classic, Modern or Serif, and see exactly where page one ends as you type.",
   },
   {
-    title: "Download",
-    body: "Export a print-ready PDF and start applying.",
+    title: "Check and download",
+    body: "See what applicant tracking software reads, then save a clean PDF and start applying.",
+  },
+];
+
+const promises = [
+  {
+    title: "Free PDF, no watermark",
+    body: "No paywall at the download button. Ever.",
+  },
+  {
+    title: "No sign-up",
+    body: "Open the editor and start typing. No account, no email.",
+  },
+  {
+    title: "Your data stays with you",
+    body: "Your resume is saved in your own browser, not on our servers.",
+  },
+  {
+    title: "Built to pass ATS",
+    body: "Single column, real text, standard headings, and a built-in check.",
   },
 ];
 
@@ -38,15 +57,23 @@ export default function Home() {
             Your resume, done right.
           </h1>
           <p className="mt-6 text-lg leading-8 text-muted">
-            Write it once, make it look good, and download it ready to send.
-            No sign-up, no clutter.
+            Write it once, make it look good, and download it ready to send. Free, with no sign-up and
+            no clutter.
           </p>
-          <Link
-            href="/builder"
-            className="mt-10 inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
-          >
-            Start building
-          </Link>
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Link
+              href="/builder"
+              className="inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
+            >
+              Start building
+            </Link>
+            <Link
+              href="/builder?example"
+              className="inline-flex h-12 items-center rounded-full border border-border px-8 text-base font-bold transition-colors hover:border-foreground"
+            >
+              See an example
+            </Link>
+          </div>
         </section>
 
         <section className="mt-20 grid gap-4 sm:grid-cols-3">
@@ -61,11 +88,37 @@ export default function Home() {
             </div>
           ))}
         </section>
+
+        <section className="mt-20">
+          <h2 className="text-2xl font-bold tracking-tight">What you won&apos;t find here</h2>
+          <p className="mt-2 text-muted">
+            Most resume builders let you write for free, then charge you to download. Folio doesn&apos;t.
+          </p>
+          <div className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            {promises.map((promise) => (
+              <div key={promise.title} className="flex gap-3">
+                <span className="mt-0.5 font-bold text-accent" aria-hidden>
+                  ✓
+                </span>
+                <div>
+                  <h3 className="font-bold">{promise.title}</h3>
+                  <p className="mt-1 text-sm leading-6 text-muted">{promise.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto w-full max-w-5xl px-6 py-6 text-sm text-muted">
-          Folio
+        <div className="mx-auto flex w-full max-w-5xl justify-between gap-4 px-6 py-6 text-sm text-muted">
+          <span>Folio</span>
+          <a
+            href="https://github.com/AryanLanke/resume-builder"
+            className="transition-colors hover:text-foreground"
+          >
+            Source on GitHub
+          </a>
         </div>
       </footer>
     </div>
