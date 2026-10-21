@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Folio
 
-## Getting Started
+**A free resume builder that doesn't charge you at the download button.**
 
-First, run the development server:
+Write your resume, see it on a real page as you type, check what applicant tracking software will read, and save a clean PDF. No sign-up, no watermark, no paywall.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**[Try it live →](https://resume-builder-chi-dusky.vercel.app)** · [See an example](https://resume-builder-chi-dusky.vercel.app/builder?example)
+
+![The Folio editor: a form on the left and a live resume preview on the right](docs/screenshot.png)
+
+## Why Folio
+
+Most resume builders let you spend half an hour writing, then ask for a subscription before you can download. Folio was built around the complaints people have about those tools:
+
+| Common problem | What Folio does instead |
+| --- | --- |
+| Download locked behind a paywall | PDF download is free, with no watermark |
+| Account required before you can start | No account. Open the editor and type |
+| Your data stored on someone's server | Saved only in your own browser |
+| Fancy layouts that ATS software can't read | Every template is single-column, real text, standard headings |
+| No idea if your resume will pass screening | A built-in ATS check shows exactly what the software reads |
+
+## Features
+
+- **Live preview on a real page:** Letter or A4, with a marker where page two starts
+- **Three templates:** Classic, Modern and Serif, all ATS-safe
+- **Fit to one page:** adjust text size and spacing with one click
+- **Any section order:** put Education first, or Experience, or anything else
+- **Extra sections:** certifications, awards, volunteering, languages, or your own
+- **ATS check:** readiness checklist plus the plain text that tracking systems extract
+- **Input checks:** gentle warnings for phone numbers, emails, links and dates that look wrong
+- **Autosave, undo and backup files** to move your resume between devices
+
+## How it works
+
+Folio is a [Next.js](https://nextjs.org) app with no backend. Your resume lives in your browser's local storage, and the PDF is produced by the browser's own print engine, so the text stays selectable, links stay clickable and ATS software can read it.
+
+```
+app/                  Pages: home (/) and editor (/builder)
+components/builder/   The editor form, toolbar and dialogs
+components/resume/    The resume page, page-break preview and ATS view
+lib/resume.ts         The resume data model and loading of saved data
+lib/validate.ts       Checks for phone, email, link and date fields
+lib/ats.ts            Plain-text export and ATS readiness checks
+lib/pages.ts          Page count and page-break math
+lib/storage.ts        Browser storage
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run it locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You need [Node.js](https://nodejs.org) 20.9 or newer.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm install
+npm run dev
+```
 
-## Learn More
+Then open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm test` | Run the unit tests |
+| `npm run lint` | Check code style |
+| `npm run typecheck` | Check TypeScript types |
+| `npm run build` | Build for production |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Every push to GitHub runs lint, type checks, tests and a production build automatically.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## License
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[MIT](LICENSE)
