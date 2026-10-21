@@ -5,7 +5,7 @@ import { callAi } from "@/lib/client/ai";
 import { MAX_IMPORT_LENGTH } from "@/lib/importer";
 import { type Resume, normalizeResume } from "@/lib/resume";
 
-// Brings in an existing resume: upload a PDF or paste the text, and AI sorts it into fields.
+// Brings in an existing resume: upload a PDF or Word file, or paste the text, and AI sorts it into fields.
 export default function ImportDialog({
   onImported,
   onClose,
@@ -71,19 +71,19 @@ export default function ImportDialog({
         </p>
 
         <div className="mt-5 flex gap-1 rounded-full bg-background p-1">
-          {tab("pdf", "Upload PDF")}
+          {tab("pdf", "Upload file")}
           {tab("text", "Paste text")}
         </div>
 
         {mode === "pdf" ? (
           <label className="mt-4 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border px-4 py-8 text-center transition-colors hover:border-accent">
-            <span className="text-sm font-bold">{file ? file.name : "Choose a PDF"}</span>
+            <span className="text-sm font-bold">{file ? file.name : "Choose a PDF or Word file"}</span>
             <span className="text-xs text-muted">
-              {file ? `${(file.size / 1024).toFixed(0)} KB · click to change` : "Up to 4 MB"}
+              {file ? `${(file.size / 1024).toFixed(0)} KB · click to change` : "PDF or Word (.docx), up to 4 MB"}
             </span>
             <input
               type="file"
-              accept="application/pdf,.pdf"
+              accept=".pdf,.docx,.doc,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />

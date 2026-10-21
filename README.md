@@ -32,12 +32,13 @@ Most resume builders let you spend half an hour writing, then charge before you 
 - Multiple resumes (one per job type), duplicate, rename, undo, autosave and backup files
 
 **Get it past the screening**
+- **Resume score:** a score out of 100 built from visible checks (ATS readiness, writing quality and job match), each with what to fix. Upload an existing resume to score it in seconds
 - **Job match:** paste a job posting to see a match score, the keywords you cover and the ones you're missing, updated live as you type
 - **ATS check:** a readiness checklist and the exact plain text tracking systems pull from your PDF
 
 **AI that stays honest** (optional, 15 free actions a day)
-- **Tell AI about yourself:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
-- **Import:** upload an old resume PDF or paste its text, and every field fills in using your exact words
+- **Build with AI:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
+- **Import:** upload an old resume (PDF or Word) or paste its text, and every field fills in using your exact words, links included
 - **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write
 - **Cover letters:** written only from your resume, then checked by a second AI pass that strikes anything your resume doesn't support
 

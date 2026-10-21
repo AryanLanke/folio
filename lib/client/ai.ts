@@ -11,7 +11,8 @@ const MESSAGES: Record<string, string> = {
   not_configured: "AI isn't set up yet.",
   limit: "You've used today's free AI actions. They reset tomorrow.",
   busy: "AI is busy right now. Try again in a minute.",
-  too_large: "That file is too big. Use a PDF under 4 MB.",
+  too_large: "That file is too big. Use a PDF or Word file under 4 MB.",
+  old_word: "That's an old Word file (.doc). Open it in Word and save it as .docx or PDF, or paste the text instead.",
   unreadable: "Couldn't read any text from that file. If it's a scanned image, paste the text instead.",
   bad_request: "There isn't enough text to work with yet.",
 };

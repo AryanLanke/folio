@@ -11,12 +11,6 @@ export default function SiteHeader() {
           <Link href="/privacy" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
             Privacy
           </Link>
-          <a
-            href="https://github.com/AryanLanke/resume-builder"
-            className="hidden text-muted transition-colors hover:text-foreground sm:inline"
-          >
-            GitHub
-          </a>
           <Link
             href="/builder"
             className="rounded-full bg-foreground px-4 py-2 text-background transition-opacity hover:opacity-85"

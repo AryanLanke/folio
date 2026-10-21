@@ -10,6 +10,7 @@ import AtsView from "@/components/resume/AtsView";
 import CoverLetterPreview from "@/components/resume/CoverLetterPreview";
 import JobMatch from "@/components/resume/JobMatch";
 import PagedPreview from "@/components/resume/PagedPreview";
+import ScoreView from "@/components/resume/ScoreView";
 import ResumePreview from "@/components/resume/ResumePreview";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
@@ -74,12 +75,15 @@ const LINK_OPTIONS: { value: ResumeStyle["links"]; label: string }[] = [
   { value: "url", label: "Full" },
 ];
 
-type PreviewView = "page" | "ats" | "job";
+type PreviewView = "page" | "score" | "ats" | "job";
 
-// "?view=job" or "?view=ats" opens that tab, so links can point straight at a feature
+// "?view=job" (or score, ats) opens that tab, so links can point straight at a feature.
+// "?score" comes from the home page's "Score my resume": import a resume, then see its score.
 function startingView(): PreviewView {
-  const view = new URLSearchParams(window.location.search).get("view");
-  return view === "ats" || view === "job" ? view : "page";
+  const params = new URLSearchParams(window.location.search);
+  if (params.has("score")) return "score";
+  const view = params.get("view");
+  return view === "score" || view === "ats" || view === "job" ? view : "page";
 }
 
 // Saved work always wins; "?example" only fills in a first visit (used by the home page link)
@@ -102,6 +106,8 @@ type SaveState = "idle" | "saving" | "saved" | "failed";
 type Format = "pdf" | "docx";
 
 const pill = "rounded-full px-3 py-1.5 text-sm font-semibold text-muted transition-colors hover:text-foreground";
+const iconButton =
+  "flex size-9 items-center justify-center rounded-full text-lg text-muted transition-colors hover:bg-surface hover:text-foreground disabled:pointer-events-none disabled:opacity-30";
 
 export default function Builder() {
   // Only rendered in the browser (see ClientBuilder), so storage and the URL are readable here
@@ -114,8 +120,8 @@ export default function Builder() {
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [editorView, setEditorView] = useState<"resume" | "letter">("resume");
   const [previewView, setPreviewView] = useState<PreviewView>(startingView);
-  const [importing, setImporting] = useState(false);
-  // "?chat" (from the home page) opens the "Tell AI about yourself" chat straight away
+  const [importing, setImporting] = useState(() => new URLSearchParams(window.location.search).has("score"));
+  // "?chat" (from the home page) opens the "Build with AI" chat straight away
   const [chatOpen, setChatOpen] = useState(() => new URLSearchParams(window.location.search).has("chat"));
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [exporting, setExporting] = useState(false);
@@ -344,7 +350,7 @@ export default function Builder() {
               Import an existing resume…
             </button>
             <button type="button" className={menuItemClass} onClick={() => setChatOpen(true)}>
-              Build one by chatting with AI…
+              ✨ Build with AI…
             </button>
             <MenuDivider />
             <button type="button" className={menuItemClass} onClick={rename}>
@@ -361,16 +367,28 @@ export default function Builder() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {history.past.length > 0 && (
-            <button type="button" onClick={undoStep} className={pill} aria-label="Undo" title="Undo (Ctrl+Z)">
-              ↶<span className="hidden sm:inline"> Undo</span>
+          <div className="flex">
+            <button
+              type="button"
+              onClick={undoStep}
+              disabled={history.past.length === 0}
+              className={iconButton}
+              aria-label="Undo"
+              title="Undo (Ctrl+Z)"
+            >
+              ↶
             </button>
-          )}
-          {history.future.length > 0 && (
-            <button type="button" onClick={redoStep} className={pill} aria-label="Redo" title="Redo (Ctrl+Shift+Z)">
-              ↷<span className="hidden sm:inline"> Redo</span>
+            <button
+              type="button"
+              onClick={redoStep}
+              disabled={history.future.length === 0}
+              className={iconButton}
+              aria-label="Redo"
+              title="Redo (Ctrl+Shift+Z)"
+            >
+              ↷
             </button>
-          )}
+          </div>
 
           <Menu
             label={
@@ -400,9 +418,6 @@ export default function Builder() {
             >
               Load example
             </button>
-            <a href="https://github.com/AryanLanke/resume-builder/issues/new" target="_blank" rel="noopener noreferrer" className={menuItemClass}>
-              Send feedback ↗
-            </a>
           </Menu>
 
           <Menu
@@ -479,7 +494,7 @@ export default function Builder() {
                       onClick={() => setChatOpen(true)}
                       className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
                     >
-                      💬 Tell AI about yourself
+                      ✨ Build with AI
                     </button>
                     <button
                       type="button"
@@ -512,6 +527,7 @@ export default function Builder() {
             <Segmented
               options={[
                 { value: "page", label: editorView === "letter" ? "Letter" : "Page" },
+                { value: "score", label: "Score" },
                 { value: "ats", label: "ATS check" },
                 { value: "job", label: "Job match" },
               ]}
@@ -528,6 +544,11 @@ export default function Builder() {
                 <ResumePreview resume={resume} paper={paper} />
               )}
             </PagedPreview>
+          )}
+          {previewView === "score" && (
+            <div className="mx-auto w-full max-w-[816px]">
+              <ScoreView resume={resume} />
+            </div>
           )}
           {previewView === "ats" && (
             <div className="mx-auto w-full max-w-[816px]">
@@ -549,7 +570,17 @@ export default function Builder() {
         </div>
       </div>
 
-      {importing && <ImportDialog onImported={onImported} onClose={() => setImporting(false)} />}
+      {importing && (
+        <ImportDialog
+          onImported={(imported) => {
+            onImported(imported);
+            // Show how the imported resume scores straight away
+            setPreviewView("score");
+            setMobileView("preview");
+          }}
+          onClose={() => setImporting(false)}
+        />
+      )}
       {chatOpen && (
         <ChatBuilder
           turns={chatTurns}

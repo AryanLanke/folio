@@ -16,6 +16,17 @@ export default function AtsView({ resume }: { resume: Resume }) {
 
   return (
     <div className="space-y-4">
+      <section className="rounded-lg border border-accent/40 bg-accent/5 p-5">
+        <h2 className="text-base font-bold">What is an ATS?</h2>
+        <p className="mt-1 text-sm leading-6 text-muted">
+          An <b className="text-foreground">applicant tracking system</b> is software that most companies use to
+          collect job applications. When you apply online, it reads your resume as plain text, pulls out your name,
+          jobs, dates and skills, and lets recruiters search and rank candidates, often before a person ever opens
+          your resume. Common ones are Workday, Greenhouse, Lever and Taleo. If the software can&apos;t read
+          something, a recruiter may never see it.
+        </p>
+      </section>
+
       <section className="rounded-lg bg-surface p-5">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-base font-bold">ATS readiness</h2>
@@ -23,10 +34,7 @@ export default function AtsView({ resume }: { resume: Resume }) {
             {passed} / {checks.length} checks passed
           </span>
         </div>
-        <p className="mt-1 text-sm text-muted">
-          Companies run resumes through applicant tracking systems like Workday, Greenhouse and Taleo before a
-          person reads them. These checks cover what that software needs.
-        </p>
+        <p className="mt-1 text-sm text-muted">What the software needs to read your resume correctly.</p>
         <ul className="mt-4 space-y-3">
           {checks.map((check) => (
             <li key={check.label} className="flex gap-3 text-sm">

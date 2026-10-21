@@ -5,8 +5,12 @@ import SiteHeader from "@/components/site/SiteHeader";
 
 const features = [
   {
-    title: "Just talk about yourself",
+    title: "Build with AI",
     body: "Type or speak about your work in your own words. AI asks a few questions and writes the resume, using only what you said.",
+  },
+  {
+    title: "Score your resume",
+    body: "Get a score out of 100 with every point explained: what's working, what's missing, and how to fix it.",
   },
   {
     title: "Match it to the job",
@@ -14,7 +18,7 @@ const features = [
   },
   {
     title: "Import your old resume",
-    body: "Upload a PDF or paste the text. Every field fills in, in your own words.",
+    body: "Upload a PDF or Word file, or paste the text. Every field fills in, in your own words.",
   },
   {
     title: "AI that doesn't make things up",
@@ -22,11 +26,11 @@ const features = [
   },
   {
     title: "Five ATS-safe templates",
-    body: "Classic, Modern, Executive, Compact and Serif. All single-column, real text, standard headings.",
+    body: "Classic, Modern, Executive, Compact and Serif. All built so applicant tracking systems, the software companies use to screen resumes, can read them.",
   },
   {
     title: "See what the ATS sees",
-    body: "A readiness check and the exact plain text that Workday, Greenhouse and Taleo pull from your PDF.",
+    body: "The exact plain text that screening software like Workday and Greenhouse pulls from your PDF, plus a readiness check.",
   },
   {
     title: "PDF, Word and cover letters",
@@ -38,6 +42,7 @@ const comparison = [
   ["Downloading your resume", "Free PDF and Word, no watermark", "Usually paid, or watermarked"],
   ["Getting started", "No account. Just start typing", "Sign-up required"],
   ["Job match and keywords", "Free", "Paid plans"],
+  ["Resume score", "Free, with every point explained", "Paid, or a number with no reasons"],
   ["AI writing help", "Free daily, never invents facts", "Paid, and known to inflate claims"],
   ["Where your resume lives", "In your own browser", "On their servers"],
 ];
@@ -48,8 +53,16 @@ const faqs = [
     a: "Yes. Writing, all five templates, PDF and Word downloads, the ATS check, job match and multiple resumes are free, with no trial and no watermark. AI actions are free up to 15 a day.",
   },
   {
+    q: "What is an ATS?",
+    a: "An applicant tracking system (ATS) is software most companies use to collect job applications. When you apply online, it reads your resume as plain text, pulls out your name, jobs, dates and skills, and lets recruiters search and rank candidates, often before a person opens your resume. Workday, Greenhouse, Lever and Taleo are common ones.",
+  },
+  {
     q: "Will my resume get through applicant tracking systems?",
     a: "Every template is built the way ATS software reads best: one column, real selectable text, standard section headings, and no tables, icons or images. The ATS check tab shows you exactly what the software will read.",
+  },
+  {
+    q: "How is the resume score worked out?",
+    a: "From checks you can see: whether ATS software can read it, whether your bullets start with clear actions and include numbers, whether there are buzzwords or \"I\", and, if you add a job posting, how well you match its keywords. Every point is explained, with what to fix.",
   },
   {
     q: "Does the AI make things up?",
@@ -95,17 +108,21 @@ export default function Home() {
               href="/builder?chat"
               className="inline-flex h-12 items-center rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
             >
-              💬 Tell AI about yourself
+              ✨ Build with AI
             </Link>
             <Link
-              href="/builder?example"
-              className="inline-flex h-12 items-center px-4 text-base font-bold text-muted transition-colors hover:text-foreground"
+              href="/builder?score"
+              className="inline-flex h-12 items-center rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
             >
-              See an example →
+              Score my resume
             </Link>
           </div>
           <p className="mt-4 text-sm text-muted">
-            Not sure where to start? Just chat or talk about your work, and AI writes the resume for you.
+            Already have a resume? Upload your PDF or Word file to score it, then fix it here. Or{" "}
+            <Link href="/builder?example" className="font-bold text-foreground underline-offset-4 hover:underline">
+              see an example
+            </Link>
+            .
           </p>
         </section>
 

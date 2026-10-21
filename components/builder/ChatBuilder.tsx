@@ -23,7 +23,7 @@ function createRecognition(): Recognition | null {
   return Ctor ? new Ctor() : null;
 }
 
-// "Tell AI about yourself": chat (or talk) about your work, and AI writes the resume from it.
+// "Build with AI": chat (or talk) about your work, and AI writes the resume from it.
 // Chat messages are free; only "Create my resume" uses one of the daily AI actions.
 export default function ChatBuilder({
   turns,
@@ -140,7 +140,7 @@ export default function ChatBuilder({
         <div className="flex items-start justify-between gap-3 border-b border-border p-5">
           <div>
             <h2 id="chat-title" className="text-lg font-bold">
-              Tell AI about yourself
+              Build with AI
             </h2>
             <p className="text-sm text-muted">Chat or talk. AI writes your resume from what you say, nothing more.</p>
           </div>

@@ -25,22 +25,16 @@ const sections = [
   {
     title: "AI only sees what you choose to send",
     body: [
-      "Nothing is sent to AI unless you click an AI button. When you do, only the text that action needs is sent: the one box you're enhancing, the job posting you paste, the resume you import, your messages in the \"Tell AI about yourself\" chat, or your resume text when you ask for a cover letter.",
+      "Nothing is sent to AI unless you click an AI button. When you do, only the text that action needs is sent: the one box you're enhancing, the job posting you paste, the resume you import or ask to score, your messages in the \"Build with AI\" chat, or your resume text when you ask for a cover letter.",
       "Voice typing in the chat uses your browser's own speech recognition. In Chrome and Edge, your browser sends the audio to Google or Microsoft to turn it into text. Folio never receives the audio, only the text you send.",
       "That text goes through Folio's server to our AI provider, Groq, to produce a suggestion, and is sent back to you. Folio doesn't store it or log its contents. Groq's terms say it doesn't train on what it receives; it may keep requests for a limited time for its own security and abuse checks.",
-      "An uploaded PDF is read in memory to get its text, then discarded.",
+      "An uploaded PDF or Word file is read in memory to get its text, then discarded.",
     ],
   },
   {
     title: "Visitor statistics",
     body: [
       "Folio uses Vercel Web Analytics to count page visits. It doesn't use cookies, doesn't track you across sites, and never sees what you type in the editor.",
-    ],
-  },
-  {
-    title: "Open source",
-    body: [
-      "All of Folio's code is public, so anyone can check that it does what this page says.",
     ],
   },
 ];
@@ -67,17 +61,6 @@ export default function PrivacyPage() {
               ))}
             </section>
           ))}
-          <p className="leading-7 text-muted">
-            Questions?{" "}
-            <a href="https://github.com/AryanLanke/resume-builder/issues/new" className="font-bold text-accent">
-              Ask on GitHub
-            </a>{" "}
-            or read{" "}
-            <a href="https://github.com/AryanLanke/resume-builder" className="font-bold text-accent">
-              the code
-            </a>
-            .
-          </p>
         </div>
 
         <Link
