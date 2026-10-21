@@ -14,6 +14,7 @@ import ResumePreview from "@/components/resume/ResumePreview";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
 import { exportName, saveBlob } from "@/lib/export/text";
+import { type History, emptyHistory, record, redo, undo } from "@/lib/history";
 import type { ChatTurn } from "@/lib/interview";
 import {
   type Library,
@@ -47,7 +48,6 @@ import {
   saveResume,
 } from "@/lib/storage";
 
-const MAX_UNDO = 20;
 
 const TEMPLATE_OPTIONS = (Object.keys(TEMPLATES) as TemplateName[]).map((value) => ({
   value,
@@ -109,7 +109,7 @@ export default function Builder() {
   const [library, setLibrary] = useState<Library>(initial.library);
   const [resume, setResume] = useState<Resume>(initial.resume);
   const [paper, setPaper] = useState<PaperSize>(loadPaper);
-  const [history, setHistory] = useState<Resume[]>([]);
+  const [history, setHistory] = useState<History<Resume>>(emptyHistory);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [editorView, setEditorView] = useState<"resume" | "letter">("resume");
@@ -123,19 +123,48 @@ export default function Builder() {
 
   const activeName = library.items.find((item) => item.id === library.activeId)?.name ?? "My resume";
 
+  // Every change is recorded for undo; a burst of typing is one step, and "checkpoint" changes
+  // (removing a job, loading the example, accepting an AI suggestion) are always their own step
   const update = (next: Resume, checkpoint = false) => {
-    if (checkpoint) setHistory((h) => [...h.slice(-(MAX_UNDO - 1)), resume]);
+    setHistory((h) => record(h, resume, Date.now(), checkpoint));
     setResume(next);
     setSaveState("saving");
   };
 
-  const undo = () => {
-    const previous = history.at(-1);
-    if (!previous) return;
-    setHistory((h) => h.slice(0, -1));
-    setResume(previous);
+  const undoStep = () => {
+    const step = undo(history, resume);
+    if (!step) return;
+    setHistory(step.history);
+    setResume(step.value);
     setSaveState("saving");
   };
+
+  const redoStep = () => {
+    const step = redo(history, resume);
+    if (!step) return;
+    setHistory(step.history);
+    setResume(step.value);
+    setSaveState("saving");
+  };
+
+  // Ctrl+Z / Ctrl+Shift+Z (Cmd on Mac) when not typing in a box; inside a box the browser's own undo applies
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+      const target = e.target as HTMLElement;
+      if (target.closest("input, textarea, [contenteditable='true']")) return;
+      const key = e.key.toLowerCase();
+      if (key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undoStep();
+      } else if ((key === "z" && e.shiftKey) || key === "y") {
+        e.preventDefault();
+        redoStep();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const setStyle = (patch: Partial<ResumeStyle>) => update({ ...resume, style: { ...resume.style, ...patch } });
   const setTarget = (target: JobTarget, checkpoint = false) => update({ ...resume, target }, checkpoint);
@@ -172,7 +201,7 @@ export default function Builder() {
     saveResume(nextLibrary.activeId, nextResume);
     setLibrary(nextLibrary);
     setResume(nextResume);
-    setHistory([]);
+    setHistory(emptyHistory());
     setSaveState("saved");
     setEditorView("resume");
   };
@@ -201,7 +230,7 @@ export default function Builder() {
     const next = removeEntry(library, library.activeId);
     setLibrary(next);
     setResume(loadResume(next.activeId) ?? createEmptyResume());
-    setHistory([]);
+    setHistory(emptyHistory());
     setSaveState("idle");
   };
 
@@ -332,9 +361,14 @@ export default function Builder() {
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-          {history.length > 0 && (
-            <button type="button" onClick={undo} className={pill} aria-label="Undo">
+          {history.past.length > 0 && (
+            <button type="button" onClick={undoStep} className={pill} aria-label="Undo" title="Undo (Ctrl+Z)">
               ↶<span className="hidden sm:inline"> Undo</span>
+            </button>
+          )}
+          {history.future.length > 0 && (
+            <button type="button" onClick={redoStep} className={pill} aria-label="Redo" title="Redo (Ctrl+Shift+Z)">
+              ↷<span className="hidden sm:inline"> Redo</span>
             </button>
           )}
 
