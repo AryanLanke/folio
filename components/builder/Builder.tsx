@@ -14,6 +14,7 @@ import ScoreView from "@/components/resume/ScoreView";
 import ResumePreview from "@/components/resume/ResumePreview";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
+import { type BackupEntry, backupFileName, makeBackup, readBackup } from "@/lib/backup";
 import { exportName, saveBlob } from "@/lib/export/text";
 import { type History, emptyHistory, record, redo, undo } from "@/lib/history";
 import type { ChatTurn } from "@/lib/interview";
@@ -21,6 +22,7 @@ import {
   type Library,
   addEntry,
   createLibrary,
+  type LibraryEntry,
   removeEntry,
   renameEntry,
   selectEntry,
@@ -37,18 +39,21 @@ import {
   createEmptyResume,
   createSampleResume,
   hasExperience,
-  normalizeResume,
 } from "@/lib/resume";
+import { FEEDBACK_URL } from "@/lib/site";
 import {
   deleteResume,
+  keepStorage,
   loadLibrary,
   loadPaper,
   loadResume,
+  markBackedUp,
+  markEdited,
+  needsBackup,
   saveLibrary,
   savePaper,
   saveResume,
 } from "@/lib/storage";
-
 
 const TEMPLATE_OPTIONS = (Object.keys(TEMPLATES) as TemplateName[]).map((value) => ({
   value,
@@ -97,11 +102,6 @@ function startingState(): { library: Library; resume: Resume } {
   };
 }
 
-function downloadBackup(resume: Resume) {
-  const data = JSON.stringify({ app: "folio", version: 1, resume }, null, 2);
-  saveBlob(new Blob([data], { type: "application/json" }), exportName(resume, "resume", "pdf").replace(/\.pdf$/, ".json"));
-}
-
 type SaveState = "idle" | "saving" | "saved" | "failed";
 type Format = "pdf" | "docx";
 
@@ -125,6 +125,9 @@ export default function Builder() {
   const [chatOpen, setChatOpen] = useState(() => new URLSearchParams(window.location.search).has("chat"));
   const [chatTurns, setChatTurns] = useState<ChatTurn[]>([]);
   const [exporting, setExporting] = useState(false);
+  // "Keep a backup" reminder after a download; "Not now" hides it until the page is reloaded
+  const [backupNudge, setBackupNudge] = useState(false);
+  const nudgeDismissed = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const activeName = library.items.find((item) => item.id === library.activeId)?.name ?? "My resume";
@@ -181,17 +184,25 @@ export default function Builder() {
     savePaper(next);
   };
 
-  // Autosave shortly after the user stops typing
+  // Autosave shortly after the user stops typing. The browser is the only place resumes are
+  // kept, so the first save also asks it not to clear them on its own.
   useEffect(() => {
     if (saveState !== "saving") return;
-    const timer = setTimeout(() => setSaveState(saveResume(library.activeId, resume) ? "saved" : "failed"), 400);
+    const timer = setTimeout(() => {
+      const saved = saveResume(library.activeId, resume);
+      if (saved) {
+        markEdited();
+        keepStorage();
+      }
+      setSaveState(saved ? "saved" : "failed");
+    }, 400);
     return () => clearTimeout(timer);
   }, [resume, saveState, library.activeId]);
 
   // Save right away if the tab is closed before the autosave delay runs out
   useEffect(() => {
     if (saveState !== "saving") return;
-    const flush = () => saveResume(library.activeId, resume);
+    const flush = () => saveResume(library.activeId, resume) && markEdited();
     window.addEventListener("pagehide", flush);
     return () => window.removeEventListener("pagehide", flush);
   }, [resume, saveState, library.activeId]);
@@ -219,6 +230,7 @@ export default function Builder() {
   const createResume = (content: Resume, name: string) => {
     const { library: next } = addEntry(library, uniqueName(library, name));
     open(next, content);
+    markEdited();
   };
 
   const rename = () => {
@@ -254,18 +266,48 @@ export default function Builder() {
     }
   };
 
+  // One file with every resume, so they can all be restored here or on another device
+  const saveBackup = () => {
+    const entries = library.items.flatMap((item: LibraryEntry): BackupEntry[] => {
+      const content = item.id === library.activeId ? resume : loadResume(item.id);
+      return content ? [{ name: item.name, resume: content }] : [];
+    });
+    saveBlob(new Blob([makeBackup(entries)], { type: "application/json" }), backupFileName());
+    markBackedUp();
+    setBackupNudge(false);
+  };
+
+  // Adds every resume in the backup. On a fresh start (one empty resume) that empty one is replaced.
+  const restoreBackup = (entries: BackupEntry[]) => {
+    saveResume(library.activeId, resume);
+    const replaceBlank = library.items.length === 1 && resumeIsEmpty;
+    let next = library;
+    const ids: string[] = [];
+    for (const entry of entries) {
+      const added = addEntry(next, uniqueName(next, entry.name));
+      saveResume(added.id, entry.resume);
+      ids.push(added.id);
+      next = added.library;
+    }
+    if (replaceBlank) {
+      deleteResume(library.activeId);
+      next = removeEntry(next, library.activeId);
+    }
+    setLibrary(selectEntry(next, ids[0]));
+    setResume(entries[0].resume);
+    setHistory(emptyHistory());
+    setSaveState("saved");
+    setEditorView("resume");
+    alert(entries.length === 1 ? "Restored 1 resume." : `Restored ${entries.length} resumes. Switch between them from the menu at the top left.`);
+  };
+
   const onBackupChosen = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    try {
-      const data = JSON.parse(await file.text());
-      const restored = normalizeResume(data?.resume ?? data);
-      if (!restored) throw new Error("Not a resume");
-      createResume(restored, file.name.replace(/\.json$/i, "").replace(/-/g, " ") || "Restored resume");
-    } catch {
-      alert("That file isn't a Folio backup. Choose the .json file you saved from Folio.");
-    }
+    const entries = readBackup(await file.text(), file.name.replace(/\.json$/i, "").replace(/-/g, " ") || "Restored resume");
+    if (entries) restoreBackup(entries);
+    else alert("That file isn't a Folio backup. Choose the .json file you saved from Folio.");
   };
 
   // Files are generated in the browser; the export code loads only when first needed
@@ -281,6 +323,8 @@ export default function Builder() {
         blob = await docx.toBlob(what === "resume" ? docx.resumeDocx(resume, paper) : docx.coverLetterDocx(resume, paper));
       }
       saveBlob(blob, exportName(resume, what === "resume" ? "resume" : "cover-letter", format));
+      // Downloading is when real work is done, so it's the moment to suggest keeping a backup
+      if (!nudgeDismissed.current && needsBackup()) setBackupNudge(true);
     } catch {
       alert("Couldn't create the file. Please try again.");
     } finally {
@@ -291,7 +335,7 @@ export default function Builder() {
   const saveLabel = {
     idle: "",
     saving: "Saving…",
-    saved: "Saved in this browser",
+    saved: "Saved in this browser only",
     failed: "Couldn't save — your browser is blocking storage",
   }[saveState];
 
@@ -401,13 +445,22 @@ export default function Builder() {
             }
             buttonClass={pill}
           >
-            <button type="button" className={menuItemClass} onClick={() => downloadBackup(resume)}>
+            <MenuLabel>Saved only in this browser</MenuLabel>
+            <button type="button" className={menuItemClass} onClick={saveBackup}>
               Save backup file
-              <span className="block text-xs font-normal text-muted">To move to another device</span>
+              <span className="block text-xs font-normal text-muted">
+                {library.items.length === 1 ? "Your resume" : `All ${library.items.length} resumes`}, to keep safe or move to
+                another device
+              </span>
             </button>
             <button type="button" className={menuItemClass} onClick={() => fileInputRef.current?.click()}>
               Open backup file
             </button>
+            <MenuDivider />
+            <a href={FEEDBACK_URL} className={menuItemClass}>
+              Send feedback
+              <span className="block text-xs font-normal text-muted">Report a bug or suggest an idea</span>
+            </a>
             <MenuDivider />
             <button
               type="button"
@@ -486,7 +539,8 @@ export default function Builder() {
                 <section className="mb-4 rounded-lg border border-accent/40 bg-accent/5 p-4">
                   <p className="text-sm font-bold">Don&apos;t want to fill in forms?</p>
                   <p className="text-sm text-muted">
-                    Tell AI about your work in your own words, or import the resume you already have.
+                    Tell AI about your work in your own words, or import the resume you already have. Made one here
+                    before? Open your backup file.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
@@ -502,6 +556,13 @@ export default function Builder() {
                       className="rounded-full border border-border px-4 py-1.5 text-sm font-bold transition-colors hover:border-foreground"
                     >
                       Import resume
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="rounded-full border border-border px-4 py-1.5 text-sm font-bold transition-colors hover:border-foreground"
+                    >
+                      Open backup
                     </button>
                   </div>
                 </section>
@@ -569,6 +630,38 @@ export default function Builder() {
           )}
         </div>
       </div>
+
+      {backupNudge && (
+        <div
+          role="status"
+          className="fixed inset-x-3 bottom-3 z-40 rounded-lg border border-border bg-surface p-4 shadow-2xl sm:left-auto sm:right-6 sm:bottom-6 sm:w-96"
+        >
+          <p className="text-sm font-bold">Keep a backup of your resume</p>
+          <p className="mt-1 text-sm text-muted">
+            Folio saves your work only in this browser, never on a server. If browser data gets cleared, or you switch
+            devices, a backup file brings it all back.
+          </p>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={saveBackup}
+              className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
+            >
+              Save backup file
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                nudgeDismissed.current = true;
+                setBackupNudge(false);
+              }}
+              className="rounded-full px-4 py-1.5 text-sm font-bold text-muted transition-colors hover:text-foreground"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
 
       {importing && (
         <ImportDialog

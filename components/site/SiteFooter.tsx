@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FEEDBACK_URL } from "@/lib/site";
 
 export default function SiteFooter() {
   return (
@@ -12,6 +13,9 @@ export default function SiteFooter() {
           <Link href="/privacy" className="transition-colors hover:text-foreground">
             Privacy
           </Link>
+          <a href={FEEDBACK_URL} className="transition-colors hover:text-foreground">
+            Send feedback
+          </a>
         </nav>
       </div>
     </footer>

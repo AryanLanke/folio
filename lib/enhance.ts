@@ -63,6 +63,11 @@ export const BANNED_WORDS = [
   "delve", "innovative", "go-getter", "team player", "detail-oriented", "proven track record",
 ];
 
+// "Helped make the site faster" must not become "Improved site performance": that claims the
+// work alone. Shared with the "Build with AI" draft, which writes bullets the same way.
+export const INVOLVEMENT_RULE =
+  'Keep how involved the person was. If they helped, assisted, supported or were part of a team, the wording must still say so, starting with a verb like "Contributed to", "Supported", "Partnered with" or "Worked with the team to" (not "Helped" or "Assisted", which read as weak). Never turn it into sole credit or a leading role ("Improved", "Led", "Coordinated", "Drove", "Owned").';
+
 export function validateRequest(body: unknown): EnhanceRequest | string {
   if (!body || typeof body !== "object") return "Missing request body.";
   const src = body as Record<string, unknown>;
@@ -104,6 +109,7 @@ export function buildMessages(request: EnhanceRequest) {
     "",
     "Rules:",
     "- Keep every fact exactly as given. Never add, remove or change numbers, dates, names, companies, tools, skills or achievements. Never invent metrics.",
+    `- ${INVOLVEMENT_RULE}`,
     "- Fix grammar, spelling and punctuation. Make the wording clear, specific and concise.",
     `- Write naturally and plainly. Never use these words: ${BANNED_WORDS.join(", ")}.`,
     `- ${shape}`,

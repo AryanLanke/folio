@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   BANNED_WORDS,
   DAILY_LIMIT,
+  INVOLVEMENT_RULE,
   MAX_INPUT_LENGTH,
   buildMessages,
   parseResult,
@@ -36,6 +37,10 @@ describe("buildMessages", () => {
     const [system] = buildMessages({ kind: "summary", text: "hi" });
     expect(system.content).toContain("Never invent metrics");
     for (const word of BANNED_WORDS) expect(system.content).toContain(word);
+  });
+
+  it("keeps the person's level of involvement", () => {
+    expect(buildMessages({ kind: "bullets", text: "helped make the site faster" })[0].content).toContain(INVOLVEMENT_RULE);
   });
 
   it("uses present tense for current jobs and past tense otherwise", () => {

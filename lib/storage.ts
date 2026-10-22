@@ -1,6 +1,7 @@
 // Everything Folio keeps in the browser. Storage can be unavailable (private mode,
 // blocked site data), so every read and write is wrapped and fails quietly.
 
+import { backupIsBehind } from "@/lib/backup";
 import { recordUse, usesLeft } from "@/lib/enhance";
 import { type Library, createLibrary, normalizeLibrary } from "@/lib/library";
 import { type PaperSize, type Resume, normalizeResume } from "@/lib/resume";
@@ -11,6 +12,9 @@ const RESUME_PREFIX = "folio:resume:";
 const LEGACY_RESUME_KEY = "folio:resume";
 const PAPER_KEY = "folio:paper";
 const AI_USES_KEY = "folio:ai-uses";
+// When resumes last changed and when a backup file was last saved, to know if it's out of date
+const EDITED_KEY = "folio:edited-at";
+const BACKED_UP_KEY = "folio:backed-up-at";
 
 // The user's own calendar day, so the allowance resets at their midnight
 function today() {
@@ -87,6 +91,40 @@ export function loadPaper(): PaperSize {
 
 export function savePaper(paper: PaperSize) {
   write(PAPER_KEY, paper);
+}
+
+const readTime = (key: string) => Number(read(key)) || 0;
+
+export function markEdited() {
+  write(EDITED_KEY, String(Date.now()));
+}
+
+export function markBackedUp() {
+  write(BACKED_UP_KEY, String(Date.now()));
+}
+
+export function needsBackup() {
+  return backupIsBehind(readTime(EDITED_KEY), readTime(BACKED_UP_KEY));
+}
+
+let persistRequested = false;
+
+// Asks the browser not to clear Folio's storage on its own (to free up space, for example).
+// Browsers decide whether to agree, and Safari may still clear sites that aren't visited for
+// a while, so this helps but doesn't replace a backup file.
+export function keepStorage() {
+  if (persistRequested) return;
+  persistRequested = true;
+  try {
+    const storage = navigator.storage;
+    if (!storage?.persist) return;
+    storage
+      .persisted()
+      .then((already) => already || storage.persist())
+      .catch(() => {});
+  } catch {
+    // Not supported here; nothing to do
+  }
 }
 
 export function aiUsesLeft() {

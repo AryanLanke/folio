@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
+import { FEEDBACK_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy · Folio",
@@ -13,7 +14,7 @@ const sections = [
     title: "Your resume stays on your device",
     body: [
       "Folio has no accounts and no database. Everything you type is saved in your own browser's storage, on your device. We can't see it, and nobody else can either.",
-      "Because of that, clearing your browser data deletes your resumes. Use More → Save backup file to keep a copy.",
+      "Because of that, clearing your browser data deletes your resumes. Folio asks your browser to keep them, but browsers can still clear storage on their own; Safari, for example, may clear sites you haven't opened in a while. Use More → Save backup file to keep a copy of all your resumes as a file on your device, and More → Open backup file to bring them back, here or on another device.",
     ],
   },
   {
@@ -36,6 +37,10 @@ const sections = [
     body: [
       "Folio uses Vercel Web Analytics to count page visits. It doesn't use cookies, doesn't track you across sites, and never sees what you type in the editor.",
     ],
+  },
+  {
+    title: "Questions",
+    body: [`Email ${FEEDBACK_EMAIL} with any question about privacy, or to report a bug or suggest an idea.`],
   },
 ];
 

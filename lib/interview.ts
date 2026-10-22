@@ -1,7 +1,7 @@
 // "Tell AI about yourself": a short chat where AI asks about someone's work, then writes a
 // resume from what they said. Every fact comes from the person; the AI only organizes and words it.
 
-import { BANNED_WORDS } from "@/lib/enhance";
+import { BANNED_WORDS, INVOLVEMENT_RULE } from "@/lib/enhance";
 import { PRESENT } from "@/lib/resume";
 
 export type ChatTurn = { role: "assistant" | "user"; content: string };
@@ -93,6 +93,7 @@ export function buildDraftMessages(turns: ChatTurn[]) {
     "- Use only facts the person stated. Never invent numbers, dates, companies, job titles, degrees, skills, tools or achievements. Leave anything they didn't say empty.",
     "- Turn what they said about each job into 2 to 5 clear, concise resume bullets that start with strong, ordinary action verbs (past tense for old jobs, present tense for the current one). Fix grammar and spelling.",
     "- Don't embellish: no added frequencies, sizes, audiences or outcomes that they didn't mention.",
+    `- ${INVOLVEMENT_RULE}`,
     `- For the current job, set "end" to "${PRESENT}". Write dates the way they said them, for example "Jun 2021" or "2019".`,
     "- Every job needs a role. Use how they described their work as the job title, in Title Case: \"I work as a software tester\" becomes \"Software Tester\", an internship becomes \"Intern\". Don't upgrade titles (no \"Senior\" or \"Lead\" unless they said so).",
     "- \"title\" at the top is the job title they have now or are aiming for, worded the same way.",
@@ -117,6 +118,7 @@ export function buildDraftCheckMessages(turns: ChatTurn[], draftJson: string) {
     "You fact-check a resume against the conversation it was written from.",
     "",
     "Remove or rewrite anything the person did not say, including invented numbers, dates, tools, skills, outcomes, and added details about how often, how much or for whom.",
+    "Also rewrite any bullet that gives the person more credit than they described: if they said they helped or were part of a team, the bullet must say so, not \"Led\", \"Coordinated\" or \"Improved\" on their own.",
     "Job titles written from how they described their work are supported (\"I'm a tester\" supports \"Software Tester\"; an internship supports \"Intern\"), but not upgraded ones like \"Senior\" or \"Lead\".",
     "Keep everything the conversation supports, and keep the professional wording. Don't add anything new.",
     "",
