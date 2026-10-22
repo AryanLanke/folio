@@ -15,9 +15,15 @@ const MESSAGES: Record<string, string> = {
   old_word: "That's an old Word file (.doc). Open it in Word and save it as .docx or PDF, or paste the text instead.",
   unreadable: "Couldn't read any text from that file. If it's a scanned image, paste the text instead.",
   bad_request: "There isn't enough text to work with yet.",
-  // Vercel's firewall answers 429 itself when one visitor sends a lot of AI requests quickly
+  failed: "The AI's answer didn't come through properly. Please try again.",
+  // Vercel itself answers these, without Folio's error format:
+  // 429 from the firewall's rate limit, 504 when a request runs out of time
   too_fast: "That's a lot of AI requests in a few minutes. Wait a little and try again.",
+  timeout: "That took too long. Please try again.",
 };
+
+// Errors Vercel sends before Folio's own code runs, by status
+const PLATFORM_ERRORS: Record<number, string> = { 413: "too_large", 429: "too_fast", 504: "timeout" };
 
 const listeners = new Set<() => void>();
 
@@ -47,8 +53,7 @@ export async function callAi<T>(
     });
     const data = await response.json().catch(() => null);
     if (!response.ok || !data) {
-      // A 429 that isn't Folio's own daily limit comes from the firewall's rate limit
-      const code = response.status === 429 && !data?.error ? "too_fast" : data?.error;
+      const code = data?.error ?? PLATFORM_ERRORS[response.status];
       return { ok: false, message: MESSAGES[code] ?? "Something went wrong. Try again." };
     }
     if (count) {

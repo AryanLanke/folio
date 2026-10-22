@@ -118,11 +118,7 @@ export default function Home() {
             </Link>
           </div>
           <p className="mt-4 text-sm text-muted">
-            Already have a resume? Upload your PDF or Word file to score it, then fix it here. Or{" "}
-            <Link href="/builder?example" className="font-bold text-foreground underline-offset-4 hover:underline">
-              see an example
-            </Link>
-            .
+            Already have a resume? Upload your PDF or Word file to score it, then fix it here.
           </p>
         </section>
 

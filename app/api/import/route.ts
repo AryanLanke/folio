@@ -1,12 +1,13 @@
 import { extractLinks, extractText } from "unpdf";
-import { MAX_IMPORT_LENGTH, buildImportMessages, parseImport } from "@/lib/importer";
+import { MAX_IMPORT_FILE_BYTES, MAX_IMPORT_LENGTH, buildImportMessages, parseImport } from "@/lib/importer";
 import { aiError, chatJson, overServerLimit } from "@/lib/server/ai";
 import { docxToText } from "@/lib/server/docx-text";
 
+// Reading the file plus one AI call of up to 45 seconds
+export const maxDuration = 60;
+
 // Reads an existing resume (an uploaded PDF or Word file, or pasted text) and sorts it into
 // Folio's fields. The file is only read in memory to get its text; nothing is stored.
-
-const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 function fileError(code: "too_large" | "unreadable" | "old_word", status: number) {
   return Response.json({ error: code }, { status });
@@ -36,7 +37,7 @@ async function readText(request: Request): Promise<string | Response> {
     const form = await request.formData().catch(() => null);
     const file = form?.get("file");
     if (!(file instanceof File)) return aiError("bad_request");
-    if (file.size > MAX_FILE_BYTES) return fileError("too_large", 413);
+    if (file.size > MAX_IMPORT_FILE_BYTES) return fileError("too_large", 413);
     return fileText(file);
   }
 

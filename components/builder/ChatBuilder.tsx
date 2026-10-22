@@ -26,6 +26,15 @@ function createRecognition(): Recognition | null {
 
 // "Build with AI": chat (or talk) about your work, and AI writes the resume from it.
 // Chat messages are free; only "Create my resume" uses one of the daily AI actions.
+// What to tell the person when voice typing stops with an error ("no-speech" just stops quietly)
+const VOICE_ERRORS: Record<string, string> = {
+  "not-allowed": "Microphone access was blocked. Allow it in your browser, or type instead.",
+  "service-not-allowed": "Voice typing isn't allowed in this browser. Type instead.",
+  "audio-capture": "No microphone was found. Check it's connected, or type instead.",
+  network: "Voice typing needs an internet connection. Type instead, or try again.",
+  unavailable: "Voice typing isn't available right now. Type instead.",
+};
+
 export default function ChatBuilder({
   turns,
   onTurnsChange,
@@ -87,12 +96,19 @@ export default function ChatBuilder({
       setDraft(spokenBase.current + finalText + interim);
     };
     rec.onerror = (event) => {
-      if (event.error === "not-allowed") setError("Microphone access was blocked. Allow it in your browser, or type instead.");
+      const message = VOICE_ERRORS[event.error];
+      if (message) setError(message);
       setListening(false);
     };
     rec.onend = () => setListening(false);
     recognition.current = rec;
-    rec.start();
+    // Some browsers throw here instead of calling onerror (for example, if the mic is busy)
+    try {
+      rec.start();
+    } catch {
+      setError(VOICE_ERRORS.unavailable);
+      return;
+    }
     setListening(true);
     setError("");
   };

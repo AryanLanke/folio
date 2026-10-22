@@ -19,6 +19,8 @@ import {
 } from "@/lib/resume";
 
 export const MAX_IMPORT_LENGTH = 15000;
+// Largest file the import accepts; Vercel turns away request bodies over 4.5 MB before they arrive
+export const MAX_IMPORT_FILE_BYTES = 4 * 1024 * 1024;
 
 export function buildImportMessages(text: string) {
   const system = [
