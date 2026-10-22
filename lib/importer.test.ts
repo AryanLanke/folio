@@ -55,6 +55,32 @@ describe("parseImport", () => {
     expect(resume.skills).toBe("CI-CD");
   });
 
+  it("strips every typed bullet symbol and joins sentences a PDF split over two lines", () => {
+    const resume = parseImport(
+      JSON.stringify({
+        basics: { name: "Priya" },
+        experience: [
+          {
+            role: "Intern",
+            company: "Ambugrid",
+            bullets: [
+              "• • Developed backend services for a multi-client compliance",
+              "platform using FastAPI and MongoDB",
+              "- Built scheduled jobs with APScheduler and",
+              "Beanie for 12 clients",
+              "Wrote API tests",
+            ],
+          },
+        ],
+      }),
+    )!;
+    expect(resume.experience[0].bullets.split("\n")).toEqual([
+      "Developed backend services for a multi-client compliance platform using FastAPI and MongoDB",
+      "Built scheduled jobs with APScheduler and Beanie for 12 clients",
+      "Wrote API tests",
+    ]);
+  });
+
   it("shows a same-year job as one date", () => {
     const resume = parseImport(JSON.stringify({ basics: { name: "Ravi" }, experience: [{ role: "Intern", start: "2019", end: "2019" }] }))!;
     expect([resume.experience[0].start, resume.experience[0].end]).toEqual(["2019", ""]);

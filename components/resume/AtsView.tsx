@@ -1,7 +1,18 @@
-import { atsChecks, linksHiddenFromAts, resumeToPlainText } from "@/lib/ats";
+import CheckItem, { tone } from "@/components/resume/CheckItem";
+import { type AtsCheck, atsChecks, atsScore, linksHiddenFromAts, resumeToPlainText } from "@/lib/ats";
 import type { Resume } from "@/lib/resume";
+import { scoreVerdict } from "@/lib/score";
 
 // Things that are true of every Folio PDF, whatever the user types
+const GROUPS: { key: AtsCheck["group"]; title: string; help: string }[] = [
+  { key: "read", title: "Can the software read it?", help: "What the ATS needs to pull out your details, timeline and skills correctly." },
+  {
+    key: "content",
+    title: "Will it rank well?",
+    help: "Once it's read, recruiters search and skim: a clear summary, strong verbs and real numbers stand out.",
+  },
+];
+
 const BUILT_IN = [
   "Single column, read top to bottom",
   "Real text, not an image",
@@ -11,7 +22,8 @@ const BUILT_IN = [
 
 export default function AtsView({ resume }: { resume: Resume }) {
   const checks = atsChecks(resume);
-  const passed = checks.filter((c) => c.ok).length;
+  const score = atsScore(checks);
+  const count = (status: AtsCheck["status"]) => checks.filter((c) => c.status === status).length;
   const text = resumeToPlainText(resume);
 
   return (
@@ -28,34 +40,49 @@ export default function AtsView({ resume }: { resume: Resume }) {
       </section>
 
       <section className="rounded-lg bg-surface p-5">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-base font-bold">ATS readiness</h2>
-          <span className={`text-sm font-bold ${passed === checks.length ? "text-accent" : "text-amber-300"}`}>
-            {passed} / {checks.length} checks passed
+        <p className="text-xs font-semibold text-muted">ATS score</p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
+          <span className={`text-6xl font-bold tabular-nums ${tone(score)}`}>
+            {score}
+            <span className="text-2xl text-muted">/100</span>
           </span>
+          <div className="min-w-0 flex-1 basis-52">
+            <p className="font-bold">{scoreVerdict(score)}</p>
+            <p className="mt-1 text-sm text-muted">
+              <span className="text-accent">{count("pass")} passed</span> ·{" "}
+              <span className="text-amber-300">{count("warn")} warnings</span> ·{" "}
+              <span className="text-red-400">{count("fail")} to fix</span>. Checks that matter more count for more.
+            </p>
+          </div>
         </div>
-        <p className="mt-1 text-sm text-muted">What the software needs to read your resume correctly.</p>
-        <ul className="mt-4 space-y-3">
-          {checks.map((check) => (
-            <li key={check.label} className="flex gap-3 text-sm">
-              <span className={`font-bold ${check.ok ? "text-accent" : "text-amber-300"}`} aria-hidden>
-                {check.ok ? "✓" : "!"}
-              </span>
-              <span>
-                <b>{check.label}</b> <span className="text-muted">{check.detail}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
+      </section>
+
+      {GROUPS.map((group) => (
+        <section key={group.key} className="rounded-lg bg-surface p-5">
+          <h2 className="text-base font-bold">{group.title}</h2>
+          <p className="mt-1 text-sm text-muted">{group.help}</p>
+          <ul className="mt-4 space-y-3">
+            {/* Things to fix first */}
+            {checks
+              .filter((check) => check.group === group.key)
+              .sort((a, b) => a.score - b.score)
+              .map((check) => (
+                <CheckItem key={check.label} {...check} />
+              ))}
+          </ul>
+        </section>
+      ))}
+
+      <section className="rounded-lg bg-surface p-5">
         {linksHiddenFromAts(resume) && (
-          <p className="mt-4 rounded-md bg-background p-3 text-sm text-muted">
+          <p className="mb-5 rounded-md bg-background p-3 text-sm text-muted">
             <b className="text-foreground">About your links:</b> they show as short labels like &quot;LinkedIn&quot;, which
             look clean and stay clickable. But most ATS software reads only the visible text, so it won&apos;t see the
             actual addresses. If a job portal needs your profile URL, set <b className="text-foreground">Links</b> to{" "}
             <b className="text-foreground">Full</b> above the page.
           </p>
         )}
-        <div className="mt-5 border-t border-border pt-4">
+        <div>
           <p className="text-xs font-semibold text-muted">Built into every Folio template</p>
           <ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
             {BUILT_IN.map((item) => (

@@ -1,32 +1,12 @@
+import CheckItem, { bar, tone } from "@/components/resume/CheckItem";
 import { type Resume } from "@/lib/resume";
-import { type ScoreItem, scoreResume, scoreVerdict } from "@/lib/score";
-
-const tone = (score: number) => (score >= 85 ? "text-accent" : score >= 60 ? "text-amber-300" : "text-red-400");
-const bar = (score: number) => (score >= 85 ? "bg-accent" : score >= 60 ? "bg-amber-300" : "bg-red-400");
+import { scoreResume, scoreVerdict } from "@/lib/score";
 
 const PART_HELP: Record<string, string> = {
-  ats: "Can applicant tracking systems read it? Companies use this software to collect and filter resumes before a person sees them.",
-  writing: "Will a recruiter be convinced? Clear actions, real numbers, and no filler.",
+  ats: "The same checks as the ATS check tab: can screening software read it, and will it rank well once it has?",
+  writing: "Does it sound like a person wrote it? No \"I\", no filler words, and enough detail on every job.",
   job: "Does it use the words the job posting asks for?",
 };
-
-function Item({ item }: { item: ScoreItem }) {
-  const full = item.score >= 0.999;
-  const none = item.score <= 0.001;
-  return (
-    <li className="flex gap-3 text-sm">
-      <span
-        className={`mt-0.5 w-4 shrink-0 text-center font-bold ${full ? "text-accent" : none ? "text-red-400" : "text-amber-300"}`}
-        aria-label={full ? "Passed" : none ? "Missing" : "Partly"}
-      >
-        {full ? "✓" : "!"}
-      </span>
-      <span>
-        <b>{item.label}</b> <span className="text-muted">{item.detail}</span>
-      </span>
-    </li>
-  );
-}
 
 // One score out of 100, broken into the parts and checks it's made of, each with what to fix
 export default function ScoreView({ resume }: { resume: Resume }) {
@@ -76,7 +56,7 @@ export default function ScoreView({ resume }: { resume: Resume }) {
             {[...part.items]
               .sort((a, b) => a.score - b.score)
               .map((item) => (
-                <Item key={item.label} item={item} />
+                <CheckItem key={item.label} {...item} />
               ))}
           </ul>
         </section>

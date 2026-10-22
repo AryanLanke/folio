@@ -53,7 +53,7 @@ describe("writing checks", () => {
       { ...resume.experience[0], bullets: "Responsible for the dashboard\nI fixed bugs in the payment flow\nBuilt a component library for 4 teams" },
     ];
     resume.projects = [];
-    const check = item(resume, "Bullets start with a strong verb");
+    const check = item(resume, "Strong action verbs");
     expect(check.score).toBeCloseTo(1 / 3);
     expect(check.detail).toContain('"Responsible for the dashboard"');
   });
@@ -62,7 +62,7 @@ describe("writing checks", () => {
     const resume = createSampleResume();
     resume.experience = [{ ...resume.experience[0], bullets: "Built the dashboard for the sales team\nLed weekly planning with design" }];
     resume.projects = [];
-    expect(item(resume, "Results backed by numbers").score).toBe(0);
+    expect(item(resume, "Numbers and results").score).toBe(0);
   });
 
   it("flags first person and buzzwords", () => {
@@ -77,7 +77,7 @@ describe("writing checks", () => {
   it("asks for a summary when there isn't one", () => {
     const resume = createSampleResume();
     resume.summary = "";
-    expect(item(resume, "Summary is short and specific").score).toBe(0);
+    expect(item(resume, "Summary").score).toBe(0);
   });
 });
 
