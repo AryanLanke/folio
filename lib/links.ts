@@ -58,6 +58,29 @@ export function linkDisplay(text: string) {
     .replace(/\/$/, "");
 }
 
+// The same address however it's written: "https://www.GitHub.com/priya/" and "github.com/priya"
+export function linkKey(text: string) {
+  return linkDisplay(text).toLowerCase().replace(/[?#].*$/, "").replace(/\/$/, "");
+}
+
+const CODE_HOSTS = /(^|\.)(github\.com|gitlab\.com|bitbucket\.org)$/;
+
+// For a link to one repository rather than to a person's profile, the repository's name:
+// "budget-app" for github.com/priya/budget-app or priya.github.io/budget-app. Null for
+// profiles (github.com/priya, priya.github.io) and every other link.
+export function repoName(text: string): string | null {
+  const host = hostOf(text);
+  let parts: string[];
+  try {
+    parts = new URL(linkHref(text)).pathname.split("/").filter(Boolean);
+  } catch {
+    return null;
+  }
+  if (CODE_HOSTS.test(host) && parts.length >= 2) return parts[1].replace(/\.git$/, "");
+  if (host.endsWith(".github.io") && parts.length >= 1) return parts[0];
+  return null;
+}
+
 export type ResumeLink = { text: string; href: string };
 
 // Every link in a field, ready to draw: the visible text and the address it opens

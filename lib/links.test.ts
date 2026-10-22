@@ -1,5 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { linkDisplay, linkHref, linkLabel, resumeLinks, splitLinks } from "@/lib/links";
+import { linkDisplay, linkHref, linkKey, linkLabel, repoName, resumeLinks, splitLinks } from "@/lib/links";
+
+describe("repoName", () => {
+  it("finds links to one repository", () => {
+    expect(repoName("https://github.com/Priyamanjare54/budget-buddy")).toBe("budget-buddy");
+    expect(repoName("github.com/priya/chat-app.git")).toBe("chat-app");
+    expect(repoName("gitlab.com/priya/tool/-/tree/main")).toBe("tool");
+    expect(repoName("priya.github.io/portfolio-site")).toBe("portfolio-site");
+  });
+
+  it("treats profiles and other sites as not a repository", () => {
+    expect(repoName("https://github.com/Priyamanjare54")).toBeNull();
+    expect(repoName("github.com/priya?tab=repositories")).toBeNull();
+    expect(repoName("priya.github.io")).toBeNull();
+    expect(repoName("linkedin.com/in/priya")).toBeNull();
+    expect(repoName("leetcode.com/u/priya")).toBeNull();
+  });
+});
+
+describe("linkKey", () => {
+  it("is the same however the link is written", () => {
+    expect(linkKey("https://www.GitHub.com/priya/")).toBe(linkKey("github.com/priya"));
+    expect(linkKey("github.com/priya")).not.toBe(linkKey("github.com/priya/app"));
+  });
+});
 
 describe("linkHref", () => {
   it("adds https:// when it's missing and keeps it when it's there", () => {
