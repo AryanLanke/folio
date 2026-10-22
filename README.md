@@ -2,15 +2,19 @@
 
 **The resume builder that's actually free.**
 
-Write your resume, match it to the job, polish it with honest AI, and download a PDF or Word file. No sign-up, no watermark, no paywall at the download button.
+No sign-up. No watermark. No "upgrade to download" after you've typed everything in.
 
 **[Try it live →](https://folio-resumes.vercel.app)** · [See an example](https://folio-resumes.vercel.app/builder?example) · [Job match demo](https://folio-resumes.vercel.app/builder?example&view=job)
 
-![The Folio editor: a form on the left and the resume on a real page on the right](docs/screenshot.png)
+![Switching the example resume between templates and heading colours in the Folio editor](docs/demo.gif)
 
-## Why Folio
+## You know how this goes
 
-Most resume builders let you spend half an hour writing, then charge before you can download. Folio was built around the complaints people have about those tools:
+You find a "free" resume builder. You spend 40 minutes getting every bullet right. You hit **Download**.
+
+*That'll be $24.99 a month.*
+
+Folio just gives you the file.
 
 | | Folio | Most resume builders |
 | --- | --- | --- |
@@ -20,48 +24,61 @@ Most resume builders let you spend half an hour writing, then charge before you 
 | AI writing help | Free daily, never invents facts | Paid, and known to inflate claims |
 | Where your resume lives | In your own browser | On their servers |
 
-## Features
+## Nine templates. All of them get read.
 
-**Write**
-- Live preview on a real page (Letter or A4), with a marker where page two starts
-- Edit right on the page, like in Word: click any text to change it, make it bold, italic or underlined, press Enter to split a bullet or start a new one, Backspace to join it back, and Alt+Up or Alt+Down to move it. Arrows beside each heading move whole sections
-- Nine ATS-safe templates: Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant, in your own heading colour. The picker previews your own resume in each one
-- Rename any section by clicking its heading ("Profile" instead of "Summary"); the ATS check warns if a name might confuse screening software
-- Text size and spacing controls to fit everything on one page
-- Any section order, plus certifications, awards, volunteering, languages or custom sections
-- Clean links: LinkedIn, GitHub and other profiles show as short labels ("LinkedIn", "GitHub") that open the full address, on screen, in the PDF and in Word. Switch to full addresses for job portals whose ATS needs them
-- Gentle warnings for phone numbers, emails, links and dates that look wrong
-- Multiple resumes (one per job type), duplicate, rename, undo and autosave
-- One backup file holds all your resumes, to keep them safe or move them to another device. Folio reminds you to save one after you download
+![All nine Folio templates showing the same example resume](docs/templates.png)
 
-**Get it past the screening**
-- **Resume score:** a score out of 100 built from visible checks (the ATS check, writing style and job match), each with what to fix. Upload an existing resume to score it in seconds
-- **Job match:** paste a job posting to see a match score, the keywords you cover and the ones you're missing, updated live as you type. Common short forms count ("JS" for JavaScript, "ML" for machine learning, "K8s" for Kubernetes)
-- **ATS check:** an ATS score out of 100 from 15 weighted checks: contact details, education, job details, readable and consistent dates, bullet formatting (typed "•" symbols, sentences split across lines), skills, summary, action verbs, numbers and bullet length. Each check passes, warns or needs fixing, with a recommendation, so a weak resume can't get full marks. Plus the exact plain text tracking systems pull from your PDF
+Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant. Pick one from a gallery that previews **your** resume, not a stock one, then make the headings your colour.
 
-**AI that stays honest** (optional, 15 free actions a day)
-- **Build with AI:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
-- **Import:** upload an old resume (PDF or Word) or paste its text, and every field fills in using your exact words, links included
-- **Optimize:** one click tidies the whole resume: fixes bullet formatting, rewords weak lines and picks the most readable text size and spacing that keep it to the fewest pages. Every change is highlighted on the page (point at one to see what it said before), with Revert for each and Undo all. A rewrite that adds a number you didn't write is thrown away
-- **Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version, and step back to an earlier version if it was better. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write, and never turns "helped with" into "led"
-- **Cover letters:** written only from your resume, then checked by a second AI pass that strikes anything your resume doesn't support
+Every template is ATS-safe: one column, real text and standard headings. An ATS (applicant tracking system) is the software most companies run your resume through before a human ever sees it. If it can't read your resume, nobody reads it.
 
-**Download**
-- One-click PDF with real, selectable text (tested: every template reads back cleanly as plain text)
+## Write it like a doc
+
+- **Edit right on the page.** Click any line and type. Bold, italic and underline work too. Enter splits a bullet, Backspace joins it back, and Alt+Up or Alt+Down moves it
+- **Move whole sections** with the arrows next to each heading, or rename them ("Profile" instead of "Summary")
+- **Know when it fits.** The preview shows a real Letter or A4 page and says "Fits on 1 page". The PDF comes out the same
+- **Fit it on one page** with text size and spacing controls
+- **Add any section:** certifications, awards, volunteering, languages, or your own
+- **Clean links.** LinkedIn and GitHub show as short labels that still open the full address. Switch to full addresses for job portals that need them
+- **Catches typos in your details:** warnings for phone numbers, emails, links and dates that look wrong
+- **One resume per job type.** Duplicate, rename, undo, autosave
+- **Backup file.** One file holds every resume, so you can keep them safe or open them on another device
+
+## Get past the bots
+
+![Job match: a 75% score, missing keywords GraphQL and Jest, and the keywords already on the resume](public/screenshots/job-match.png)
+
+- **Resume score:** out of 100, and every point is explained. No mystery number. Upload an old resume to score it in seconds
+- **Job match:** paste a job posting and see your match score, the keywords you have, and the ones you're missing, live as you type. It understands short forms ("JS", "ML", "K8s")
+- **ATS check:** 15 weighted checks covering contact details, education, dates, bullet formatting, skills, summary, action verbs, numbers and bullet length. Each one passes, warns or needs fixing, and tells you how to fix it. You can also see the exact plain text a tracking system pulls from your PDF
+
+## AI that won't lie for you
+
+15 free AI actions a day. The AI rewords what you wrote. It doesn't make up jobs, numbers or skills.
+
+- **Build with AI:** talk or type about what you've done, in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, and a fact-check pass runs afterwards
+- **Import:** drop in an old PDF or Word resume, and every field fills in using your exact words
+- **Optimize:** one click fixes the formatting, rewords weak lines and fits the layout to the fewest pages. Every change is highlighted on the page, with Revert for each one and Undo all. If a rewrite adds a number you didn't write, it gets thrown out
+- **Enhance:** clearer wording for your summary and bullets, tuned to the job posting. Make it shorter, punchier, more formal or simpler, and go back to an earlier version anytime. It never turns "helped with" into "led"
+- **Cover letters:** written only from your resume, then a second AI pass cuts anything your resume doesn't back up
+
+## Download it. Actually.
+
+- PDF with real, selectable text (tested: every template reads back cleanly)
 - Word (.docx) for portals that ask for it
 - Cover letter as PDF or Word
 
-## Privacy
+## Your data stays yours
 
-Your resumes are stored in your browser, not on a server: Folio has no accounts and no database. Folio asks the browser to keep that storage, and a backup file keeps a copy you control. PDF and Word files are generated on your device. AI only sees the text for the action you click, and nothing is stored. Details on the [privacy page](https://folio-resumes.vercel.app/privacy).
+No accounts and no database. Your resumes live in your browser, and PDF and Word files are made on your device. AI only sees the text for the action you click, and nothing is stored. More on the [privacy page](https://folio-resumes.vercel.app/privacy).
 
 ## How it works
 
-Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser; the only server code is a few small API routes that pass the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
+Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser. The only server code is a few small API routes that send the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
 
 ```
 app/                    Pages: home, editor (/builder), privacy, and /api AI routes
-components/builder/     Editor form, cover letter editor, import dialog, toolbar
+components/builder/     Editor form, template picker, cover letter editor, import dialog, toolbar
 components/resume/      Resume page (editable like Word), page-break preview, ATS check, job match, Optimize
 lib/resume.ts           The resume data model and safe loading of saved data
 lib/rich.ts             Bold, italic and underline in resume text, and the plain words for everything else
@@ -104,11 +121,11 @@ GROQ_API_KEY=your-key-here
 | `npm run lint` | Check code style |
 | `npm run typecheck` | Check TypeScript types |
 | `npm run build` | Build for production |
-| `npm run e2e` | Build, then run the browser tests: a real Chrome clicks through the app (backups, downloads, ATS check, import). Run `npx playwright install chromium` once first |
+| `npm run e2e` | Build, then run the browser tests: a real Chrome clicks through the app (templates, backups, downloads, ATS check, import). Run `npx playwright install chromium` once first |
 
-AI features retry when Groq is busy: first on a smaller model (`AI_FALLBACK_MODEL`, default `openai/gpt-oss-20b`), which Groq limits separately, then on the main model after a short wait.
+When Groq is busy, AI features retry: first on a smaller model (`AI_FALLBACK_MODEL`, default `openai/gpt-oss-20b`), which Groq limits separately, then on the main model after a short wait.
 
-Every push to GitHub runs lint, type checks, unit tests, a production build and the browser tests automatically. When they all pass on `main`, GitHub Actions triggers the Vercel production deploy through a deploy hook (stored as the `VERCEL_DEPLOY_HOOK` repository secret), and Vercel's own deploy on push is turned off in `vercel.json`, so a failing change never goes live.
+Every push to GitHub runs lint, type checks, unit tests, a production build and the browser tests. Only when all of them pass on `main` does GitHub Actions trigger the Vercel production deploy, through a deploy hook (the `VERCEL_DEPLOY_HOOK` repository secret). Vercel's own deploy on push is turned off in `vercel.json`, so a broken change never goes live.
 
 ## Feedback
 
