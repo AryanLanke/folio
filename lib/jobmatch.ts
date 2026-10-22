@@ -81,10 +81,56 @@ export function normalizeTerm(text: string) {
     .replace(/\s+/g, " ");
 }
 
-// A term counts as present if it appears as whole words, ignoring punctuation, spacing
-// ("Node.js" = "NodeJS") and a plural "s"
+// Names that mean the same thing, so a resume saying "JS" covers a job asking for "JavaScript".
+// Written already normalized. Left out on purpose: short forms that are also ordinary words or
+// mean something else on a resume ("Go" for Golang, "CV" for computer vision, "DL" for deep learning).
+const ALIASES = [
+  ["javascript", "js", "ecmascript"],
+  ["typescript", "ts"],
+  ["react", "reactjs", "react js"],
+  ["vue", "vuejs", "vue js"],
+  ["angular", "angularjs", "angular js"],
+  ["node", "nodejs", "node js"],
+  ["c#", "c sharp", "csharp"],
+  ["postgresql", "postgres"],
+  ["mongodb", "mongo"],
+  ["kubernetes", "k8s"],
+  ["amazon web services", "aws"],
+  ["google cloud platform", "google cloud", "gcp"],
+  ["microsoft azure", "azure"],
+  ["ci cd", "cicd", "continuous integration"],
+  ["machine learning", "ml"],
+  ["artificial intelligence", "ai"],
+  ["generative ai", "genai", "gen ai"],
+  ["large language model", "llm"],
+  ["natural language processing", "nlp"],
+  ["user experience", "ux"],
+  ["user interface", "ui"],
+  ["ui ux", "ux ui"],
+  ["object oriented programming", "oop"],
+  ["data structures and algorithms", "dsa"],
+  ["quality assurance", "qa"],
+  ["search engine optimization", "seo"],
+  ["customer relationship management", "crm"],
+  ["key performance indicator", "kpi"],
+  ["microsoft excel", "ms excel", "excel"],
+  ["microsoft powerpoint", "ms powerpoint", "powerpoint"],
+];
+
+// The term itself plus anything it's an alias of, matched with or without a plural "s"
+function termVariants(normalized: string) {
+  const singular = normalized.replace(/s$/, "");
+  const group = ALIASES.find((names) => names.includes(normalized) || names.includes(singular));
+  return group ? [normalized, ...group.filter((name) => name !== normalized)] : [normalized];
+}
+
+// A term counts as present if it, or another name for it ("JS" for "JavaScript"), appears
+// as whole words, ignoring punctuation, spacing ("Node.js" = "NodeJS") and a plural "s"
 export function containsTerm(normalizedText: string, term: string) {
-  const normalized = normalizeTerm(term);
+  return termVariants(normalizeTerm(term)).some((variant) => containsExact(normalizedText, variant));
+}
+
+function containsExact(normalizedText: string, normalized: string) {
   if (!normalized) return false;
   const padded = ` ${normalizedText} `;
   const variants = new Set([normalized, normalized.replace(/s$/, ""), `${normalized}s`]);

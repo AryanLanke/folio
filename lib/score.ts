@@ -64,7 +64,7 @@ function writingItems(resume: Resume): ScoreItem[] {
         ? "Add bullet points to your jobs or projects."
         : weak.length === 0
           ? "Every bullet opens with an action, like \"Built\" or \"Led\"."
-          : `${weak.length} bullet${weak.length === 1 ? " starts" : "s start"} weakly, like ${quote(weak[0])}. Start with what you did ("Built", "Cut", "Led"). ✨ Enhance can rewrite it.`,
+          : `${weak.length} bullet${weak.length === 1 ? " starts" : "s start"} weakly, like ${quote(weak[0])}. Start with what you did ("Built", "Cut", "Led"), or "Contributed to" for team work. ✨ Enhance can rewrite it.`,
     },
     {
       label: "Results backed by numbers",

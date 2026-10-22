@@ -29,17 +29,18 @@ Most resume builders let you spend half an hour writing, then charge before you 
 - Any section order, plus certifications, awards, volunteering, languages or custom sections
 - Clean links: LinkedIn, GitHub and other profiles show as short labels ("LinkedIn", "GitHub") that open the full address, on screen, in the PDF and in Word. Switch to full addresses for job portals whose ATS needs them
 - Gentle warnings for phone numbers, emails, links and dates that look wrong
-- Multiple resumes (one per job type), duplicate, rename, undo, autosave and backup files
+- Multiple resumes (one per job type), duplicate, rename, undo and autosave
+- One backup file holds all your resumes, to keep them safe or move them to another device. Folio reminds you to save one after you download
 
 **Get it past the screening**
 - **Resume score:** a score out of 100 built from visible checks (ATS readiness, writing quality and job match), each with what to fix. Upload an existing resume to score it in seconds
-- **Job match:** paste a job posting to see a match score, the keywords you cover and the ones you're missing, updated live as you type
+- **Job match:** paste a job posting to see a match score, the keywords you cover and the ones you're missing, updated live as you type. Common short forms count ("JS" for JavaScript, "ML" for machine learning, "K8s" for Kubernetes)
 - **ATS check:** a readiness checklist and the exact plain text tracking systems pull from your PDF
 
 **AI that stays honest** (optional, 15 free actions a day)
 - **Build with AI:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
 - **Import:** upload an old resume (PDF or Word) or paste its text, and every field fills in using your exact words, links included
-- **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write
+- **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write, and never turns "helped with" into "led"
 - **Cover letters:** written only from your resume, then checked by a second AI pass that strikes anything your resume doesn't support
 
 **Download**
@@ -49,7 +50,7 @@ Most resume builders let you spend half an hour writing, then charge before you 
 
 ## Privacy
 
-Your resumes are stored in your browser, not on a server: Folio has no accounts and no database. PDF and Word files are generated on your device. AI only sees the text for the action you click, and nothing is stored. Details on the [privacy page](https://resume-builder-chi-dusky.vercel.app/privacy).
+Your resumes are stored in your browser, not on a server: Folio has no accounts and no database. Folio asks the browser to keep that storage, and a backup file keeps a copy you control. PDF and Word files are generated on your device. AI only sees the text for the action you click, and nothing is stored. Details on the [privacy page](https://resume-builder-chi-dusky.vercel.app/privacy).
 
 ## How it works
 
@@ -68,6 +69,7 @@ lib/importer.ts         Resume import prompt and parsing
 lib/coverletter.ts      Cover letter and fact-check prompts
 lib/ats.ts              Plain-text export and ATS readiness checks
 lib/library.ts          Multiple resumes
+lib/backup.ts           Backup files with every resume
 lib/storage.ts          Browser storage
 lib/server/ai.ts        The AI provider call shared by every route
 ```
@@ -101,7 +103,7 @@ Every push to GitHub runs lint, type checks, tests and a production build automa
 
 ## Feedback
 
-Found a bug or have an idea? [Open an issue](https://github.com/AryanLanke/resume-builder/issues/new).
+Found a bug or have an idea? Use **Send feedback** in the app, or [open an issue](https://github.com/AryanLanke/resume-builder/issues/new).
 
 ## License
 

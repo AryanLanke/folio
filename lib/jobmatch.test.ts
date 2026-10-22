@@ -46,6 +46,28 @@ describe("containsTerm", () => {
     expect(containsTerm(text, "REST API")).toBe(true);
   });
 
+  it("matches common short forms either way round", () => {
+    const short = normalizeTerm("Built apps in JS and TS with ML models on K8s, GCP and Postgres; UX/UI work");
+    expect(containsTerm(short, "JavaScript")).toBe(true);
+    expect(containsTerm(short, "TypeScript")).toBe(true);
+    expect(containsTerm(short, "Machine Learning")).toBe(true);
+    expect(containsTerm(short, "Kubernetes")).toBe(true);
+    expect(containsTerm(short, "Google Cloud Platform")).toBe(true);
+    expect(containsTerm(short, "PostgreSQL")).toBe(true);
+    expect(containsTerm(short, "UI/UX")).toBe(true);
+    expect(containsTerm(text, "Amazon Web Services")).toBe(true);
+    expect(containsTerm(normalizeTerm("Wrote JavaScript and used React.js"), "JS")).toBe(true);
+    expect(containsTerm(normalizeTerm("Built with React"), "ReactJS")).toBe(true);
+    expect(containsTerm(normalizeTerm("Tracked KPIs in Excel"), "Microsoft Excel")).toBe(true);
+    expect(containsTerm(normalizeTerm("Built LLM tools"), "Large Language Models")).toBe(true);
+  });
+
+  it("doesn't treat unrelated short forms as matches", () => {
+    expect(containsTerm(normalizeTerm("Wrote Java services"), "JavaScript")).toBe(false);
+    expect(containsTerm(normalizeTerm("Ready to go live"), "Golang")).toBe(false);
+    expect(containsTerm(normalizeTerm("Used JS daily"), "TypeScript")).toBe(false);
+  });
+
   it("doesn't match inside other words", () => {
     expect(containsTerm(normalizeTerm("javascript developer"), "Java")).toBe(false);
     expect(containsTerm(text, "Azure")).toBe(false);
