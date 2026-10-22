@@ -3,20 +3,20 @@ import { checkDate, checkDateRange, checkEmail, checkLink, checkPhone, parseDate
 
 describe("checkEmail", () => {
   it("accepts real addresses and empty fields", () => {
-    expect(checkEmail("jordan.patel@email.com")).toBeNull();
+    expect(checkEmail("emily.carter@example.com")).toBeNull();
     expect(checkEmail("")).toBeNull();
   });
 
   it("flags things that aren't emails", () => {
-    expect(checkEmail("jordan")).not.toBeNull();
-    expect(checkEmail("jordan@email")).not.toBeNull();
+    expect(checkEmail("emily")).not.toBeNull();
+    expect(checkEmail("emily@email")).not.toBeNull();
     expect(checkEmail("a b@c.com")).not.toBeNull();
   });
 });
 
 describe("checkPhone", () => {
   it("accepts common formats", () => {
-    expect(checkPhone("(555) 123-4567")).toBeNull();
+    expect(checkPhone("(512) 555-0142")).toBeNull();
     expect(checkPhone("+91 98765 43210")).toBeNull();
     expect(checkPhone("555.123.4567")).toBeNull();
   });

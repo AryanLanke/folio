@@ -13,7 +13,7 @@ describe("cover letter", () => {
     const resume = createSampleResume();
     resume.target = { description: "We need React skills", title: "Frontend Engineer", company: "Acme", keywords: [] };
     const request = coverLetterRequest(resume);
-    expect(request.resumeText).toContain("JORDAN PATEL");
+    expect(request.resumeText).toContain("EMILY CARTER");
     expect(request.company).toBe("Acme");
   });
 
@@ -40,15 +40,15 @@ describe("cover letter", () => {
   });
 
   it("joins paragraphs and cleans look-alike characters", () => {
-    const raw = JSON.stringify({ paragraphs: ["Dear Hiring Manager,", "I’m applying for the front‑end role.", "Sincerely,\nJordan"] });
-    expect(parseCoverLetter(raw)).toBe("Dear Hiring Manager,\n\nI'm applying for the front-end role.\n\nSincerely,\nJordan");
+    const raw = JSON.stringify({ paragraphs: ["Dear Hiring Manager,", "I’m applying for the front‑end role.", "Sincerely,\nEmily"] });
+    expect(parseCoverLetter(raw)).toBe("Dear Hiring Manager,\n\nI'm applying for the front-end role.\n\nSincerely,\nEmily");
   });
 
   it("puts the greeting and sign-off in their own paragraphs", () => {
-    const glued = JSON.stringify({ paragraphs: ["Dear Hiring Manager, I am applying.", "Thanks for your time. Sincerely,\nJordan"] });
-    expect(parseCoverLetter(glued)).toBe("Dear Hiring Manager,\n\nI am applying.\n\nThanks for your time.\n\nSincerely,\nJordan");
-    const split = JSON.stringify({ paragraphs: ["Dear Hiring Manager,", "Thanks for your time.\nSincerely,\nJordan"] });
-    expect(parseCoverLetter(split)).toBe("Dear Hiring Manager,\n\nThanks for your time.\n\nSincerely,\nJordan");
+    const glued = JSON.stringify({ paragraphs: ["Dear Hiring Manager, I am applying.", "Thanks for your time. Sincerely,\nEmily"] });
+    expect(parseCoverLetter(glued)).toBe("Dear Hiring Manager,\n\nI am applying.\n\nThanks for your time.\n\nSincerely,\nEmily");
+    const split = JSON.stringify({ paragraphs: ["Dear Hiring Manager,", "Thanks for your time.\nSincerely,\nEmily"] });
+    expect(parseCoverLetter(split)).toBe("Dear Hiring Manager,\n\nThanks for your time.\n\nSincerely,\nEmily");
   });
 
   it("asks the fact-checker to strike unsupported details and keep the rest", () => {

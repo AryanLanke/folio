@@ -51,7 +51,7 @@ describe("formatting and the rest of Folio", () => {
       ...job,
       bullets: job.bullets.split("\n").map((line) => `<b>${line}</b>`).join("\n"),
     }));
-    formatted.basics = { ...resume.basics, name: "<b>Jordan</b> Patel" };
+    formatted.basics = { ...resume.basics, name: "<b>Emily</b> Carter" };
     expect(atsChecks(formatted).map((c) => c.score)).toEqual(atsChecks(resume).map((c) => c.score));
     expect(resumeToPlainText(formatted)).not.toContain("<b>");
   });

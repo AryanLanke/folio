@@ -27,7 +27,7 @@ test("download, back up, lose everything, and restore it all from the backup", a
   await page.locator("summary", { hasText: "Download" }).click();
   const pdfDownload = page.waitForEvent("download");
   await page.getByText("Best for applying online").click();
-  expect((await pdfDownload).suggestedFilename()).toBe("Jordan-Patel-resume.pdf");
+  expect((await pdfDownload).suggestedFilename()).toBe("Emily-Carter-resume.pdf");
   const reminder = page.getByRole("status");
   await expect(reminder).toContainText("Keep a backup of your resume");
 

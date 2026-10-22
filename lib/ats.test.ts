@@ -9,7 +9,7 @@ function check(resume: ReturnType<typeof createSampleResume>, label: string) {
 describe("resumeToPlainText", () => {
   it("lists sections in page order with standard headings", () => {
     const text = resumeToPlainText(createSampleResume());
-    expect(text.startsWith("JORDAN PATEL\nFrontend Developer")).toBe(true);
+    expect(text.startsWith("EMILY CARTER\nFrontend Developer")).toBe(true);
     const headings = ["SUMMARY", "EXPERIENCE", "PROJECTS", "EDUCATION", "SKILLS", "CERTIFICATIONS"];
     const positions = headings.map((h) => text.indexOf(`\n${h}\n`));
     expect(positions.every((p) => p > 0)).toBe(true);

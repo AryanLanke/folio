@@ -9,8 +9,8 @@ describe("docxToText", () => {
   it("reads every section of a real Word resume", async () => {
     const buffer = await Packer.toBuffer(resumeDocx(createSampleResume(), "letter"));
     const text = await docxToText(buffer);
-    expect(text).toContain("Jordan Patel");
-    expect(text).toContain("jordan.patel@email.com");
+    expect(text).toContain("Emily Carter");
+    expect(text).toContain("emily.carter@example.com");
     expect(text).toContain("Brightpath Software");
     expect(text).toContain("cutting page load time from 4.1s to 1.6s");
     expect(text).toContain("AWS Certified Cloud Practitioner");
@@ -19,8 +19,8 @@ describe("docxToText", () => {
   it("keeps the address behind a labelled link", async () => {
     const buffer = await Packer.toBuffer(resumeDocx(createSampleResume(), "letter"));
     const text = await docxToText(buffer);
-    expect(text).toContain("LinkedIn (https://linkedin.com/in/jordanpatel)");
-    expect(text).toContain("GitHub (https://github.com/jordanpatel/budget-buddy)");
+    expect(text).toContain("LinkedIn (https://linkedin.com/in/emily-carter-example)");
+    expect(text).toContain("GitHub (https://github.com/emily-carter-example/budget-buddy)");
     expect(text).not.toContain("(mailto:");
   });
 

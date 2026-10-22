@@ -199,12 +199,12 @@ export function createSampleResume(): Resume {
 
   return {
     basics: {
-      name: "Jordan Patel",
+      name: "Emily Carter",
       title: "Frontend Developer",
-      email: "jordan.patel@email.com",
-      phone: "(555) 123-4567",
+      email: "emily.carter@example.com",
+      phone: "(512) 555-0142",
       location: "Austin, TX",
-      link: "linkedin.com/in/jordanpatel, github.com/jordanpatel",
+      link: "linkedin.com/in/emily-carter-example, github.com/emily-carter-example",
     },
     summary:
       "Frontend developer with 3 years of experience building fast, accessible web apps in React and TypeScript. Comfortable owning features end to end, from design handoff to production.",
@@ -245,7 +245,7 @@ export function createSampleResume(): Resume {
       {
         id: newId(),
         name: "Budget Buddy",
-        link: "github.com/jordanpatel/budget-buddy",
+        link: "github.com/emily-carter-example/budget-buddy",
         tech: "Next.js, PostgreSQL",
         date: "2024",
         bullets: "Personal finance tracker built with Next.js and PostgreSQL, used by 300+ people",

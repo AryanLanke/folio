@@ -19,8 +19,8 @@ describe("resume PDF", () => {
       const { text, totalPages } = await readBack(ResumeDocument({ resume, paper: "letter" }));
 
       expect(totalPages).toBe(1);
-      expect(text).toContain("Jordan Patel");
-      expect(text).toContain("jordan.patel@email.com");
+      expect(text).toContain("Emily Carter");
+      expect(text).toContain("emily.carter@example.com");
       expect(text).toContain("cutting page load time from 4.1s to 1.6s");
       expect(text).toContain("AWS Certified Cloud Practitioner");
 
@@ -81,10 +81,10 @@ describe("links in the PDF", () => {
     expect(text).not.toContain("linkedin.com/in");
     expect(links).toEqual(
       expect.arrayContaining([
-        "mailto:jordan.patel@email.com",
-        "https://linkedin.com/in/jordanpatel",
-        "https://github.com/jordanpatel",
-        "https://github.com/jordanpatel/budget-buddy",
+        "mailto:emily.carter@example.com",
+        "https://linkedin.com/in/emily-carter-example",
+        "https://github.com/emily-carter-example",
+        "https://github.com/emily-carter-example/budget-buddy",
       ]),
     );
   });
@@ -93,17 +93,17 @@ describe("links in the PDF", () => {
     const sample = createSampleResume();
     const resume = { ...sample, style: { ...sample.style, links: "url" as const } };
     const { text } = await readBack(ResumeDocument({ resume, paper: "letter" }));
-    expect(text).toContain("linkedin.com/in/jordanpatel");
+    expect(text).toContain("linkedin.com/in/emily-carter-example");
   });
 });
 
 describe("cover letter PDF", () => {
   it("contains the name and every paragraph", async () => {
     const resume = createSampleResume();
-    resume.coverLetter = "Dear Hiring Manager,\n\nI am applying for the role.\n\nSincerely,\nJordan Patel";
+    resume.coverLetter = "Dear Hiring Manager,\n\nI am applying for the role.\n\nSincerely,\nEmily Carter";
     const { text } = await readBack(CoverLetterDocument({ resume, paper: "letter" }));
     expect(text).toContain("Dear Hiring Manager,");
     expect(text).toContain("I am applying for the role.");
-    expect(text.match(/Jordan Patel/g)?.length).toBe(2);
+    expect(text.match(/Emily Carter/g)?.length).toBe(2);
   });
 });

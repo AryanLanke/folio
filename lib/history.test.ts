@@ -9,14 +9,14 @@ function type(history: History<string>, from: string, to: string, at: number) {
 describe("undo history", () => {
   it("undoes one step at a time and keeps earlier work", () => {
     let h = emptyHistory<string>();
-    h = record(h, "", 1000); // "" -> "Jordan"
-    h = record(h, "Jordan", 5000); // "Jordan" -> "Jordan Patel" after a pause
-    h = record(h, "Jordan Patel", 9000); // -> "Jordan Patel, Dev" after another pause
+    h = record(h, "", 1000); // "" -> "Emily"
+    h = record(h, "Emily", 5000); // "Emily" -> "Emily Carter" after a pause
+    h = record(h, "Emily Carter", 9000); // -> "Emily Carter, Dev" after another pause
 
-    const first = undo(h, "Jordan Patel, Dev")!;
-    expect(first.value).toBe("Jordan Patel");
+    const first = undo(h, "Emily Carter, Dev")!;
+    expect(first.value).toBe("Emily Carter");
     const second = undo(first.history, first.value)!;
-    expect(second.value).toBe("Jordan");
+    expect(second.value).toBe("Emily");
     const third = undo(second.history, second.value)!;
     expect(third.value).toBe("");
     expect(undo(third.history, third.value)).toBeNull();
