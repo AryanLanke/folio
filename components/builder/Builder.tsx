@@ -279,11 +279,14 @@ export default function Builder() {
     if (name !== null) setLibrary(renameEntry(library, library.activeId, name));
   };
 
-  const remove = () => {
-    if (library.items.length === 1) {
-      if (confirm("Clear this resume and start over? You can undo this.")) update(createEmptyResume(), true);
-      return;
+  // Empties every field in one go, keeping the look (template, colour, sizes)
+  const clearResume = () => {
+    if (confirm("Clear everything on this resume and start over? Your template and colours stay, and you can undo this.")) {
+      update({ ...createEmptyResume(), style: resume.style }, true);
     }
+  };
+
+  const remove = () => {
     if (!confirm(`Delete "${activeName}"? This can't be undone.`)) return;
     deleteResume(library.activeId);
     const next = removeEntry(library, library.activeId);
@@ -457,9 +460,14 @@ export default function Builder() {
             <button type="button" className={menuItemClass} onClick={rename}>
               Rename
             </button>
-            <button type="button" className={`${menuItemClass} hover:text-red-400`} onClick={remove}>
-              {library.items.length === 1 ? "Clear this resume" : "Delete this resume"}
+            <button type="button" className={`${menuItemClass} hover:text-red-400`} onClick={clearResume}>
+              Clear this resume
             </button>
+            {library.items.length > 1 && (
+              <button type="button" className={`${menuItemClass} hover:text-red-400`} onClick={remove}>
+                Delete this resume
+              </button>
+            )}
           </Menu>
 
           <span className={`hidden truncate text-xs lg:inline ${saveState === "failed" ? "text-red-400" : "text-muted"}`}>
@@ -592,7 +600,7 @@ export default function Builder() {
 
           {editorView === "resume" ? (
             <>
-              {resumeIsEmpty && (
+              {resumeIsEmpty ? (
                 <section className="mb-4 rounded-lg border border-accent/40 bg-accent/5 p-4">
                   <p className="text-sm font-bold">Don&apos;t want to fill in forms?</p>
                   <p className="text-sm text-muted">
@@ -624,6 +632,32 @@ export default function Builder() {
                     </button>
                   </div>
                 </section>
+              ) : (
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  <span className="basis-full text-xs font-semibold text-muted sm:mr-auto sm:basis-auto">Changed your mind?</span>
+                  <button
+                    type="button"
+                    onClick={() => setChatOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold transition-colors hover:border-foreground"
+                  >
+                    <Sparkle className="text-accent" />
+                    Build with AI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setImporting(true)}
+                    className="rounded-full border border-border px-3 py-1 text-xs font-bold transition-colors hover:border-foreground"
+                  >
+                    Import resume
+                  </button>
+                  <button
+                    type="button"
+                    onClick={clearResume}
+                    className="rounded-full border border-border px-3 py-1 text-xs font-bold text-muted transition-colors hover:border-red-400 hover:text-red-400"
+                  >
+                    Clear all
+                  </button>
+                </div>
               )}
               <Editor resume={resume} onChange={update} />
             </>

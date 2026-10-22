@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Chevron from "@/components/ui/Chevron";
 import { hasFormatting, plainText } from "@/lib/rich";
 
 // Building blocks for the editor form
@@ -124,7 +125,7 @@ export function Card({
           aria-expanded={open}
           className="flex min-w-0 flex-1 items-center gap-2 py-2 text-left"
         >
-          <span className={`text-xs text-muted transition-transform ${open ? "rotate-90" : ""}`}>▶</span>
+          <Chevron className={`text-sm text-muted transition-transform ${open ? "rotate-90" : ""}`} />
           <h2 className="truncate text-base font-bold">{title || "Untitled section"}</h2>
         </button>
         {move && (
