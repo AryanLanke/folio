@@ -33,9 +33,9 @@ Most resume builders let you spend half an hour writing, then charge before you 
 - One backup file holds all your resumes, to keep them safe or move them to another device. Folio reminds you to save one after you download
 
 **Get it past the screening**
-- **Resume score:** a score out of 100 built from visible checks (ATS readiness, writing quality and job match), each with what to fix. Upload an existing resume to score it in seconds
+- **Resume score:** a score out of 100 built from visible checks (the ATS check, writing style and job match), each with what to fix. Upload an existing resume to score it in seconds
 - **Job match:** paste a job posting to see a match score, the keywords you cover and the ones you're missing, updated live as you type. Common short forms count ("JS" for JavaScript, "ML" for machine learning, "K8s" for Kubernetes)
-- **ATS check:** a readiness checklist and the exact plain text tracking systems pull from your PDF
+- **ATS check:** an ATS score out of 100 from 15 weighted checks: contact details, education, job details, readable and consistent dates, bullet formatting (typed "•" symbols, sentences split across lines), skills, summary, action verbs, numbers and bullet length. Each check passes, warns or needs fixing, with a recommendation, so a weak resume can't get full marks. Plus the exact plain text tracking systems pull from your PDF
 
 **AI that stays honest** (optional, 15 free actions a day)
 - **Build with AI:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards

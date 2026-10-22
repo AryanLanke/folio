@@ -2,6 +2,7 @@
 // rewrite: polishing is a separate, optional step the user chooses afterwards.
 
 import { plainCharacters } from "@/lib/enhance";
+import { continuesLine } from "@/lib/ats";
 import { linkKey, repoName, splitLinks } from "@/lib/links";
 import {
   CORE_SECTIONS,
@@ -27,7 +28,7 @@ export function buildImportMessages(text: string) {
     "- Copy the person's wording exactly. Do not rewrite, improve, summarize or translate anything.",
     "- Never invent information. Use an empty string or empty list for anything not in the text.",
     `- For a current job, set "end" to "${PRESENT}".`,
-    "- Put each bullet point or achievement as its own item in \"bullets\", without bullet symbols.",
+    "- Put each bullet point or achievement as its own item in \"bullets\", without bullet symbols. If one bullet's sentence carries on to the next line of the text, it's still one bullet: join it.",
     "- Split skills into individual items.",
     '- Put only the person\'s own profile links in basics "link", separated by commas: LinkedIn, their GitHub profile (github.com/username), portfolio, LeetCode and similar.',
     '- A link to one repository, demo or project (like github.com/username/project-name) goes in that project\'s "link", never in basics. Separate several with commas.',
@@ -61,12 +62,30 @@ const str = (value: unknown) => (typeof value === "string" ? plainCharacters(val
 const list = (value: unknown): Record<string, unknown>[] =>
   Array.isArray(value) ? value.filter((v): v is Record<string, unknown> => Boolean(v) && typeof v === "object") : [];
 
+// PDFs break lines where the page ran out, so a bullet can arrive in pieces. A piece that
+// starts in lowercase, or follows a line ending mid-phrase ("... compliance platform using"),
+// belongs to the bullet before it.
+export function joinSplitLines(items: string[]) {
+  const joined: string[] = [];
+  for (const line of items) {
+    const previous = joined.at(-1);
+    if (previous !== undefined && (continuesLine(previous) || /^[a-z]+\b/.test(line))) {
+      joined[joined.length - 1] = `${previous} ${line}`;
+    } else {
+      joined.push(line);
+    }
+  }
+  return joined;
+}
+
 const lines = (value: unknown) =>
-  (Array.isArray(value) ? value : typeof value === "string" ? value.split("\n") : [])
-    .filter((line): line is string => typeof line === "string")
-    .map((line) => plainCharacters(line).trim().replace(/^[•\-*–▪●◦]\s*/, ""))
-    .filter(Boolean)
-    .join("\n");
+  joinSplitLines(
+    (Array.isArray(value) ? value : typeof value === "string" ? value.split("\n") : [])
+      .filter((line): line is string => typeof line === "string")
+      // Every typed bullet symbol, so "• • Built" doesn't keep one
+      .map((line) => plainCharacters(line).trim().replace(/^([•\-*–—▪●◦‣·]\s*)+/, ""))
+      .filter(Boolean),
+  ).join("\n");
 
 function extraSection(kind: ExtraKind, title: string, items: Record<string, unknown>[], fields: [string, string, string, string?]) {
   const [titleKey, subtitleKey, dateKey, bulletsKey] = fields;
