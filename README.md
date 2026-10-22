@@ -72,6 +72,17 @@ Every template is ATS-safe: one column, real text and standard headings. An ATS 
 
 No accounts and no database. Your resumes live in your browser, and PDF and Word files are made on your device. AI only sees the text for the action you click, and nothing is stored. More on the [privacy page](https://folio-resumes.vercel.app/privacy).
 
+## Tech stack
+
+| Area | Tools |
+| --- | --- |
+| App and UI | [Next.js](https://nextjs.org) 16, [React](https://react.dev) 19, [TypeScript](https://www.typescriptlang.org), [Tailwind CSS](https://tailwindcss.com) 4 |
+| PDF and Word | [@react-pdf/renderer](https://react-pdf.org) for PDF, [docx](https://docx.js.org) for Word, [JSZip](https://stuk.github.io/jszip) for backup files |
+| Reading uploads | [unpdf](https://github.com/unjs/unpdf) for PDF text, with Word files read as zipped XML |
+| AI | [Groq](https://groq.com) open models; [Vercel AI Gateway](https://vercel.com/ai-gateway) when no Groq key is set |
+| Testing | [Vitest](https://vitest.dev) for unit tests, [Playwright](https://playwright.dev) for browser tests |
+| Quality and hosting | ESLint, GitHub Actions for checks, [Vercel](https://vercel.com) for hosting |
+
 ## How it works
 
 Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser. The only server code is a few small API routes that send the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
