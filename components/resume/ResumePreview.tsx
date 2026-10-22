@@ -1,5 +1,8 @@
 import Editable from "@/components/resume/Editable";
+import { ColorDot } from "@/components/ui/ColorPicker";
 import {
+  CORE_TITLES,
+  type CoreSection,
   EXTRA_KINDS,
   type ExtraSection,
   PAGE_MARGIN,
@@ -17,7 +20,7 @@ import {
   visibleSections,
 } from "@/lib/resume";
 import { type LinkMode, resumeLinks } from "@/lib/links";
-import { HTML_FONT, type TemplateSpec, layoutFor } from "@/lib/templates";
+import { HTML_FONT, TEMPLATE_SPECS, type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // The resume as a web page. Its look comes from lib/templates.ts, shared with the PDF and Word
 // exports. Every template is single-column plain text with standard headings (ATS-readable).
@@ -39,30 +42,42 @@ function Section({
   title,
   gap,
   spec,
+  colorPicker,
   children,
 }: {
-  title: string;
+  // The heading, and how to rename it when the page is editable
+  title: Field;
   gap: number;
   spec: TemplateSpec;
+  // The round colour dot at the end of the heading, when the page is editable
+  colorPicker?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { heading } = spec;
   return (
     <section style={{ marginTop: 20 * gap }}>
-      <h2
-        className="break-after-avoid font-bold"
-        style={{
-          fontSize: `${heading.scale}em`,
-          letterSpacing: `${heading.letterSpacing}em`,
-          textTransform: heading.uppercase ? "uppercase" : "none",
-          fontVariant: heading.smallCaps ? "small-caps" : "normal",
-          color: heading.color,
-          borderBottom: heading.rule ? `${heading.rule}px solid ${heading.ruleColor}` : "none",
-          paddingBottom: heading.rule ? 3 : 0,
-        }}
-      >
-        {title}
-      </h2>
+      <div className="relative">
+        <h2
+          className="break-after-avoid font-bold"
+          style={{
+            fontSize: `${heading.scale}em`,
+            letterSpacing: `${heading.letterSpacing}em`,
+            textTransform: heading.uppercase ? "uppercase" : "none",
+            fontVariant: heading.smallCaps ? "small-caps" : "normal",
+            color: heading.color,
+            borderBottom: heading.rule ? `${heading.rule}px solid ${heading.ruleColor}` : "none",
+            paddingBottom: heading.rule ? 3 : 0,
+            paddingRight: colorPicker ? 28 : 0,
+          }}
+        >
+          {text(title)}
+        </h2>
+        {colorPicker && (
+          <div className="absolute inset-y-0 right-0 flex items-center pb-1">
+            {colorPicker}
+          </div>
+        )}
+      </div>
       <div className="flex flex-col" style={{ marginTop: 8 * gap, gap: 12 * gap }}>
         {children}
       </div>
@@ -343,6 +358,21 @@ export default function ResumePreview({
   const { spec, fontSize, gap, lineHeight } = layoutFor(resume.style);
   const set = onChange && ((change: Partial<Resume>) => onChange({ ...resume, ...change }));
   const setBasics = set && ((change: Partial<Resume["basics"]>) => set({ basics: { ...basics, ...change } }));
+  // Clearing a heading puts the standard name back
+  const renameSection = (key: string, next: string) => {
+    if (!set) return;
+    if (key in CORE_TITLES) {
+      const titles = { ...resume.titles, [key]: next };
+      if (!next || next === CORE_TITLES[key as CoreSection]) delete titles[key as CoreSection];
+      set({ titles });
+      return;
+    }
+    set({
+      extras: resume.extras.map((extra) =>
+        extra.id === key ? { ...extra, title: next || EXTRA_KINDS[extra.kind].title } : extra,
+      ),
+    });
+  };
 
   return (
     <article
@@ -394,7 +424,22 @@ export default function ResumePreview({
       </header>
 
       {visibleSections(resume).map((section) => (
-        <Section key={section.key} title={section.title} gap={gap} spec={spec}>
+        <Section
+          key={section.key}
+          title={{ value: section.title, label: "Section title", onCommit: set && ((next) => renameSection(section.key, next)) }}
+          gap={gap}
+          spec={spec}
+          colorPicker={
+            set && (
+              <ColorDot
+                color={spec.heading.color}
+                value={resume.style.accent}
+                fallback={TEMPLATE_SPECS[resume.style.template].heading.color}
+                onChange={(accent) => set({ style: { ...resume.style, accent } })}
+              />
+            )
+          }
+        >
           {section.extra ? (
             <ExtraContent
               section={section.extra}

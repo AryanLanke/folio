@@ -85,10 +85,47 @@ export const SPACING: Record<ResumeStyle["spacing"], { gap: number; lineHeight: 
   relaxed: { gap: 1.3, lineHeight: 1.55 },
 };
 
+// The person's own colour takes the place of the template's: wherever the template uses its
+// heading colour (headings, and in some templates their lines and the title under the name)
+export function withAccent(spec: TemplateSpec, accent: string | null): TemplateSpec {
+  if (!accent) return spec;
+  const recolor = (color: string) => (color === spec.heading.color ? accent : color);
+  return {
+    ...spec,
+    title: { ...spec.title, color: recolor(spec.title.color) },
+    heading: { ...spec.heading, color: accent, ruleColor: recolor(spec.heading.ruleColor) },
+    headerRule: spec.headerRule && { ...spec.headerRule, color: recolor(spec.headerRule.color) },
+  };
+}
+
 export function layoutFor(style: ResumeStyle) {
-  const spec = TEMPLATE_SPECS[style.template];
+  const spec = withAccent(TEMPLATE_SPECS[style.template], style.accent);
   const { gap, lineHeight } = SPACING[style.spacing];
   return { spec, fontSize: FONT_SIZE[style.fontSize], gap: gap * spec.density, lineHeight };
+}
+
+// Colours offered for headings: dark enough to read and to print well. null is the template's own.
+export const ACCENT_COLORS: { value: string | null; label: string }[] = [
+  { value: null, label: "Template colour" },
+  { value: "#171717", label: "Black" },
+  { value: "#1e3a5f", label: "Navy" },
+  { value: "#1f4e8c", label: "Blue" },
+  { value: "#0f766e", label: "Teal" },
+  { value: "#1d6b45", label: "Green" },
+  { value: "#8b1e3f", label: "Burgundy" },
+  { value: "#5b2a86", label: "Plum" },
+  { value: "#475569", label: "Slate" },
+];
+
+// Light colours fade on white paper and when printed in grayscale. True below about 4.5:1
+// contrast with white, the usual line for readable text.
+export function tooLight(color: string) {
+  const channel = (i: number) => {
+    const c = parseInt(color.slice(1 + i * 2, 3 + i * 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  const luminance = 0.2126 * channel(0) + 0.7152 * channel(1) + 0.0722 * channel(2);
+  return 1.05 / (luminance + 0.05) < 4.5;
 }
 
 export const HTML_FONT = {

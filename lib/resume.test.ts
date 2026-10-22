@@ -61,7 +61,18 @@ describe("normalizeResume", () => {
     expect(resume.extras).toHaveLength(1);
     expect(resume.extras[0].kind).toBe("custom");
     expect(resume.order).toContain(resume.extras[0].id);
-    expect(resume.style).toEqual({ template: "classic", fontSize: "large", spacing: "normal", links: "label" });
+    expect(resume.style).toEqual({ template: "classic", fontSize: "large", spacing: "normal", links: "label", accent: null });
+  });
+
+  it("keeps a valid heading colour and the person's own section names", () => {
+    const resume = normalizeResume({
+      ...oldFormat,
+      style: { accent: "#1E3A5F" },
+      titles: { summary: "  Profile ", skills: "", experience: 4, nonsense: "x" },
+    })!;
+    expect(resume.style.accent).toBe("#1e3a5f");
+    expect(resume.titles).toEqual({ summary: "Profile" });
+    expect(normalizeResume({ ...oldFormat, style: { accent: "red" } })!.style.accent).toBeNull();
   });
 
   it("rejects things that aren't resumes", () => {
