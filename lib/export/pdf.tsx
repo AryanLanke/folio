@@ -12,6 +12,7 @@ import {
   hasProject,
   toLines,
   skillGroups,
+  skillList,
   visibleSections,
 } from "@/lib/resume";
 import { parseRich, plainText } from "@/lib/rich";
@@ -204,18 +205,33 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
           </View>
         );
       });
-    case "skills":
-      // One line per group, its label in bold; a plain list is a single line
-      return skillGroups(resume.skills).map((group, i) => (
-        <Text key={i}>
-          {group.label ? (
-            <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>
-              <Rich text={`${group.label}: `} />
+    case "skills": {
+      const groups = skillGroups(resume.skills);
+      // As on the page: a plain list is one paragraph, however many lines it was typed on
+      if (!groups.some((group) => group.label)) {
+        return (
+          <Text>
+            <Rich text={skillList(resume.skills).join(", ")} />
+          </Text>
+        );
+      }
+      // Grouped skills: one line per group with its label in bold, set close together like on the
+      // page (not spaced apart like separate jobs, which would make the PDF taller than the page)
+      return (
+        <View style={{ gap: 2 * PX }}>
+          {groups.map((group, i) => (
+            <Text key={i}>
+              {group.label ? (
+                <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>
+                  <Rich text={`${group.label}: `} />
+                </Text>
+              ) : null}
+              <Rich text={group.items.join(", ")} />
             </Text>
-          ) : null}
-          <Rich text={group.items.join(", ")} />
-        </Text>
-      ));
+          ))}
+        </View>
+      );
+    }
     default:
       return null;
   }
