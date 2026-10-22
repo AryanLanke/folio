@@ -13,7 +13,7 @@ test("rename a section by clicking its heading on the page", async ({ page }) =>
 
   await expect(page.locator(".origin-top-left h2").first()).toHaveText("Profile");
   // The form on the left uses the new name too
-  await expect(page.getByRole("button", { name: "Move Profile down" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Move Profile down" }).first()).toBeVisible();
 
   // A name screening software won't recognise gets a warning in the ATS check
   await heading.click();

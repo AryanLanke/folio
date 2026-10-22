@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { hasFormatting, plainText } from "@/lib/rich";
 
 // Building blocks for the editor form
 
@@ -17,6 +18,17 @@ export const smallButton =
 function Warning({ text }: { text?: string | null }) {
   if (!text) return null;
   return <span className="mt-1 block text-xs text-amber-300">{text}</span>;
+}
+
+// The form shows just the words of text formatted on the page, and says that typing here
+// would replace the bold, italic or underline
+function FormattedNote({ value }: { value: string }) {
+  if (!hasFormatting(value)) return null;
+  return (
+    <span className="mt-1 block text-[11px] text-neutral-500">
+      Has bold, italic or underline from the page. Typing here keeps just the words.
+    </span>
+  );
 }
 
 export function Field({
@@ -45,13 +57,14 @@ export function Field({
       <input
         type={type}
         className={inputClass(warning)}
-        value={value}
+        value={plainText(value)}
         placeholder={placeholder}
         disabled={disabled}
         aria-invalid={warning ? true : undefined}
         onChange={(e) => onChange(e.target.value)}
       />
       <Warning text={warning} />
+      <FormattedNote value={value} />
     </label>
   );
 }
@@ -80,10 +93,11 @@ export function TextArea({
       <textarea
         className={`${inputClass()} resize-y leading-6`}
         rows={rows}
-        value={value}
+        value={plainText(value)}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
       />
+      <FormattedNote value={value} />
     </label>
   );
 }

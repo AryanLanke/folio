@@ -23,6 +23,7 @@ import {
   skillGroups,
   visibleSections,
 } from "@/lib/resume";
+import { parseRich, plainText } from "@/lib/rich";
 import { type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // A Word version of the resume, for job portals that ask for .docx. It follows the same
@@ -39,6 +40,26 @@ const hex = (color: string) => color.replace("#", "");
 
 type Ctx = { spec: TemplateSpec; half: number; gap: number; font: string; tabAt: number };
 
+type RunStyle = { bold?: boolean; italic?: boolean; color?: string; size?: number };
+
+// Text with the bold, italic and underline made on the page, as Word runs
+function runs(text: string, ctx: Ctx, style: RunStyle = {}): TextRun[] {
+  return parseRich(text).map(
+    (span) =>
+      new TextRun({
+        text: span.text,
+        font: ctx.font,
+        size: style.size ?? ctx.half,
+        color: style.color,
+        bold: style.bold || span.bold,
+        italics: style.italic || span.italic,
+        underline: span.underline ? {} : undefined,
+      }),
+  );
+}
+
+const tab = (ctx: Ctx) => new TextRun({ text: "\t", font: ctx.font, size: ctx.half });
+
 function heading(title: string, ctx: Ctx) {
   const { heading: h } = ctx.spec;
   const caps = h.uppercase || h.smallCaps;
@@ -48,7 +69,7 @@ function heading(title: string, ctx: Ctx) {
     border: h.rule ? { bottom: { style: BorderStyle.SINGLE, size: Math.max(4, h.rule * 6), color: hex(h.ruleColor), space: 1 } } : undefined,
     children: [
       new TextRun({
-        text: caps && !h.smallCaps ? title.toUpperCase() : title,
+        text: caps && !h.smallCaps ? plainText(title).toUpperCase() : plainText(title),
         smallCaps: h.smallCaps,
         bold: true,
         color: hex(h.color),
@@ -62,10 +83,10 @@ function heading(title: string, ctx: Ctx) {
 // Title on the left, dates aligned to the right edge with a tab
 function entryLine(bold: string, rest: string[], dates: string, ctx: Ctx, first: boolean) {
   const tail = rest.filter(Boolean).join(" — ");
-  const children: ParagraphChild[] = [new TextRun({ text: bold, bold: true, font: ctx.font, size: ctx.half })];
+  const children: ParagraphChild[] = runs(bold, ctx, { bold: true });
   if (bold && tail) children.push(new TextRun({ text: ", ", font: ctx.font, size: ctx.half }));
-  if (tail) children.push(new TextRun({ text: tail, font: ctx.font, size: ctx.half }));
-  if (dates) children.push(new TextRun({ text: `\t${dates}`, color: MUTED, font: ctx.font, size: ctx.half }));
+  if (tail) children.push(...runs(tail, ctx));
+  if (dates) children.push(tab(ctx), ...runs(dates, ctx, { color: MUTED }));
   return new Paragraph({
     keepNext: true,
     tabStops: [{ type: TabStopType.RIGHT, position: ctx.tabAt }],
@@ -80,20 +101,20 @@ function bullets(text: string, ctx: Ctx) {
       new Paragraph({
         bullet: { level: 0 },
         spacing: { before: 20 },
-        children: [new TextRun({ text: line, font: ctx.font, size: ctx.half })],
+        children: runs(line, ctx),
       }),
   );
 }
 
 function plain(text: string, ctx: Ctx) {
-  return new Paragraph({ children: [new TextRun({ text, font: ctx.font, size: ctx.half })] });
+  return new Paragraph({ children: runs(text, ctx) });
 }
 
 function link(text: string, ctx: Ctx, href: string) {
   return new ExternalHyperlink({
     link: href,
     // Clickable, but styled like the surrounding text so it prints cleanly
-    children: [new TextRun({ text, font: ctx.font, size: ctx.half, color: MUTED })],
+    children: [new TextRun({ text: plainText(text), font: ctx.font, size: ctx.half, color: MUTED })],
   });
 }
 
@@ -127,17 +148,17 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
           tabStops: [{ type: TabStopType.RIGHT, position: ctx.tabAt }],
           spacing: { before: i === 0 ? 0 : Math.round(ctx.gap * 160) },
           children: [
-            new TextRun({ text: project.name, bold: true, font: ctx.font, size: ctx.half }),
+            ...runs(project.name, ctx, { bold: true }),
             ...(project.link ? [new TextRun({ text: " — ", font: ctx.font, size: ctx.half })] : []),
             ...resumeLinks(project.link, resume.style.links).flatMap((item, j) => [
               ...(j > 0 ? [new TextRun({ text: ", ", font: ctx.font, size: ctx.half })] : []),
               link(item.text, ctx, item.href),
             ]),
-            ...(project.date ? [new TextRun({ text: `	${project.date}`, color: MUTED, font: ctx.font, size: ctx.half })] : []),
+            ...(project.date ? [tab(ctx), ...runs(project.date, ctx, { color: MUTED })] : []),
           ],
         }),
         ...(project.tech
-          ? [new Paragraph({ keepNext: true, children: [new TextRun({ text: project.tech, color: MUTED, font: ctx.font, size: ctx.half })] })]
+          ? [new Paragraph({ keepNext: true, children: runs(project.tech, ctx, { color: MUTED }) })]
           : []),
         ...bullets(project.bullets, ctx),
       ]);
@@ -157,8 +178,8 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
         (group) =>
           new Paragraph({
             children: [
-              ...(group.label ? [new TextRun({ text: `${group.label}: `, bold: true, font: ctx.font, size: ctx.half })] : []),
-              new TextRun({ text: group.items.join(", "), font: ctx.font, size: ctx.half }),
+              ...(group.label ? runs(`${group.label}: `, ctx, { bold: true }) : []),
+              ...runs(group.items.join(", "), ctx),
             ],
           }),
       );
@@ -189,36 +210,25 @@ function header(resume: Resume, ctx: Ctx, nameScale = ctx.spec.name.scale): Para
     contact.push(child);
   };
   for (const item of contactItems(basics, resume.style.links)) {
-    add(item.href ? link(item.text, ctx, item.href) : new TextRun({ text: item.text, color: MUTED, font: ctx.font, size: ctx.half }));
+    add(item.href ? link(item.text, ctx, item.href) : new TextRun({ text: plainText(item.text), color: MUTED, font: ctx.font, size: ctx.half }));
   }
 
   const rule = spec.headerRule;
   return [
     new Paragraph({
       alignment: align,
-      children: [
-        new TextRun({
-          text: basics.name || "Your Name",
-          bold: spec.name.bold,
-          size: Math.round(ctx.half * nameScale),
-          font: ctx.font,
-        }),
-      ],
+      children: runs(basics.name || "Your Name", ctx, { bold: spec.name.bold, size: Math.round(ctx.half * nameScale) }),
     }),
     ...(basics.title
       ? [
           new Paragraph({
             alignment: align,
-            children: [
-              new TextRun({
-                text: basics.title,
-                color: hex(spec.title.color),
-                bold: spec.title.bold,
-                italics: spec.title.italic,
-                size: Math.round(ctx.half * 1.12),
-                font: ctx.font,
-              }),
-            ],
+            children: runs(basics.title, ctx, {
+              color: hex(spec.title.color),
+              bold: spec.title.bold,
+              italic: spec.title.italic,
+              size: Math.round(ctx.half * 1.12),
+            }),
           }),
         ]
       : []),
@@ -248,7 +258,7 @@ export function resumeDocx(resume: Resume, paper: PaperSize) {
   ]);
   return new Document({
     creator: "Folio",
-    title: `${resume.basics.name || "Resume"} - Resume`,
+    title: `${plainText(resume.basics.name) || "Resume"} - Resume`,
     sections: [{ properties: pageProperties(paper), children: [...header(resume, ctx), ...body] }],
   });
 }
@@ -268,7 +278,7 @@ export function coverLetterDocx(resume: Resume, paper: PaperSize) {
     );
   return new Document({
     creator: "Folio",
-    title: `${resume.basics.name || "Cover letter"} - Cover letter`,
+    title: `${plainText(resume.basics.name) || "Cover letter"} - Cover letter`,
     sections: [{ properties: pageProperties(paper), children: [...header(resume, ctx, 1.9), ...paragraphs] }],
   });
 }

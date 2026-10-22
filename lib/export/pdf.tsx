@@ -14,6 +14,7 @@ import {
   skillGroups,
   visibleSections,
 } from "@/lib/resume";
+import { parseRich, plainText } from "@/lib/rich";
 import { type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // A real text PDF, drawn from the same template description as the on-screen preview.
@@ -27,6 +28,22 @@ const MUTED = "#525252";
 const LINK = { color: MUTED, textDecoration: "none" } as const;
 
 type Layout = ReturnType<typeof layoutFor> & { size: number; family: string };
+
+// Text with the bold, italic and underline made on the page
+function Rich({ text }: { text: string }) {
+  return parseRich(text).map((span, i) => (
+    <Text
+      key={i}
+      style={{
+        fontWeight: span.bold ? "bold" : undefined,
+        fontStyle: span.italic ? "italic" : undefined,
+        textDecoration: span.underline ? "underline" : undefined,
+      }}
+    >
+      {pdfSafe(span.text)}
+    </Text>
+  ));
+}
 
 function layout(resume: Resume): Layout {
   const base = layoutFor(resume.style);
@@ -55,7 +72,7 @@ function Heading({ title, spec, size }: { title: string; spec: TemplateSpec; siz
           letterSpacing: size * scale * heading.letterSpacing,
         }}
       >
-        {caps ? pdfSafe(title).toUpperCase() : pdfSafe(title)}
+        {caps ? pdfSafe(plainText(title)).toUpperCase() : pdfSafe(plainText(title))}
       </Text>
     </View>
   );
@@ -69,7 +86,9 @@ function Bullets({ text }: { text: string }) {
       {lines.map((line, i) => (
         <View key={i} style={{ flexDirection: "row", marginTop: i === 0 ? 0 : 1.5 }}>
           <Text style={{ width: 10 }}>•</Text>
-          <Text style={{ flex: 1 }}>{pdfSafe(line)}</Text>
+          <Text style={{ flex: 1 }}>
+            <Rich text={line} />
+          </Text>
         </View>
       ))}
     </View>
@@ -82,11 +101,17 @@ function EntryLine({ bold, rest, start, end }: { bold: string; rest: string[]; s
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
       <Text style={{ flex: 1, paddingRight: 12 }}>
-        <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(bold)}</Text>
+        <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>
+          <Rich text={bold} />
+        </Text>
         {bold && tail.length > 0 ? ", " : ""}
-        {pdfSafe(tail.join(" — "))}
+        <Rich text={tail.join(" — ")} />
       </Text>
-      {dates && <Text style={{ color: MUTED }}>{pdfSafe(dates)}</Text>}
+      {dates && (
+        <Text style={{ color: MUTED }}>
+          <Rich text={dates} />
+        </Text>
+      )}
     </View>
   );
 }
@@ -94,7 +119,11 @@ function EntryLine({ bold, rest, start, end }: { bold: string; rest: string[]; s
 function Extra({ section }: { section: ExtraSection }) {
   const items = section.items.filter(hasExtraItem);
   if (section.kind === "languages") {
-    return <Text>{pdfSafe(items.map((i) => (i.subtitle ? `${i.title} (${i.subtitle})` : i.title)).join(", "))}</Text>;
+    return (
+      <Text>
+        <Rich text={items.map((i) => (i.subtitle ? `${i.title} (${i.subtitle})` : i.title)).join(", ")} />
+      </Text>
+    );
   }
   const fields = EXTRA_KINDS[section.kind];
   return items.map((item) => (
@@ -108,7 +137,11 @@ function Extra({ section }: { section: ExtraSection }) {
 function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
   switch (sectionKey) {
     case "summary":
-      return <Text>{pdfSafe(resume.summary)}</Text>;
+      return (
+        <Text>
+          <Rich text={resume.summary} />
+        </Text>
+      );
     case "experience":
       return resume.experience.filter(hasExperience).map((job) => (
         <View key={job.id}>
@@ -124,7 +157,9 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
           {/* Name and links, with the date on the right; what it's built with below */}
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Text style={{ flex: 1, paddingRight: 12 }}>
-              <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(project.name)}</Text>
+              <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>
+                <Rich text={project.name} />
+              </Text>
               {project.link ? " — " : ""}
               {resumeLinks(project.link, resume.style.links).map((link, i) => (
                 <Text key={i}>
@@ -135,9 +170,17 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
                 </Text>
               ))}
             </Text>
-            {project.date ? <Text style={{ color: MUTED }}>{pdfSafe(project.date)}</Text> : null}
+            {project.date ? (
+              <Text style={{ color: MUTED }}>
+                <Rich text={project.date} />
+              </Text>
+            ) : null}
           </View>
-          {project.tech ? <Text style={{ color: MUTED }}>{pdfSafe(project.tech)}</Text> : null}
+          {project.tech ? (
+            <Text style={{ color: MUTED }}>
+              <Rich text={project.tech} />
+            </Text>
+          ) : null}
           <Bullets text={project.bullets} />
         </View>
       ));
@@ -148,8 +191,16 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
         return (
           <View key={school.id} wrap={false}>
             <EntryLine bold={school.degree || school.school} rest={[]} start={school.start} end={school.end} />
-            {second ? <Text>{pdfSafe(second)}</Text> : null}
-            {school.details ? <Text style={{ marginTop: 1 }}>{pdfSafe(school.details)}</Text> : null}
+            {second ? (
+              <Text>
+                <Rich text={second} />
+              </Text>
+            ) : null}
+            {school.details ? (
+              <Text style={{ marginTop: 1 }}>
+                <Rich text={school.details} />
+              </Text>
+            ) : null}
           </View>
         );
       });
@@ -157,8 +208,12 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
       // One line per group, its label in bold; a plain list is a single line
       return skillGroups(resume.skills).map((group, i) => (
         <Text key={i}>
-          {group.label ? <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(`${group.label}: `)}</Text> : null}
-          {pdfSafe(group.items.join(", "))}
+          {group.label ? (
+            <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>
+              <Rich text={`${group.label}: `} />
+            </Text>
+          ) : null}
+          <Rich text={group.items.join(", ")} />
         </Text>
       ));
     default:
@@ -177,10 +232,10 @@ function ContactLine({ resume, style }: { resume: Resume; style: { marginTop: nu
           {i > 0 ? "   |   " : ""}
           {item.href ? (
             <Link src={item.href} style={LINK}>
-              {pdfSafe(item.text)}
+              {pdfSafe(plainText(item.text))}
             </Link>
           ) : (
-            pdfSafe(item.text)
+            <Rich text={item.text} />
           )}
         </Text>
       ))}
@@ -210,7 +265,7 @@ function Header({ resume, l }: { resume: Resume; l: Layout }) {
           lineHeight: 1.2,
         }}
       >
-        {pdfSafe(basics.name || "Your Name")}
+        <Rich text={basics.name || "Your Name"} />
       </Text>
       {basics.title ? (
         <Text
@@ -222,7 +277,7 @@ function Header({ resume, l }: { resume: Resume; l: Layout }) {
             fontStyle: spec.title.italic ? "italic" : "normal",
           }}
         >
-          {pdfSafe(basics.title)}
+          <Rich text={basics.title} />
         </Text>
       ) : null}
       <ContactLine resume={resume} style={{ marginTop: 4 }} />
@@ -234,7 +289,7 @@ export function ResumeDocument({ resume, paper }: { resume: Resume; paper: Paper
   const l = layout(resume);
   const { spec, size, gap, lineHeight, family } = l;
   return (
-    <Document title={`${resume.basics.name || "Resume"} - Resume`} author={resume.basics.name} creator="Folio">
+    <Document title={`${plainText(resume.basics.name) || "Resume"} - Resume`} author={plainText(resume.basics.name)} creator="Folio">
       <Page
         size={PAGE_SIZE[paper]}
         style={{ padding: MARGIN, fontFamily: family, fontSize: size, lineHeight, color: "#262626" }}
@@ -259,14 +314,14 @@ export function CoverLetterDocument({ resume, paper }: { resume: Resume; paper: 
   const paragraphs = resume.coverLetter.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   const rule = l.spec.headerRule ?? { width: 1, color: "#d4d4d4" };
   return (
-    <Document title={`${basics.name || "Cover letter"} - Cover letter`} author={basics.name} creator="Folio">
+    <Document title={`${plainText(basics.name) || "Cover letter"} - Cover letter`} author={plainText(basics.name)} creator="Folio">
       <Page
         size={PAGE_SIZE[paper]}
         style={{ padding: MARGIN * 1.25, fontFamily: l.family, fontSize: l.size + 0.5, lineHeight: 1.55, color: "#262626" }}
       >
         <View style={{ textAlign: l.spec.align, borderBottomWidth: rule.width * PX, borderBottomColor: rule.color, paddingBottom: 9 }}>
           <Text style={{ fontSize: l.size * 1.9, fontWeight: l.spec.name.bold ? "bold" : "normal", color: "#0a0a0a", lineHeight: 1.2 }}>
-            {pdfSafe(basics.name || "Your Name")}
+            {pdfSafe(plainText(basics.name) || "Your Name")}
           </Text>
           <ContactLine resume={resume} style={{ marginTop: 3 }} />
         </View>

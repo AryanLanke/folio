@@ -1,6 +1,8 @@
 // "Enhance with AI": polishes text the user already wrote. It may fix grammar and wording,
 // but must never add facts. Shared by the server route and the editor.
 
+import { plainText } from "@/lib/rich";
+
 export type EnhanceKind = "summary" | "bullets";
 
 // Ways to enhance. "polish" is the first pass; the others refine a suggestion further.
@@ -78,10 +80,11 @@ export function validateRequest(body: unknown): EnhanceRequest | string {
   if (src.text.length > MAX_INPUT_LENGTH) return `Text is too long (max ${MAX_INPUT_LENGTH} characters).`;
   const style = typeof src.style === "string" && src.style in ENHANCE_STYLES ? (src.style as EnhanceStyle) : "polish";
   const previous =
-    typeof src.previous === "string" && src.previous.trim() ? src.previous.trim().slice(0, MAX_INPUT_LENGTH) : undefined;
+    typeof src.previous === "string" && src.previous.trim() ? plainText(src.previous).trim().slice(0, MAX_INPUT_LENGTH) : undefined;
   return {
     kind: src.kind,
-    text: src.text.trim(),
+    // AI rewords plain words; bold and italic would come back mangled
+    text: plainText(src.text).trim(),
     style,
     previous,
     role: typeof src.role === "string" ? src.role.slice(0, 200) : undefined,

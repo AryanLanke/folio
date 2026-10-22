@@ -1,4 +1,5 @@
-import Editable from "@/components/resume/Editable";
+import { useLayoutEffect, useRef, useState } from "react";
+import Editable, { type LineKeys, placeCaret } from "@/components/resume/Editable";
 import { ColorDot } from "@/components/ui/ColorPicker";
 import {
   CORE_TITLES,
@@ -20,6 +21,7 @@ import {
   visibleSections,
 } from "@/lib/resume";
 import { type LinkMode, resumeLinks } from "@/lib/links";
+import { plainText } from "@/lib/rich";
 import { HTML_FONT, TEMPLATE_SPECS, type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // The resume as a web page. Its look comes from lib/templates.ts, shared with the PDF and Word
@@ -43,6 +45,7 @@ function Section({
   gap,
   spec,
   colorPicker,
+  move,
   children,
 }: {
   // The heading, and how to rename it when the page is editable
@@ -51,12 +54,20 @@ function Section({
   spec: TemplateSpec;
   // The round colour dot at the end of the heading, when the page is editable
   colorPicker?: React.ReactNode;
+  // Moves the whole section up or down the page; missing at the top or bottom
+  move?: { up?: () => void; down?: () => void };
   children: React.ReactNode;
 }) {
   const { heading } = spec;
   return (
-    <section style={{ marginTop: 20 * gap }}>
+    <section style={{ marginTop: 20 * gap }} className="group/section">
       <div className="relative">
+        {move && (
+          <div className="absolute -left-9 inset-y-0 flex items-center gap-0.5 pb-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover/section:opacity-100">
+            <MoveButton label={`Move ${plainText(title.value)} up`} onClick={move.up} direction="up" />
+            <MoveButton label={`Move ${plainText(title.value)} down`} onClick={move.down} direction="down" />
+          </div>
+        )}
         <h2
           className="break-after-avoid font-bold"
           style={{
@@ -85,6 +96,24 @@ function Section({
   );
 }
 
+// A small arrow in the page margin, for moving a section
+function MoveButton({ label, onClick, direction }: { label: string; onClick?: () => void; direction: "up" | "down" }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      aria-label={label}
+      title={label}
+      className="grid size-4 place-items-center rounded text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-900 disabled:invisible"
+    >
+      <svg viewBox="0 0 16 16" aria-hidden="true" className="size-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d={direction === "up" ? "M3.5 10 8 5.5l4.5 4.5" : "M3.5 6 8 10.5 12.5 6"} />
+      </svg>
+    </button>
+  );
+}
+
 function Dates({ start, end }: { start: Field; end: Field }) {
   if (!start.value && !end.value) return null;
   return (
@@ -96,22 +125,84 @@ function Dates({ start, end }: { start: Field; end: Field }) {
   );
 }
 
-// One bullet per line; editing a bullet to nothing removes it
+// One bullet per line, edited like a list in Word: Enter splits a bullet (or starts a new one),
+// Backspace at the start joins it to the one above, Alt+Up and Alt+Down move it. Editing a
+// bullet to nothing removes it.
 function Bullets({ value, onCommit }: { value: string; onCommit?: (next: string) => void }) {
   const lines = toLines(value);
+  const listRef = useRef<HTMLUListElement>(null);
+  // A new empty bullet from Enter: it only becomes part of the resume once something is typed
+  const [pending, setPending] = useState<number | null>(null);
+  // Where the cursor goes once the list has re-rendered
+  const focusNext = useRef<{ index: number; offset: number | "end" } | null>(null);
+
+  useLayoutEffect(() => {
+    const target = focusNext.current;
+    if (!target) return;
+    focusNext.current = null;
+    const element = listRef.current?.querySelectorAll<HTMLElement>("[role=textbox]")[target.index];
+    if (element) placeCaret(element, target.offset);
+  });
+
   if (lines.length === 0) return null;
-  const save = (i: number) =>
+  const shown = pending !== null && pending <= lines.length ? [...lines.slice(0, pending), "", ...lines.slice(pending)] : lines;
+  // Saves the list as shown; an empty line left in it stays on screen as the new bullet
+  const save = (next: string[], empty: number | null = null) => {
+    setPending(empty);
+    const filled = next.filter((line) => plainText(line).trim());
+    if (filled.join("\n") !== lines.join("\n")) onCommit?.(filled.join("\n"));
+  };
+
+  const commitLine = (i: number) =>
     onCommit &&
     ((next: string) => {
-      const copy = [...lines];
-      if (next) copy[i] = next;
-      else copy.splice(i, 1);
-      onCommit(copy.join("\n"));
+      const copy = [...shown];
+      copy[i] = next;
+      save(copy);
     });
+
+  const keys = (i: number): LineKeys => ({
+    onSplit: (before, after) => {
+      const empty = (text: string) => !plainText(text).trim();
+      if (empty(before) && empty(after)) {
+        // Enter on an empty bullet ends the list, like in Word
+        setPending(null);
+        return false;
+      }
+      const copy = [...shown];
+      copy.splice(i, 1, before, after);
+      focusNext.current = { index: i + 1, offset: 0 };
+      save(copy, empty(after) ? i + 1 : empty(before) ? i : null);
+      return true;
+    },
+    onMergeUp: (current) => {
+      if (i === 0) return false;
+      const copy = [...shown];
+      const previous = copy[i - 1];
+      const space = plainText(previous).trim() && plainText(current).trim() ? " " : "";
+      copy.splice(i - 1, 2, previous + space + current);
+      focusNext.current = { index: i - 1, offset: plainText(previous).length + space.length };
+      save(copy);
+      return true;
+    },
+    onMove: (direction, current) => {
+      const to = i + direction;
+      if (to < 0 || to >= shown.length) return false;
+      const copy = [...shown];
+      copy[i] = copy[to];
+      copy[to] = current;
+      focusNext.current = { index: to, offset: "end" };
+      save(copy, pending === i ? to : pending === to ? i : pending);
+      return true;
+    },
+  });
+
   return (
-    <ul className="mt-1 list-disc space-y-0.5 pl-4">
-      {lines.map((line, i) => (
-        <li key={i}>{text({ value: line, label: "Bullet point", onCommit: save(i) })}</li>
+    <ul ref={listRef} className="mt-1 list-disc space-y-0.5 pl-4">
+      {shown.map((line, i) => (
+        <li key={i}>
+          <Editable value={line} label="Bullet point" onCommit={commitLine(i)} lineKeys={onCommit && keys(i)} />
+        </li>
       ))}
     </ul>
   );
@@ -358,6 +449,15 @@ export default function ResumePreview({
   const { spec, fontSize, gap, lineHeight } = layoutFor(resume.style);
   const set = onChange && ((change: Partial<Resume>) => onChange({ ...resume, ...change }));
   const setBasics = set && ((change: Partial<Resume["basics"]>) => set({ basics: { ...basics, ...change } }));
+  const sections = visibleSections(resume);
+  // Sections swap places in the saved order, which also holds the ones not on the page yet
+  const swapSections = (a: string, b: string) => {
+    const order = [...resume.order];
+    const i = order.indexOf(a);
+    const j = order.indexOf(b);
+    [order[i], order[j]] = [order[j], order[i]];
+    set?.({ order });
+  };
   // Clearing a heading puts the standard name back
   const renameSection = (key: string, next: string) => {
     if (!set) return;
@@ -423,12 +523,18 @@ export default function ResumePreview({
         <Contact resume={resume} set={setBasics} />
       </header>
 
-      {visibleSections(resume).map((section) => (
+      {sections.map((section, i) => (
         <Section
           key={section.key}
           title={{ value: section.title, label: "Section title", onCommit: set && ((next) => renameSection(section.key, next)) }}
           gap={gap}
           spec={spec}
+          move={
+            set && {
+              up: i > 0 ? () => swapSections(section.key, sections[i - 1].key) : undefined,
+              down: i < sections.length - 1 ? () => swapSections(section.key, sections[i + 1].key) : undefined,
+            }
+          }
           colorPicker={
             set && (
               <ColorDot
