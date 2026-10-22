@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import ResumePreview from "@/components/resume/ResumePreview";
@@ -130,8 +131,14 @@ export function OptimizePanel({
 }) {
   const [before, after] = optimized.scores;
   const nothing = optimized.changes.length === 0;
+  const reworded = optimized.changes.some((change) => change.key !== "layout");
+  const ref = useRef<HTMLElement>(null);
+  // Brought into view when it appears, so the list of changes is never missed
+  useEffect(() => {
+    ref.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, []);
   return (
-    <section role="status" className="mb-4 rounded-lg border border-border bg-surface p-4">
+    <section ref={ref} role="status" className="mb-4 scroll-mt-4 rounded-lg border border-border bg-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-sm font-bold">
@@ -141,8 +148,14 @@ export function OptimizePanel({
           <p className="mt-1 text-xs text-muted">
             {nothing
               ? "Nothing needed changing."
-              : `${after === before ? `ATS score ${after}` : `ATS score ${before} → ${after}`}. Read the new wording to make sure it still sounds like you.`}
+              : `${optimized.changes.length} change${optimized.changes.length === 1 ? "" : "s"}. ${after === before ? `ATS score ${after}` : `ATS score ${before} → ${after}`}.`}
           </p>
+          {reworded && (
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+              <span className="optimize-mark inline-block h-3 w-6 rounded-sm" aria-hidden="true" />
+              Reworded lines are highlighted on the page. Point at one to see what it said before.
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 gap-2">
           {!nothing && (
