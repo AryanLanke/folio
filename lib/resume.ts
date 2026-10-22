@@ -101,9 +101,17 @@ export type ResumeStyle = {
   spacing: "compact" | "normal" | "relaxed";
   // Links as short clickable labels ("LinkedIn") or as full addresses
   links: "label" | "url";
+  // The person's own colour for headings and lines ("#1e3a5f"); null keeps the template's
+  accent: string | null;
 };
 
-export const DEFAULT_STYLE: ResumeStyle = { template: "classic", fontSize: "medium", spacing: "normal", links: "label" };
+export const DEFAULT_STYLE: ResumeStyle = {
+  template: "classic",
+  fontSize: "medium",
+  spacing: "normal",
+  links: "label",
+  accent: null,
+};
 
 // The job this resume is aimed at, used by job match and cover letters
 export type JobTarget = {
@@ -129,6 +137,8 @@ export type Resume = {
   extras: ExtraSection[];
   // Section order on the page: core section names and extra section ids
   order: string[];
+  // The person's own names for core sections ("Profile" instead of "Summary")
+  titles: Partial<Record<CoreSection, string>>;
   style: ResumeStyle;
   target: JobTarget;
   coverLetter: string;
@@ -170,6 +180,7 @@ export function createEmptyResume(): Resume {
     skills: "",
     extras: [],
     order: [...CORE_SECTIONS],
+    titles: {},
     style: { ...DEFAULT_STYLE },
     target: emptyTarget(),
     coverLetter: "",
@@ -243,6 +254,7 @@ export function createSampleResume(): Resume {
     skills: "JavaScript, TypeScript, React, Next.js, HTML, CSS, Tailwind CSS, Git, REST APIs, Figma",
     extras: [certifications],
     order: [...CORE_SECTIONS, certifications.id],
+    titles: {},
     style: { ...DEFAULT_STYLE },
     // A sample job, so the example also shows Job match working
     target: {
@@ -300,6 +312,17 @@ function normalizeOrder(source: unknown, extras: ExtraSection[]): string[] {
   return order;
 }
 
+// Only names for real sections, trimmed; an empty name means the standard one
+function normalizeTitles(source: unknown): Resume["titles"] {
+  const src = (source && typeof source === "object" ? source : {}) as Record<string, unknown>;
+  const titles: Resume["titles"] = {};
+  for (const key of CORE_SECTIONS) {
+    const value = src[key];
+    if (typeof value === "string" && value.trim()) titles[key] = value.trim().slice(0, 60);
+  }
+  return titles;
+}
+
 // Turns saved or imported data into a valid resume, or null if it isn't one
 export function normalizeResume(data: unknown): Resume | null {
   if (!data || typeof data !== "object") return null;
@@ -321,11 +344,13 @@ export function normalizeResume(data: unknown): Resume | null {
     skills: typeof src.skills === "string" ? src.skills : "",
     extras,
     order: normalizeOrder(src.order, extras),
+    titles: normalizeTitles(src.titles),
     style: {
       template: pickOne(style.template, Object.keys(TEMPLATES) as TemplateName[], DEFAULT_STYLE.template),
       fontSize: pickOne(style.fontSize, ["small", "medium", "large"], DEFAULT_STYLE.fontSize),
       spacing: pickOne(style.spacing, ["compact", "normal", "relaxed"], DEFAULT_STYLE.spacing),
       links: pickOne(style.links, ["label", "url"], DEFAULT_STYLE.links),
+      accent: typeof style.accent === "string" && /^#[0-9a-f]{6}$/i.test(style.accent) ? style.accent.toLowerCase() : null,
     },
     target: {
       description: text(target.description),
@@ -356,6 +381,11 @@ export function hasExtraItem(item: ExtraItem) {
   return Boolean(item.title || item.subtitle || item.bullets.trim());
 }
 
+// A core section's name on the page: the person's own, or the standard one
+export function sectionTitle(resume: Resume, key: CoreSection) {
+  return resume.titles[key]?.trim() || CORE_TITLES[key];
+}
+
 // The sections that will actually appear on the page, in order
 export function visibleSections(resume: Resume): { key: string; title: string; extra?: ExtraSection }[] {
   const filled: Record<CoreSection, boolean> = {
@@ -368,7 +398,7 @@ export function visibleSections(resume: Resume): { key: string; title: string; e
 
   return resume.order.flatMap((key) => {
     if (key in CORE_TITLES) {
-      return filled[key as CoreSection] ? [{ key, title: CORE_TITLES[key as CoreSection] }] : [];
+      return filled[key as CoreSection] ? [{ key, title: sectionTitle(resume, key as CoreSection) }] : [];
     }
     const extra = resume.extras.find((e) => e.id === key);
     return extra && extra.items.some(hasExtraItem) ? [{ key, title: extra.title, extra }] : [];

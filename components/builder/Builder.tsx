@@ -13,6 +13,7 @@ import { OptimizeEffect, OptimizePanel, type Optimized, REVEAL_MS, optimizeResum
 import PagedPreview from "@/components/resume/PagedPreview";
 import ScoreView from "@/components/resume/ScoreView";
 import ResumePreview from "@/components/resume/ResumePreview";
+import { ColorSwatches } from "@/components/ui/ColorPicker";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
 import Sparkle from "@/components/ui/Sparkle";
@@ -44,6 +45,7 @@ import {
   hasExperience,
 } from "@/lib/resume";
 import { FEEDBACK_URL } from "@/lib/site";
+import { TEMPLATE_SPECS } from "@/lib/templates";
 import {
   deleteResume,
   keepStorage,
@@ -394,6 +396,14 @@ export default function Builder() {
       <Segmented label="Spacing" options={SPACING_OPTIONS} value={resume.style.spacing} onChange={(spacing) => setStyle({ spacing })} />
       <Segmented label="Paper" options={PAPER_OPTIONS} value={paper} onChange={changePaper} />
       <Segmented label="Links" options={LINK_OPTIONS} value={resume.style.links} onChange={(links) => setStyle({ links })} />
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold text-muted">Colour</span>
+        <ColorSwatches
+          value={resume.style.accent}
+          fallback={TEMPLATE_SPECS[resume.style.template].heading.color}
+          onChange={(accent) => setStyle({ accent })}
+        />
+      </div>
     </>
   );
 

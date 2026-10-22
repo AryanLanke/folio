@@ -20,6 +20,7 @@ import {
   newExtraItem,
   newExtraSection,
   newProject,
+  sectionTitle,
 } from "@/lib/resume";
 import { checkDate, checkDateRange, checkEmail, checkLink, checkPhone } from "@/lib/validate";
 
@@ -363,7 +364,7 @@ export default function Editor({
         };
         if (key in CORE_TITLES) {
           return (
-            <Card key={key} title={CORE_TITLES[key as CoreSection]} move={move}>
+            <Card key={key} title={sectionTitle(resume, key as CoreSection)} move={move}>
               {renderCore(key as CoreSection)}
             </Card>
           );

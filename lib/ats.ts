@@ -2,6 +2,7 @@
 // plain text in reading order. Also a checklist of what they need to parse it well.
 
 import {
+  type CoreSection,
   EXTRA_KINDS,
   PRESENT,
   type Resume,
@@ -229,6 +230,23 @@ const GENERIC_SUMMARY =
 
 type Draft = Omit<AtsCheck, "status" | "fix"> & { fix: string };
 
+// Headings screening software files under each section. A renamed section outside these may
+// not be recognised, so its content can end up in the wrong place or be skipped.
+const STANDARD_TITLES: Record<CoreSection, string[]> = {
+  summary: ["summary", "professional summary", "career summary", "profile", "professional profile", "objective", "career objective", "about me"],
+  experience: ["experience", "work experience", "professional experience", "relevant experience", "employment", "employment history", "work history", "internships", "internship experience"],
+  projects: ["projects", "personal projects", "academic projects", "key projects", "selected projects", "relevant projects"],
+  education: ["education", "academic background", "education and training", "qualifications"],
+  skills: ["skills", "technical skills", "core skills", "key skills", "core competencies", "skills and tools", "tools and technologies"],
+};
+
+// Renamed core sections whose new name isn't a standard heading, as they appear on the page
+function unusualTitles(resume: Resume) {
+  return visibleSections(resume)
+    .filter((section) => !section.extra && !STANDARD_TITLES[section.key as CoreSection].includes(section.title.trim().toLowerCase()))
+    .map((section) => section.title);
+}
+
 function readChecks(resume: Resume): Draft[] {
   const { basics } = resume;
   const jobs = resume.experience.filter(hasExperience);
@@ -249,6 +267,7 @@ function readChecks(resume: Resume): Draft[] {
   const broken = bulletFields(resume).flatMap(brokenBulletLines);
   const skillCount = skillList(resume.skills).length;
   const untitled = resume.extras.filter((e) => e.items.some(hasExtraItem) && !e.title.trim());
+  const unusual = unusualTitles(resume);
   const emailProblem = basics.email.trim() ? checkEmail(basics.email) : null;
   const phoneProblem = basics.phone.trim() ? checkPhone(basics.phone) : null;
   const incompleteSchool = schools.find((s) => !s.school.trim() || !s.degree.trim() || !s.end.trim());
@@ -374,9 +393,18 @@ function readChecks(resume: Resume): Draft[] {
       label: "Section titles",
       group: "read",
       weight: 0.5,
-      score: empty ? 0 : untitled.length === 0 ? 1 : 0,
-      detail: empty ? nothingYet : untitled.length === 0 ? "Every section has a title." : "A section has no title.",
-      fix: 'Give every section a plain title like "Certifications", so the ATS knows what it is.',
+      score: empty || untitled.length > 0 ? 0 : unusual.length > 0 ? 0.6 : 1,
+      detail: empty
+        ? nothingYet
+        : untitled.length > 0
+          ? "A section has no title."
+          : unusual.length > 0
+            ? `${unusual.map((title) => `"${title}"`).join(" and ")} ${unusual.length === 1 ? "isn't a heading" : "aren't headings"} most ATS software looks for.`
+            : "Every section has a title the ATS will recognise.",
+      fix:
+        untitled.length > 0
+          ? 'Give every section a plain title like "Certifications", so the ATS knows what it is.'
+          : 'Use a common heading, like "Summary" or "Profile", "Work Experience", "Projects", "Education" and "Skills". Click a heading on the page to rename it.',
     },
   ];
 }
