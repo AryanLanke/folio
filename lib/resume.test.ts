@@ -6,6 +6,9 @@ import {
   createSampleResume,
   newExtraSection,
   normalizeResume,
+  skillGroups,
+  skillList,
+  skillsText,
   toLines,
   toList,
   visibleSections,
@@ -98,5 +101,36 @@ describe("text helpers", () => {
 
   it("splits skills by comma", () => {
     expect(toList("React, , TypeScript ,")).toEqual(["React", "TypeScript"]);
+  });
+});
+
+describe("skill groups", () => {
+  it("reads a plain list as one unlabelled group", () => {
+    expect(skillGroups("React, TypeScript, CI-CD")).toEqual([{ label: "", items: ["React", "TypeScript", "CI-CD"] }]);
+  });
+
+  it("reads one group per line, with a colon or a dash, and | between skills", () => {
+    const text = "Languages: C++, Python\nTools: Git, GitHub, Postman,\nSkills- Corporate Finance | Financial Modelling";
+    expect(skillGroups(text)).toEqual([
+      { label: "Languages", items: ["C++", "Python"] },
+      { label: "Tools", items: ["Git", "GitHub", "Postman"] },
+      { label: "Skills", items: ["Corporate Finance", "Financial Modelling"] },
+    ]);
+    expect(skillList(text)).toHaveLength(7);
+  });
+
+  it("writes groups back the same way", () => {
+    const groups = [
+      { label: "Languages", items: ["C++", "Python"] },
+      { label: "", items: ["Figma"] },
+    ];
+    expect(skillsText(groups)).toBe("Languages: C++, Python\nFigma");
+    expect(skillGroups(skillsText(groups))).toEqual(groups);
+  });
+
+  it("keeps old saved projects working, with the new fields empty", () => {
+    const old = { ...createSampleResume(), projects: [{ id: "p", name: "Site", link: "", bullets: "Built it" }] };
+    const loaded = normalizeResume(JSON.parse(JSON.stringify(old)))!;
+    expect(loaded.projects[0]).toEqual({ id: "p", name: "Site", link: "", tech: "", date: "", bullets: "Built it" });
   });
 });

@@ -56,7 +56,15 @@ export function aiError(code: AiErrorCode) {
   return Response.json({ error: code }, { status });
 }
 
-type ChatOptions = { maxTokens?: number; timeoutMs?: number; reasoning?: "low" | "medium"; temperature?: number };
+type ChatOptions = {
+  maxTokens?: number;
+  timeoutMs?: number;
+  reasoning?: "low" | "medium";
+  temperature?: number;
+  // Whether a busy main model may hand over to the smaller one. Off for careful copying (import,
+  // Build with AI, cover letters): the small model drops whole jobs, so waiting is better.
+  fallback?: boolean;
+};
 type ChatResult = { content: string } | { error: AiErrorCode; retryAfterMs?: number };
 
 // How long to wait before asking a busy model again, when the provider doesn't say
@@ -68,12 +76,15 @@ const MIN_TRY_MS = 5000;
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Waits on a busy main model before giving up: up to this many more tries
+const MAX_WAITS = 2;
+
 // Sends a chat request that must answer in JSON. Returns the raw JSON text, or an error code.
 //
 // Groq's free tier limits each model separately (8,000 tokens a minute each), so when the main
-// model is busy the smaller fallback model usually isn't: try it straight away. If both are
-// busy, wait as long as the provider asks (within limits) and try the main model once more.
-// Everything stays within the one time limit.
+// model is busy the smaller fallback model usually isn't: try it straight away, unless the
+// call asks not to. Then wait as long as the provider asks (within limits) and try the main
+// model again, up to MAX_WAITS times. Everything stays within the one time limit.
 export async function chatJson(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResult> {
   const ai = provider();
   if (!ai) return { error: "not_configured" };
@@ -84,16 +95,19 @@ export async function chatJson(messages: ChatMessage[], options: ChatOptions = {
   let result = await chatOnce(ai, ai.model, messages, options, timeLeft());
   if (!isBusy(result)) return result;
 
-  if (ai.fallback && ai.fallback !== ai.model && timeLeft() >= MIN_TRY_MS) {
+  if (options.fallback !== false && ai.fallback && ai.fallback !== ai.model && timeLeft() >= MIN_TRY_MS) {
     result = await chatOnce(ai, ai.fallback, messages, options, timeLeft());
     if (!isBusy(result)) return result;
   }
 
-  const delay = Math.min(result.retryAfterMs ?? RETRY_DELAY_MS, MAX_RETRY_DELAY_MS);
-  if (timeLeft() < delay + MIN_TRY_MS) return { error: "busy" };
-  await wait(delay);
-  result = await chatOnce(ai, ai.model, messages, options, timeLeft());
-  return isBusy(result) ? { error: "busy" } : result;
+  for (let i = 0; i < MAX_WAITS; i++) {
+    const delay = Math.min(result.retryAfterMs ?? RETRY_DELAY_MS, MAX_RETRY_DELAY_MS);
+    if (timeLeft() < delay + MIN_TRY_MS) break;
+    await wait(delay);
+    result = await chatOnce(ai, ai.model, messages, options, timeLeft());
+    if (!isBusy(result)) return result;
+  }
+  return { error: "busy" };
 }
 
 function isBusy(result: ChatResult): result is { error: "busy"; retryAfterMs?: number } {

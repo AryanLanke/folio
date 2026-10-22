@@ -11,7 +11,7 @@ import {
   hasExtraItem,
   hasProject,
   toLines,
-  toList,
+  skillGroups,
   visibleSections,
 } from "@/lib/resume";
 import { type TemplateSpec, layoutFor } from "@/lib/templates";
@@ -121,18 +121,23 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
     case "projects":
       return resume.projects.filter(hasProject).map((project) => (
         <View key={project.id}>
-          <Text>
-            <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(project.name)}</Text>
-            {project.link ? " — " : ""}
-            {resumeLinks(project.link, resume.style.links).map((link, i) => (
-              <Text key={i}>
-                {i > 0 ? ", " : ""}
-                <Link src={link.href} style={LINK}>
-                  {pdfSafe(link.text)}
-                </Link>
-              </Text>
-            ))}
-          </Text>
+          {/* Name and links, with the date on the right; what it's built with below */}
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(project.name)}</Text>
+              {project.link ? " — " : ""}
+              {resumeLinks(project.link, resume.style.links).map((link, i) => (
+                <Text key={i}>
+                  {i > 0 ? ", " : ""}
+                  <Link src={link.href} style={LINK}>
+                    {pdfSafe(link.text)}
+                  </Link>
+                </Text>
+              ))}
+            </Text>
+            {project.date ? <Text style={{ color: MUTED }}>{pdfSafe(project.date)}</Text> : null}
+          </View>
+          {project.tech ? <Text style={{ color: MUTED }}>{pdfSafe(project.tech)}</Text> : null}
           <Bullets text={project.bullets} />
         </View>
       ));
@@ -149,7 +154,13 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
         );
       });
     case "skills":
-      return <Text>{pdfSafe(toList(resume.skills).join(", "))}</Text>;
+      // One line per group, its label in bold; a plain list is a single line
+      return skillGroups(resume.skills).map((group, i) => (
+        <Text key={i}>
+          {group.label ? <Text style={{ fontWeight: "bold", color: "#0a0a0a" }}>{pdfSafe(`${group.label}: `)}</Text> : null}
+          {pdfSafe(group.items.join(", "))}
+        </Text>
+      ));
     default:
       return null;
   }

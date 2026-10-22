@@ -182,6 +182,13 @@ export default function Editor({
                     placeholder="github.com/you/project, project.com"
                     warning={checkLink(item.link)}
                   />
+                  <Field
+                    label="Built with"
+                    value={item.tech}
+                    onChange={(v) => setProject(item.id, { tech: v })}
+                    placeholder="React, Node.js, MongoDB"
+                  />
+                  <Field label="Date" value={item.date} onChange={(v) => setProject(item.id, { date: v })} placeholder="2025" />
                 </div>
                 <div className="mt-4">
                   <EnhanceTextArea
@@ -248,11 +255,11 @@ export default function Editor({
         return (
           <TextArea
             label="Your skills"
-            hint="Separate with commas"
-            rows={3}
+            hint="Separate with commas. To group them, one group per line"
+            rows={4}
             value={resume.skills}
             onChange={(v) => set({ skills: v })}
-            placeholder="JavaScript, React, SQL, Figma"
+            placeholder={"JavaScript, React, SQL, Figma\n\nor grouped:\nLanguages: Python, SQL\nTools: Git, Docker"}
           />
         );
     }

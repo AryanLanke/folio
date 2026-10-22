@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildImportMessages, parseImport } from "@/lib/importer";
+import { buildImportMessages, fullYears, parseImport } from "@/lib/importer";
 import { normalizeResume } from "@/lib/resume";
 
 const reply = JSON.stringify({
@@ -100,6 +100,86 @@ describe("parseImport", () => {
   it("rejects broken or empty replies", () => {
     expect(parseImport("not json")).toBeNull();
     expect(parseImport("{}")).toBeNull();
+  });
+});
+
+describe("keeping everything on the resume", () => {
+  const resume = parseImport(
+    JSON.stringify({
+      basics: { name: "Priya Manjare", link: "https://www.linkedin.com/in/priya?utm_source=share_via&utm_medium=member_android" },
+      experience: [{ role: "Wealth Manager", company: "Nuvama", start: "Apr'25", end: "Present" }],
+      projects: [{ name: "Chat App", tech: "Node.js, Socket.IO, Docker", date: "Feb’24 – May’24", bullets: ["Built it"] }],
+      skills: [
+        { group: "Languages:", items: ["C++", "Python"] },
+        { group: "Tools", items: ["Git", "Postman"] },
+      ],
+      other: [
+        {
+          title: "Open Source & Achievements",
+          items: [
+            { name: "Apache Fluss", bullets: ["Contributed a documentation improvement that was merged"] },
+            { name: "Solved 400+ LeetCode problems" },
+          ],
+        },
+      ],
+    }),
+  )!;
+
+  it("keeps a project's tools and dates", () => {
+    expect(resume.projects[0].tech).toBe("Node.js, Socket.IO, Docker");
+    expect(resume.projects[0].date).toBe("Feb 2024 – May 2024");
+  });
+
+  it("keeps skill groups and their labels", () => {
+    expect(resume.skills).toBe("Languages: C++, Python\nTools: Git, Postman");
+  });
+
+  it("still reads a plain list of skills", () => {
+    expect(parseImport(JSON.stringify({ basics: { name: "Sam" }, skills: ["SQL", "Excel"] }))!.skills).toBe("SQL, Excel");
+  });
+
+  it("keeps sections that fit nowhere else under their own heading", () => {
+    const other = resume.extras.find((e) => e.title === "Open Source & Achievements")!;
+    expect(other.kind).toBe("custom");
+    expect(other.items.map((i) => i.title)).toEqual(["Apache Fluss", "Solved 400+ LeetCode problems"]);
+    expect(resume.order).toContain(other.id);
+  });
+
+  it("writes out two-digit years so the ATS can read them", () => {
+    expect(resume.experience[0].start).toBe("Apr 2025");
+    expect(fullYears("July'24")).toBe("July 2024");
+    expect(fullYears("Jun’98")).toBe("Jun 1998");
+    expect(fullYears("2023 - 2025")).toBe("2023 - 2025");
+  });
+
+  it("drops share-tracking from links", () => {
+    expect(resume.basics.link).toBe("https://www.linkedin.com/in/priya");
+  });
+
+  it("puts entries filed under the wrong heading back where they belong", () => {
+    const misfiled = parseImport(
+      JSON.stringify({
+        basics: { name: "Atharva" },
+        experience: [{ role: "Wealth Manager", company: "Nuvama", start: "Apr 2025", end: "Present" }],
+        certifications: [{ name: "Finance Essentials", issuer: "Harvard" }],
+        other: [
+          {
+            title: "WORK EXPERIENCE",
+            items: [{ name: "Product Management Intern", detail: "DBS Bank", date: "May'24 – July'24", bullets: ["Ran a competitive analysis"] }],
+          },
+          { title: "Certifications", items: [{ name: "Market Concepts", detail: "Bloomberg" }] },
+          { title: "Extracurricular Activities", items: [{ name: "Debate club captain" }] },
+        ],
+      }),
+    )!;
+    expect(misfiled.experience.map((j) => [j.role, j.company, j.start, j.end])).toEqual([
+      ["Wealth Manager", "Nuvama", "Apr 2025", "Present"],
+      ["Product Management Intern", "DBS Bank", "May 2024", "July 2024"],
+    ]);
+    expect(misfiled.extras.map((e) => [e.kind, e.title, e.items.length])).toEqual([
+      ["certifications", "Certifications", 2],
+      ["custom", "Extracurricular Activities", 1],
+    ]);
   });
 });
 

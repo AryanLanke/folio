@@ -57,6 +57,9 @@ export async function POST(request: Request) {
   const reply = await chatJson(buildImportMessages(clean.slice(0, MAX_IMPORT_LENGTH)), {
     maxTokens: 6000,
     timeoutMs: 45_000,
+    // Copying, not writing: the same file should give the same result every time
+    temperature: 0,
+    fallback: false,
   });
   if ("error" in reply) return aiError(reply.error);
 

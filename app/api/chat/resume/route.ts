@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   if (!turns) return aiError("bad_request");
   if (overServerLimit(request)) return aiError("limit");
 
-  const draftReply = await chatJson(buildDraftMessages(turns), { maxTokens: 6000, timeoutMs: 45_000 });
+  const draftReply = await chatJson(buildDraftMessages(turns), { maxTokens: 6000, timeoutMs: 45_000, fallback: false });
   if ("error" in draftReply) return aiError(draftReply.error);
   const draft = parseImport(draftReply.content);
   if (!draft) return aiError("failed");
@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   const checkedReply = await chatJson(buildDraftCheckMessages(turns, draftReply.content), {
     maxTokens: 6000,
     timeoutMs: 45_000,
+    fallback: false,
   });
   // If the check itself fails, the draft is still worth returning
   const checked = "error" in checkedReply ? null : parseImport(checkedReply.content);

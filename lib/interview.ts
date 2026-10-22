@@ -2,6 +2,7 @@
 // resume from what they said. Every fact comes from the person; the AI only organizes and words it.
 
 import { BANNED_WORDS, INVOLVEMENT_RULE } from "@/lib/enhance";
+import { RESUME_SHAPE } from "@/lib/importer";
 import { PRESENT } from "@/lib/resume";
 
 export type ChatTurn = { role: "assistant" | "user"; content: string };
@@ -70,20 +71,6 @@ export function parseInterviewReply(raw: unknown): { reply: string; ready: boole
     return null;
   }
 }
-
-// Same JSON shape as resume import, so the same parser turns it into a Folio resume
-const RESUME_SHAPE = JSON.stringify({
-  basics: { name: "", title: "", email: "", phone: "", location: "", link: "" },
-  summary: "",
-  experience: [{ role: "", company: "", location: "", start: "", end: "", bullets: [""] }],
-  education: [{ school: "", degree: "", location: "", start: "", end: "", details: "" }],
-  projects: [{ name: "", link: "", bullets: [""] }],
-  skills: [""],
-  certifications: [{ name: "", issuer: "", date: "" }],
-  awards: [{ name: "", issuer: "", date: "" }],
-  volunteering: [{ role: "", organization: "", dates: "", bullets: [""] }],
-  languages: [{ language: "", level: "" }],
-});
 
 export function buildDraftMessages(turns: ChatTurn[]) {
   const system = [

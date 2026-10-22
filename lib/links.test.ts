@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { linkDisplay, linkHref, linkKey, linkLabel, repoName, resumeLinks, splitLinks } from "@/lib/links";
+import { linkDisplay, linkHref, linkKey, linkLabel, repoName, resumeLinks, splitLinks, withoutTracking } from "@/lib/links";
 
 describe("repoName", () => {
   it("finds links to one repository", () => {
@@ -80,5 +80,16 @@ describe("resumeLinks", () => {
 
   it("can show the full addresses instead", () => {
     expect(resumeLinks(field, "url").map((l) => l.text)).toEqual(["linkedin.com/in/jordan", "github.com/jordan"]);
+  });
+});
+
+describe("withoutTracking", () => {
+  it("removes share tracking and keeps real parameters", () => {
+    expect(withoutTracking("https://www.linkedin.com/in/priya?utm_source=share_via&utm_medium=member_android")).toBe(
+      "https://www.linkedin.com/in/priya",
+    );
+    expect(withoutTracking("linkedin.com/in/priya?trk=public_profile")).toBe("linkedin.com/in/priya");
+    expect(withoutTracking("https://site.dev/work?id=3&utm_campaign=x")).toBe("https://site.dev/work?id=3");
+    expect(withoutTracking("github.com/priya")).toBe("github.com/priya");
   });
 });
