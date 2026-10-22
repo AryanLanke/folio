@@ -129,7 +129,7 @@ Every push to GitHub runs lint, type checks, unit tests, a production build and 
 
 ## Feedback
 
-Found a bug or have an idea? Use **Send feedback** in the app, or [open an issue](https://github.com/AryanLanke/resume-builder/issues/new).
+Found a bug or have an idea? Use **Send feedback** in the app, or [open an issue](https://github.com/AryanLanke/folio/issues/new).
 
 ## License
 
