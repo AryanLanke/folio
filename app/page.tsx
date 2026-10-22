@@ -29,8 +29,8 @@ const features = [
     body: "Classic, Modern, Executive, Compact and Serif. All built so applicant tracking systems, the software companies use to screen resumes, can read them.",
   },
   {
-    title: "See what the ATS sees",
-    body: "The exact plain text that screening software like Workday and Greenhouse pulls from your PDF, plus a readiness check.",
+    title: "A strict ATS check",
+    body: "An ATS score out of 100 from 15 checks, like education, bullet formatting, dates, your summary, action verbs and numbers. Each one passes, warns or needs fixing, with how to fix it, and broken bullets fix in one click. Plus the exact text software like Workday reads from your PDF.",
   },
   {
     title: "PDF, Word and cover letters",
@@ -62,7 +62,7 @@ const faqs = [
   },
   {
     q: "How is the resume score worked out?",
-    a: "From checks you can see: whether ATS software can read it, whether your bullets start with clear actions and include numbers, whether there are buzzwords or \"I\", and, if you add a job posting, how well you match its keywords. Every point is explained, with what to fix.",
+    a: "From checks you can see. Most of it is the ATS check: whether screening software can read your contact details, education, dates and bullets, and whether your summary, verbs, numbers and bullet length will rank well. Then writing style (no buzzwords or \"I\"), and, if you add a job posting, how well you match its keywords. The checks that matter most count most, so a resume with real gaps can't get full marks, and every point comes with what to fix.",
   },
   {
     q: "Does the AI make things up?",

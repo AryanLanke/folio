@@ -55,6 +55,8 @@ export const DAILY_LIMIT = 15;
 // Model ids per provider; override either with the AI_MODEL environment variable
 export const DEFAULT_MODEL = "anthropic/claude-haiku-5.5";
 export const DEFAULT_GROQ_MODEL = "openai/gpt-oss-120b";
+// Smaller model tried when the main one is busy; Groq rate-limits each model separately
+export const DEFAULT_GROQ_FALLBACK_MODEL = "openai/gpt-oss-20b";
 
 // Words that make resumes sound machine-written
 export const BANNED_WORDS = [

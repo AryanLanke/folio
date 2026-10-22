@@ -1,4 +1,4 @@
-import { DAILY_LIMIT, DEFAULT_GROQ_MODEL, DEFAULT_MODEL } from "@/lib/enhance";
+import { DAILY_LIMIT, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL, DEFAULT_MODEL } from "@/lib/enhance";
 
 // One place for talking to the AI provider, shared by every /api route.
 //
@@ -17,6 +17,7 @@ function provider() {
       url: "https://api.groq.com/openai/v1/chat/completions",
       token: process.env.GROQ_API_KEY,
       model: process.env.AI_MODEL || DEFAULT_GROQ_MODEL,
+      fallback: process.env.AI_FALLBACK_MODEL || DEFAULT_GROQ_FALLBACK_MODEL,
       // GPT-OSS is a reasoning model; these tasks don't need much thinking
       extra: { reasoning_effort: "low" } as Record<string, unknown>,
     };
@@ -27,6 +28,7 @@ function provider() {
       url: "https://ai-gateway.vercel.sh/v1/chat/completions",
       token,
       model: process.env.AI_MODEL || DEFAULT_MODEL,
+      fallback: process.env.AI_FALLBACK_MODEL || null,
       extra: {} as Record<string, unknown>,
     };
   }
@@ -54,26 +56,70 @@ export function aiError(code: AiErrorCode) {
   return Response.json({ error: code }, { status });
 }
 
+type ChatOptions = { maxTokens?: number; timeoutMs?: number; reasoning?: "low" | "medium"; temperature?: number };
+type ChatResult = { content: string } | { error: AiErrorCode; retryAfterMs?: number };
+
+// How long to wait before asking a busy model again, when the provider doesn't say
+export const RETRY_DELAY_MS = 1500;
+// Never wait longer than this for a busy model; the person is watching a spinner
+const MAX_RETRY_DELAY_MS = 8000;
+// Don't start another try with less time than this left; it would only time out
+const MIN_TRY_MS = 5000;
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 // Sends a chat request that must answer in JSON. Returns the raw JSON text, or an error code.
-export async function chatJson(
-  messages: ChatMessage[],
-  {
-    maxTokens = 1500,
-    timeoutMs = 20_000,
-    reasoning = "low",
-    temperature = 0.3,
-  }: { maxTokens?: number; timeoutMs?: number; reasoning?: "low" | "medium"; temperature?: number } = {},
-): Promise<{ content: string } | { error: AiErrorCode }> {
+//
+// Groq's free tier limits each model separately (8,000 tokens a minute each), so when the main
+// model is busy the smaller fallback model usually isn't: try it straight away. If both are
+// busy, wait as long as the provider asks (within limits) and try the main model once more.
+// Everything stays within the one time limit.
+export async function chatJson(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResult> {
   const ai = provider();
   if (!ai) return { error: "not_configured" };
 
+  const deadline = Date.now() + (options.timeoutMs ?? 20_000);
+  const timeLeft = () => deadline - Date.now();
+
+  let result = await chatOnce(ai, ai.model, messages, options, timeLeft());
+  if (!isBusy(result)) return result;
+
+  if (ai.fallback && ai.fallback !== ai.model && timeLeft() >= MIN_TRY_MS) {
+    result = await chatOnce(ai, ai.fallback, messages, options, timeLeft());
+    if (!isBusy(result)) return result;
+  }
+
+  const delay = Math.min(result.retryAfterMs ?? RETRY_DELAY_MS, MAX_RETRY_DELAY_MS);
+  if (timeLeft() < delay + MIN_TRY_MS) return { error: "busy" };
+  await wait(delay);
+  result = await chatOnce(ai, ai.model, messages, options, timeLeft());
+  return isBusy(result) ? { error: "busy" } : result;
+}
+
+function isBusy(result: ChatResult): result is { error: "busy"; retryAfterMs?: number } {
+  return "error" in result && result.error === "busy";
+}
+
+// "retry-after" is in seconds
+function retryAfterMs(response: Response) {
+  const seconds = Number(response.headers.get("retry-after"));
+  return Number.isFinite(seconds) && seconds > 0 ? seconds * 1000 : undefined;
+}
+
+async function chatOnce(
+  ai: NonNullable<ReturnType<typeof provider>>,
+  model: string,
+  messages: ChatMessage[],
+  { maxTokens = 1500, reasoning = "low", temperature = 0.3 }: ChatOptions,
+  timeoutMs: number,
+): Promise<ChatResult> {
   let response: Response;
   try {
     response = await fetch(ai.url, {
       method: "POST",
       headers: { Authorization: `Bearer ${ai.token}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: ai.model,
+        model,
         messages,
         temperature,
         // Room for the model's thinking as well as the answer
@@ -91,7 +137,7 @@ export async function chatJson(
   // 401/403: bad key, or Vercel AI Gateway still waiting for a card to unlock free credits
   if (response.status === 401 || response.status === 403) return { error: "not_configured" };
   // Rate limits, or the free allowance running out
-  if (response.status === 402 || response.status === 429) return { error: "busy" };
+  if (response.status === 402 || response.status === 429) return { error: "busy", retryAfterMs: retryAfterMs(response) };
   if (!response.ok) return { error: "failed" };
 
   const data = await response.json().catch(() => null);

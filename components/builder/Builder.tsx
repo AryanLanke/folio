@@ -608,12 +608,12 @@ export default function Builder() {
           )}
           {previewView === "score" && (
             <div className="mx-auto w-full max-w-[816px]">
-              <ScoreView resume={resume} />
+              <ScoreView resume={resume} onChange={(next) => update(next, true)} />
             </div>
           )}
           {previewView === "ats" && (
             <div className="mx-auto w-full max-w-[816px]">
-              <AtsView resume={resume} />
+              <AtsView resume={resume} onChange={(next) => update(next, true)} />
             </div>
           )}
           {previewView === "job" && (

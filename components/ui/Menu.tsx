@@ -28,8 +28,19 @@ export default function Menu({
       const menu = ref.current;
       if (menu?.open && !menu.contains(e.target as Node)) menu.open = false;
     };
+    // Esc closes it and puts focus back on its button, like any menu
+    const onKey = (e: KeyboardEvent) => {
+      const menu = ref.current;
+      if (e.key !== "Escape" || !menu?.open) return;
+      menu.open = false;
+      menu.querySelector("summary")?.focus();
+    };
     document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   return (

@@ -1,4 +1,4 @@
-import CheckItem, { tone } from "@/components/resume/CheckItem";
+import CheckItem, { checkAction, tone } from "@/components/resume/CheckItem";
 import { type AtsCheck, atsChecks, atsScore, linksHiddenFromAts, resumeToPlainText } from "@/lib/ats";
 import type { Resume } from "@/lib/resume";
 import { scoreVerdict } from "@/lib/score";
@@ -20,7 +20,7 @@ const BUILT_IN = [
   "Standard section headings",
 ];
 
-export default function AtsView({ resume }: { resume: Resume }) {
+export default function AtsView({ resume, onChange }: { resume: Resume; onChange?: (next: Resume) => void }) {
   const checks = atsChecks(resume);
   const score = atsScore(checks);
   const count = (status: AtsCheck["status"]) => checks.filter((c) => c.status === status).length;
@@ -67,7 +67,7 @@ export default function AtsView({ resume }: { resume: Resume }) {
               .filter((check) => check.group === group.key)
               .sort((a, b) => a.score - b.score)
               .map((check) => (
-                <CheckItem key={check.label} {...check} />
+                <CheckItem key={check.label} {...check} action={checkAction(check.label, resume, onChange)} />
               ))}
           </ul>
         </section>

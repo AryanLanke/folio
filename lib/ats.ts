@@ -147,18 +147,51 @@ export const continuesLine = (line: string) => ENDS_MID_PHRASE.test(line.trim().
 // Lowercase tools that can start a real bullet
 const LOWERCASE_TOOLS = /^(npm|pandas|numpy|pytest|webpack|git)\b/;
 
+// True when a line carries on the sentence of the line before it: the one before ends
+// mid-phrase, or this one is a short lowercase fragment ("platform using FastAPI.")
+function continuesFrom(previous: string, line: string) {
+  const shortLowercase =
+    /^[a-z]+\b/.test(line) && !LOWERCASE_TOOLS.test(line) && !/^i\b/.test(line) && wordCount(line) < 8;
+  return continuesLine(previous) || shortLowercase;
+}
+
 // Lines that look broken: typed bullet symbols, two bullets in one line, or a sentence split
 // across lines (usually from copying a PDF, which breaks lines where the page ran out)
 export function brokenBulletLines(text: string) {
   const lines = toLines(text);
-  return lines.filter((line, i) => {
-    if (TYPED_BULLET.test(line) || JOINED_BULLETS.test(line)) return true;
-    if (i === 0) return false;
-    const continuesPrevious = continuesLine(lines[i - 1]);
-    const shortLowercase =
-      /^[a-z]+\b/.test(line) && !LOWERCASE_TOOLS.test(line) && !/^i\b/.test(line) && wordCount(line) < 8;
-    return continuesPrevious || shortLowercase;
-  });
+  return lines.filter(
+    (line, i) => TYPED_BULLET.test(line) || JOINED_BULLETS.test(line) || (i > 0 && continuesFrom(lines[i - 1], line)),
+  );
+}
+
+// "Fix automatically": the problems brokenBulletLines finds, fixed. Two bullets on one line are
+// split apart, typed bullet symbols are removed, and split sentences are joined back together.
+export function fixBulletText(text: string) {
+  const pieces = toLines(text)
+    .flatMap((line) => line.split(JOINED_BULLETS))
+    .map((line) => line.replace(/^([•\-*–—▪●◦‣·]\s*)+/, "").trim())
+    .filter(Boolean);
+  const fixed: string[] = [];
+  for (const line of pieces) {
+    const previous = fixed.at(-1);
+    if (previous !== undefined && continuesFrom(previous, line)) fixed[fixed.length - 1] = `${previous} ${line}`;
+    else fixed.push(line);
+  }
+  return fixed.join("\n");
+}
+
+// The same fix for every bullet in the resume: jobs, projects and extra sections with bullets
+export function fixBulletFormatting(resume: Resume): Resume {
+  return {
+    ...resume,
+    experience: resume.experience.map((job) => ({ ...job, bullets: fixBulletText(job.bullets) })),
+    projects: resume.projects.map((project) => ({ ...project, bullets: fixBulletText(project.bullets) })),
+    extras: resume.extras.map((extra) =>
+      EXTRA_KINDS[extra.kind].bullets
+        ? { ...extra, items: extra.items.map((item) => ({ ...item, bullets: fixBulletText(item.bullets) })) }
+        : extra,
+    ),
+  };
 }
 
 // "Jun 2023" and "June 2023" are different styles; "May" fits both, so it's left out

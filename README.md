@@ -67,11 +67,12 @@ lib/jobmatch.ts         Job keyword extraction prompt and live matching
 lib/enhance.ts          AI enhance rules, response cleanup, daily limit
 lib/importer.ts         Resume import prompt and parsing
 lib/coverletter.ts      Cover letter and fact-check prompts
-lib/ats.ts              Plain-text export and ATS readiness checks
+lib/ats.ts              Plain-text export, the ATS check and score, and "Fix automatically"
 lib/library.ts          Multiple resumes
 lib/backup.ts           Backup files with every resume
 lib/storage.ts          Browser storage
-lib/server/ai.ts        The AI provider call shared by every route
+lib/server/ai.ts        The AI provider call shared by every route, with retries when it's busy
+e2e/                    Browser tests (Playwright) that click through the built app
 ```
 
 ## Run it locally
@@ -98,8 +99,11 @@ GROQ_API_KEY=your-key-here
 | `npm run lint` | Check code style |
 | `npm run typecheck` | Check TypeScript types |
 | `npm run build` | Build for production |
+| `npm run e2e` | Build, then run the browser tests: a real Chrome clicks through the app (backups, downloads, ATS check, import). Run `npx playwright install chromium` once first |
 
-Every push to GitHub runs lint, type checks, tests and a production build automatically. When they all pass on `main`, GitHub Actions triggers the Vercel production deploy through a deploy hook (stored as the `VERCEL_DEPLOY_HOOK` repository secret), so a failing build never goes live.
+AI features retry when Groq is busy: first on a smaller model (`AI_FALLBACK_MODEL`, default `openai/gpt-oss-20b`), which Groq limits separately, then on the main model after a short wait.
+
+Every push to GitHub runs lint, type checks, unit tests, a production build and the browser tests automatically. When they all pass on `main`, GitHub Actions triggers the Vercel production deploy through a deploy hook (stored as the `VERCEL_DEPLOY_HOOK` repository secret), and Vercel's own deploy on push is turned off in `vercel.json`, so a failing change never goes live.
 
 ## Feedback
 

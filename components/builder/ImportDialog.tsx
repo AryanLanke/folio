@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEscape } from "@/components/ui/useEscape";
 import { callAi } from "@/lib/client/ai";
 import { MAX_IMPORT_LENGTH } from "@/lib/importer";
 import { type Resume, normalizeResume } from "@/lib/resume";
@@ -18,6 +19,7 @@ export default function ImportDialog({
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEscape(onClose, !busy);
 
   const ready = mode === "pdf" ? file !== null : text.trim().length >= 100;
 
