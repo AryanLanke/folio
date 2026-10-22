@@ -17,6 +17,7 @@ import {
 } from "@/lib/resume";
 import { checkDate, checkEmail, checkPhone, parseDate } from "@/lib/validate";
 import { contactItems, resumeLinks, splitLinks } from "@/lib/links";
+import { plainResume } from "@/lib/rich";
 
 // True when links show as labels, so ATS software (which reads visible text) won't see the addresses
 export function linksHiddenFromAts(resume: Resume) {
@@ -36,7 +37,9 @@ function bullets(text: string) {
   return toLines(text).map((line) => `• ${line}`);
 }
 
-export function resumeToPlainText(resume: Resume): string {
+export function resumeToPlainText(formatted: Resume): string {
+  // Screening software reads words, not bold or italic
+  const resume = plainResume(formatted);
   const { basics } = resume;
   const lines: string[] = [];
 
@@ -483,7 +486,8 @@ function contentChecks(resume: Resume): Draft[] {
   ];
 }
 
-export function atsChecks(resume: Resume): AtsCheck[] {
+export function atsChecks(formatted: Resume): AtsCheck[] {
+  const resume = plainResume(formatted);
   return [...readChecks(resume), ...contentChecks(resume)].map((check) => {
     const status = statusOf(check.score);
     return { ...check, status, fix: status === "pass" ? null : check.fix };

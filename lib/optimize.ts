@@ -5,6 +5,7 @@
 
 import { BANNED_WORDS, INVOLVEMENT_RULE, MAX_INPUT_LENGTH, cleanLine } from "@/lib/enhance";
 import { PRESENT, type Resume, type ResumeStyle, TEMPLATES, hasExperience, hasProject, toLines } from "@/lib/resume";
+import { plainResume, plainText } from "@/lib/rich";
 
 // One job or project: its bullets, and enough context for the AI to word them well
 export type OptimizeItem = { id: string; context: string; current: boolean; bullets: string[] };
@@ -18,21 +19,23 @@ const MAX_LINE = 400;
 const MAX_TOTAL = 16_000;
 
 export function optimizeRequest(resume: Resume): OptimizeRequest {
-  const jobs = resume.experience.filter(hasExperience).map((job) => ({
+  // AI gets the words only; applyOptimize keeps the formatting of lines it leaves alone
+  const plain = plainResume(resume);
+  const jobs = plain.experience.filter(hasExperience).map((job) => ({
     id: job.id,
     context: [job.role, job.company].filter(Boolean).join(" at "),
     current: job.end.trim().toLowerCase() === PRESENT.toLowerCase(),
     bullets: toLines(job.bullets),
   }));
-  const projects = resume.projects.filter(hasProject).map((project) => ({
+  const projects = plain.projects.filter(hasProject).map((project) => ({
     id: project.id,
     context: `Project: ${project.name}`,
     current: false,
     bullets: toLines(project.bullets),
   }));
   return {
-    title: resume.basics.title,
-    summary: resume.summary.trim(),
+    title: plain.basics.title,
+    summary: plain.summary.trim(),
     items: [...jobs, ...projects].filter((item) => item.bullets.length > 0),
     focus: resume.target.keywords,
   };
@@ -142,16 +145,23 @@ export function parseOptimize(raw: unknown, request: OptimizeRequest): OptimizeR
 }
 
 // Puts the rewritten wording back into the resume. Bullets that came back unchanged keep the
-// person's own line breaks.
+// person's own line breaks and formatting.
 export function applyOptimize(resume: Resume, result: OptimizeResult): Resume {
-  const rewritten = new Map(result.items.map((item) => [item.id, item.bullets.join("\n")]));
+  const rewritten = new Map(result.items.map((item) => [item.id, item.bullets]));
   const reword = <T extends { id: string; bullets: string }>(item: T): T => {
-    const next = rewritten.get(item.id);
-    return next !== undefined && next !== toLines(item.bullets).join("\n") ? { ...item, bullets: next } : item;
+    const lines = rewritten.get(item.id);
+    const originals = toLines(item.bullets);
+    if (!lines) return item;
+    const next = (lines.length === originals.length
+      ? lines.map((line, i) => (line === plainText(originals[i]) ? originals[i] : line))
+      : lines
+    ).join("\n");
+    return next !== originals.join("\n") ? { ...item, bullets: next } : item;
   };
+  const summary = result.summary.trim();
   return {
     ...resume,
-    summary: result.summary.trim() && result.summary.trim() !== resume.summary.trim() ? result.summary : resume.summary,
+    summary: summary && summary !== plainText(resume.summary).trim() ? result.summary : resume.summary,
     experience: resume.experience.map(reword),
     projects: resume.projects.map(reword),
   };

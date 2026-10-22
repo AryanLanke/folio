@@ -8,6 +8,7 @@ import Editor from "@/components/builder/Editor";
 import ImportDialog from "@/components/builder/ImportDialog";
 import AtsView from "@/components/resume/AtsView";
 import CoverLetterPreview from "@/components/resume/CoverLetterPreview";
+import FormatBar from "@/components/resume/FormatBar";
 import JobMatch from "@/components/resume/JobMatch";
 import { OptimizeEffect, OptimizePanel, type Optimized, REVEAL_MS, optimizeResume } from "@/components/resume/Optimizer";
 import PagedPreview from "@/components/resume/PagedPreview";
@@ -391,6 +392,7 @@ export default function Builder() {
 
   const layoutControls = (
     <>
+      {editorView === "resume" && <FormatBar />}
       <Segmented label="Template" options={TEMPLATE_OPTIONS} value={resume.style.template} onChange={(template) => setStyle({ template })} />
       <Segmented label="Text" options={FONT_OPTIONS} value={resume.style.fontSize} onChange={(fontSize) => setStyle({ fontSize })} />
       <Segmented label="Spacing" options={SPACING_OPTIONS} value={resume.style.spacing} onChange={(spacing) => setStyle({ spacing })} />

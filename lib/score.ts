@@ -7,6 +7,7 @@ import { allBullets, atsChecks, atsScore, quote, share } from "@/lib/ats";
 import { BANNED_WORDS } from "@/lib/enhance";
 import { matchResume } from "@/lib/jobmatch";
 import { type Resume, hasExperience, toLines } from "@/lib/resume";
+import { plainResume } from "@/lib/rich";
 
 export type ScoreItem = {
   label: string;
@@ -83,7 +84,8 @@ function writingItems(resume: Resume): ScoreItem[] {
 
 const average = (items: ScoreItem[]) => Math.round((items.reduce((sum, i) => sum + i.score, 0) / items.length) * 100);
 
-export function scoreResume(resume: Resume): ResumeScore {
+export function scoreResume(formatted: Resume): ResumeScore {
+  const resume = plainResume(formatted);
   const checks = atsChecks(resume);
   const writing = writingItems(resume);
 
