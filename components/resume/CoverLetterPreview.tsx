@@ -1,5 +1,6 @@
 import { contactItems } from "@/lib/links";
 import { PAGE_MARGIN, PAPER, type PaperSize, type Resume } from "@/lib/resume";
+import { plainText } from "@/lib/rich";
 import { HTML_FONT, layoutFor } from "@/lib/templates";
 
 // The cover letter as a page, with a header that matches the resume's template
@@ -31,9 +32,14 @@ export default function CoverLetterPreview({ resume, paper }: { resume: Resume; 
       >
         <h1
           className="leading-tight text-neutral-950"
-          style={{ fontSize: "1.9em", fontWeight: spec.name.bold ? 700 : 400 }}
+          style={{
+            fontSize: "1.9em",
+            fontWeight: spec.name.bold ? 700 : 400,
+            textTransform: spec.name.uppercase ? "uppercase" : "none",
+            fontFamily: spec.displaySerif ? HTML_FONT.serif : undefined,
+          }}
         >
-          {basics.name || "Your Name"}
+          {plainText(basics.name) || "Your Name"}
         </h1>
         {contact.length > 0 && (
           <p className="mt-1 text-neutral-600">

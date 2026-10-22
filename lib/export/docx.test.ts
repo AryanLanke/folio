@@ -3,16 +3,34 @@ import { describe, expect, it } from "vitest";
 import { coverLetterDocx, resumeDocx } from "@/lib/export/docx";
 import { TEMPLATES, type TemplateName, createSampleResume } from "@/lib/resume";
 
-// A .docx file is a zip; Word's text lives in word/document.xml. Pull the visible text out.
-async function wordText(document: ReturnType<typeof resumeDocx>) {
+// A .docx file is a zip; Word's text and formatting live in word/document.xml
+async function wordXml(document: ReturnType<typeof resumeDocx>) {
   const buffer = await Packer.toBuffer(document);
   const { default: JSZip } = await import("jszip");
   const zip = await JSZip.loadAsync(buffer);
-  const xml = await zip.file("word/document.xml")!.async("string");
+  return zip.file("word/document.xml")!.async("string");
+}
+
+// The visible text of the Word file
+async function wordText(document: ReturnType<typeof resumeDocx>) {
+  const xml = await wordXml(document);
   return [...xml.matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join(" ");
 }
 
 describe("Word export", () => {
+  it("sets the name in capitals and in serif where the template does, keeping the real spelling", async () => {
+    const xml = (template: TemplateName) => {
+      const sample = createSampleResume();
+      return wordXml(resumeDocx({ ...sample, style: { ...sample.style, template } }, "letter"));
+    };
+    const academic = await xml("academic");
+    expect(academic).toContain("<w:caps/>");
+    expect(academic).toContain(">Emily Carter<");
+    expect(await xml("classic")).not.toContain("<w:caps/>");
+    expect(await xml("elegant")).toContain("Georgia");
+    expect(await xml("minimal")).not.toContain("Georgia");
+  });
+
   for (const template of Object.keys(TEMPLATES) as TemplateName[]) {
     it(`${template}: contains every section and entry`, async () => {
       const sample = createSampleResume();

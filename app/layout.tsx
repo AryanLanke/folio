@@ -12,10 +12,10 @@ const figtree = Figtree({
 export const metadata: Metadata = {
   title: "Folio · Free resume builder, no sign-up",
   description:
-    "Build an ATS-friendly resume for free. Job match, honest AI, five templates, PDF and Word downloads. No sign-up, no watermark.",
+    "Build an ATS-friendly resume for free. Job match, honest AI, nine templates, PDF and Word downloads. No sign-up, no watermark.",
   openGraph: {
     title: "Folio · The resume builder that's actually free",
-    description: "Job match, honest AI, five ATS-safe templates, PDF and Word downloads. No sign-up, no watermark.",
+    description: "Job match, honest AI, nine ATS-safe templates, PDF and Word downloads. No sign-up, no watermark.",
     images: ["/screenshots/editor.png"],
   },
 };

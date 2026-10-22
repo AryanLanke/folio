@@ -6,6 +6,7 @@ import ChatBuilder from "@/components/builder/ChatBuilder";
 import CoverLetterEditor from "@/components/builder/CoverLetterEditor";
 import Editor from "@/components/builder/Editor";
 import ImportDialog from "@/components/builder/ImportDialog";
+import TemplatePicker from "@/components/builder/TemplatePicker";
 import AtsView from "@/components/resume/AtsView";
 import CoverLetterPreview from "@/components/resume/CoverLetterPreview";
 import FormatBar from "@/components/resume/FormatBar";
@@ -39,8 +40,6 @@ import {
   type PaperSize,
   type Resume,
   type ResumeStyle,
-  TEMPLATES,
-  type TemplateName,
   createEmptyResume,
   createSampleResume,
   hasExperience,
@@ -60,11 +59,6 @@ import {
   savePaper,
   saveResume,
 } from "@/lib/storage";
-
-const TEMPLATE_OPTIONS = (Object.keys(TEMPLATES) as TemplateName[]).map((value) => ({
-  value,
-  label: TEMPLATES[value].label,
-}));
 
 const FONT_OPTIONS: { value: ResumeStyle["fontSize"]; label: string }[] = [
   { value: "small", label: "S" },
@@ -396,7 +390,7 @@ export default function Builder() {
   const layoutControls = (
     <>
       {editorView === "resume" && <FormatBar />}
-      <Segmented label="Template" options={TEMPLATE_OPTIONS} value={resume.style.template} onChange={(template) => setStyle({ template })} />
+      <TemplatePicker resume={resume} paper={paper} onChange={(template) => setStyle({ template })} />
       <Segmented label="Text" options={FONT_OPTIONS} value={resume.style.fontSize} onChange={(fontSize) => setStyle({ fontSize })} />
       <Segmented label="Spacing" options={SPACING_OPTIONS} value={resume.style.spacing} onChange={(spacing) => setStyle({ spacing })} />
       <Segmented label="Paper" options={PAPER_OPTIONS} value={paper} onChange={changePaper} />

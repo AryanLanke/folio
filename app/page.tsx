@@ -26,8 +26,8 @@ const features = [
     body: "Enhance fixes grammar and wording, then make it shorter, more formal, simpler or more impactful. It never adds facts you didn't write.",
   },
   {
-    title: "Five ATS-safe templates",
-    body: "Classic, Modern, Executive, Compact and Serif. All built so applicant tracking systems, the software companies use to screen resumes, can read them.",
+    title: "Nine ATS-safe templates",
+    body: "Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant, each previewed with your own resume and in your own colour. All built so applicant tracking systems, the software companies use to screen resumes, can read them.",
   },
   {
     title: "A strict ATS check",
@@ -51,7 +51,7 @@ const comparison = [
 const faqs = [
   {
     q: "Is it really free?",
-    a: "Yes. Writing, all five templates, PDF and Word downloads, the ATS check, job match and multiple resumes are free, with no trial and no watermark. AI actions are free up to 15 a day.",
+    a: "Yes. Writing, all nine templates, PDF and Word downloads, the ATS check, job match and multiple resumes are free, with no trial and no watermark. AI actions are free up to 15 a day.",
   },
   {
     q: "What is an ATS?",

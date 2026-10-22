@@ -40,7 +40,7 @@ const hex = (color: string) => color.replace("#", "");
 
 type Ctx = { spec: TemplateSpec; half: number; gap: number; font: string; tabAt: number };
 
-type RunStyle = { bold?: boolean; italic?: boolean; color?: string; size?: number };
+type RunStyle = { bold?: boolean; italic?: boolean; color?: string; size?: number; font?: string; allCaps?: boolean };
 
 // Text with the bold, italic and underline made on the page, as Word runs
 function runs(text: string, ctx: Ctx, style: RunStyle = {}): TextRun[] {
@@ -48,7 +48,8 @@ function runs(text: string, ctx: Ctx, style: RunStyle = {}): TextRun[] {
     (span) =>
       new TextRun({
         text: span.text,
-        font: ctx.font,
+        font: style.font ?? ctx.font,
+        allCaps: style.allCaps,
         size: style.size ?? ctx.half,
         color: style.color,
         bold: style.bold || span.bold,
@@ -59,6 +60,9 @@ function runs(text: string, ctx: Ctx, style: RunStyle = {}): TextRun[] {
 }
 
 const tab = (ctx: Ctx) => new TextRun({ text: "\t", font: ctx.font, size: ctx.half });
+
+// The face for the name and headings, which some templates set in serif over a sans body
+const displayFont = (ctx: Ctx) => (ctx.spec.displaySerif ? "Georgia" : ctx.font);
 
 function heading(title: string, ctx: Ctx) {
   const { heading: h } = ctx.spec;
@@ -74,7 +78,7 @@ function heading(title: string, ctx: Ctx) {
         bold: true,
         color: hex(h.color),
         size: Math.round(ctx.half * h.scale),
-        font: ctx.font,
+        font: displayFont(ctx),
       }),
     ],
   });
@@ -217,7 +221,12 @@ function header(resume: Resume, ctx: Ctx, nameScale = ctx.spec.name.scale): Para
   return [
     new Paragraph({
       alignment: align,
-      children: runs(basics.name || "Your Name", ctx, { bold: spec.name.bold, size: Math.round(ctx.half * nameScale) }),
+      children: runs(basics.name || "Your Name", ctx, {
+        bold: spec.name.bold,
+        size: Math.round(ctx.half * nameScale),
+        font: displayFont(ctx),
+        allCaps: spec.name.uppercase,
+      }),
     }),
     ...(basics.title
       ? [

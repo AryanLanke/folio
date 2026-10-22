@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import MicIcon from "@/components/ui/MicIcon";
 import { useEscape } from "@/components/ui/useEscape";
 import { callAi } from "@/lib/client/ai";
 import { type ChatTurn, MAX_TURNS, OPENING } from "@/lib/interview";
@@ -220,11 +221,19 @@ export default function ChatBuilder({
                   disabled={creating}
                   aria-label={listening ? "Stop voice typing" : "Start voice typing"}
                   aria-pressed={listening}
-                  className={`flex size-11 shrink-0 items-center justify-center rounded-full border text-lg transition-colors ${
-                    listening ? "animate-pulse border-red-400 bg-red-400/15 text-red-300" : "border-border text-muted hover:text-foreground"
+                  className={`relative flex size-11 shrink-0 items-center justify-center rounded-full border text-xl transition-colors ${
+                    listening
+                      ? "border-red-400/70 bg-red-500/15 text-red-300"
+                      : "border-border text-muted hover:border-foreground hover:text-foreground"
                   }`}
                 >
-                  🎙
+                  {listening && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-full border border-red-400/60 motion-safe:animate-ping"
+                    />
+                  )}
+                  <MicIcon active={listening} />
                 </button>
               )}
               <button

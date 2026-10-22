@@ -31,7 +31,8 @@ describe("resume PDF", () => {
       const { text, totalPages } = await readBack(ResumeDocument({ resume, paper: "letter" }));
 
       expect(totalPages).toBe(1);
-      expect(text).toContain("Emily Carter");
+      // Some templates set the name in capitals
+      expect(text.toLowerCase()).toContain("emily carter");
       expect(text).toContain("emily.carter@example.com");
       expect(text).toContain("cutting page load time from 4.1s to 1.6s");
       expect(text).toContain("AWS Certified Cloud Practitioner");

@@ -76,6 +76,7 @@ function Section({
             letterSpacing: `${heading.letterSpacing}em`,
             textTransform: heading.uppercase ? "uppercase" : "none",
             fontVariant: heading.smallCaps ? "small-caps" : "normal",
+            fontFamily: spec.displaySerif ? HTML_FONT.serif : undefined,
             color: heading.color,
             borderBottom: heading.rule ? `${heading.rule}px solid ${heading.ruleColor}` : "none",
             paddingBottom: heading.rule ? 3 : 0,
@@ -549,6 +550,8 @@ export default function ResumePreview({
             fontSize: `${spec.name.scale}em`,
             fontWeight: spec.name.bold ? 700 : 400,
             letterSpacing: `${spec.name.letterSpacing}em`,
+            textTransform: spec.name.uppercase ? "uppercase" : "none",
+            fontFamily: spec.displaySerif ? HTML_FONT.serif : undefined,
           }}
           value={basics.name || "Your Name"}
           label="Full name"
