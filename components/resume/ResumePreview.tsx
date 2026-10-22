@@ -1,3 +1,4 @@
+import Editable from "@/components/resume/Editable";
 import {
   EXTRA_KINDS,
   type ExtraSection,
@@ -18,6 +19,19 @@ import { HTML_FONT, type TemplateSpec, layoutFor } from "@/lib/templates";
 
 // The resume as a web page. Its look comes from lib/templates.ts, shared with the PDF and Word
 // exports. Every template is single-column plain text with standard headings (ATS-readable).
+// Given onChange, every piece of text on the page can be clicked and edited in place.
+
+// One piece of text and, when the page is editable, how to save a new version of it
+type Field = { value: string; label: string; onCommit?: (next: string) => void };
+
+const text = (field: Field, className?: string) => (
+  <Editable value={field.value} label={field.label} onCommit={field.onCommit} className={className} />
+);
+
+// Replaces the fields of one item in a list (a job, a school, ...), found by its id
+function patch<T extends { id: string }>(list: T[], id: string, change: Partial<T>) {
+  return list.map((item) => (item.id === id ? { ...item, ...change } : item));
+}
 
 function Section({
   title,
@@ -54,30 +68,40 @@ function Section({
   );
 }
 
-function Dates({ start, end }: { start: string; end: string }) {
-  if (!start && !end) return null;
+function Dates({ start, end }: { start: Field; end: Field }) {
+  if (!start.value && !end.value) return null;
   return (
     <span className="shrink-0 text-neutral-600">
-      {start}
-      {start && end ? " – " : ""}
-      {end}
+      {start.value && text(start)}
+      {start.value && end.value ? " – " : ""}
+      {end.value && text(end)}
     </span>
   );
 }
 
-function Bullets({ text }: { text: string }) {
-  const lines = toLines(text);
+// One bullet per line; editing a bullet to nothing removes it
+function Bullets({ value, onCommit }: { value: string; onCommit?: (next: string) => void }) {
+  const lines = toLines(value);
   if (lines.length === 0) return null;
+  const save = (i: number) =>
+    onCommit &&
+    ((next: string) => {
+      const copy = [...lines];
+      if (next) copy[i] = next;
+      else copy.splice(i, 1);
+      onCommit(copy.join("\n"));
+    });
   return (
     <ul className="mt-1 list-disc space-y-0.5 pl-4">
       {lines.map((line, i) => (
-        <li key={i}>{line}</li>
+        <li key={i}>{text({ value: line, label: "Bullet point", onCommit: save(i) })}</li>
       ))}
     </ul>
   );
 }
 
-// Links show as short labels ("LinkedIn") or full addresses, and always open the full address
+// Links show as short labels ("LinkedIn") or full addresses, and always open the full address.
+// They're edited in the form, since the label isn't the address.
 function WebLinks({ field, mode }: { field: string; mode: LinkMode }) {
   return resumeLinks(field, mode).map((link, i) => (
     <span key={link.href + i}>
@@ -89,12 +113,26 @@ function WebLinks({ field, mode }: { field: string; mode: LinkMode }) {
   ));
 }
 
-function Contact({ basics, mode }: { basics: Resume["basics"]; mode: LinkMode }) {
+function Contact({ resume, set }: { resume: Resume; set?: (change: Partial<Resume["basics"]>) => void }) {
+  const { basics } = resume;
+  const field = (key: "email" | "phone" | "location", label: string): Field => ({
+    value: basics[key],
+    label,
+    onCommit: set && ((next) => set({ [key]: next })),
+  });
   const items = [
-    basics.email && <a key="email" href={`mailto:${basics.email}`}>{basics.email}</a>,
-    basics.phone && <span key="phone">{basics.phone}</span>,
-    basics.location && <span key="location">{basics.location}</span>,
-    ...resumeLinks(basics.link, mode).map((link) => (
+    // An email address you can edit isn't also a link, so clicking it edits instead of opening mail
+    basics.email &&
+      (set ? (
+        <span key="email">{text(field("email", "Email"))}</span>
+      ) : (
+        <a key="email" href={`mailto:${basics.email}`}>
+          {basics.email}
+        </a>
+      )),
+    basics.phone && <span key="phone">{text(field("phone", "Phone"))}</span>,
+    basics.location && <span key="location">{text(field("location", "Location"))}</span>,
+    ...resumeLinks(basics.link, resume.style.links).map((link) => (
       <a key={link.href} href={link.href} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
         {link.text}
       </a>
@@ -114,51 +152,85 @@ function Contact({ basics, mode }: { basics: Resume["basics"]; mode: LinkMode })
 }
 
 // Title on the left, dates on the right: the standard resume entry line
-function EntryLine({ bold, rest, start, end }: { bold: string; rest: string[]; start: string; end: string }) {
-  const tail = rest.filter(Boolean);
+function EntryLine({ bold, rest, start, end }: { bold: Field; rest: Field[]; start: Field; end: Field }) {
+  const tail = rest.filter((field) => field.value);
   return (
     <div className="flex items-baseline justify-between gap-4">
       <p>
-        <span className="font-bold text-neutral-950">{bold}</span>
-        {bold && tail.length > 0 ? ", " : ""}
-        {tail.join(" — ")}
+        {bold.value && text(bold, "font-bold text-neutral-950")}
+        {bold.value && tail.length > 0 ? ", " : ""}
+        {tail.map((field, i) => (
+          <span key={field.label}>
+            {i > 0 && " — "}
+            {text(field)}
+          </span>
+        ))}
       </p>
       <Dates start={start} end={end} />
     </div>
   );
 }
 
-function ExtraContent({ section }: { section: ExtraSection }) {
+const none: Field = { value: "", label: "" };
+
+function ExtraContent({ section, setSection }: { section: ExtraSection; setSection?: (next: ExtraSection) => void }) {
   const items = section.items.filter(hasExtraItem);
   if (section.kind === "languages") {
-    const text = items.map((item) => (item.subtitle ? `${item.title} (${item.subtitle})` : item.title));
-    return <p>{text.join(", ")}</p>;
+    const line = items.map((item) => (item.subtitle ? `${item.title} (${item.subtitle})` : item.title));
+    return <p>{line.join(", ")}</p>;
   }
   const fields = EXTRA_KINDS[section.kind];
+  const save = (id: string, key: "title" | "subtitle" | "date" | "bullets") =>
+    setSection && ((next: string) => setSection({ ...section, items: patch(section.items, id, { [key]: next }) }));
   return items.map((item) => (
     <div key={item.id} className="break-inside-avoid">
-      <EntryLine bold={item.title} rest={[item.subtitle]} start={fields.date ? item.date : ""} end="" />
-      {fields.bullets && <Bullets text={item.bullets} />}
+      <EntryLine
+        bold={{ value: item.title, label: fields.item, onCommit: save(item.id, "title") }}
+        rest={[{ value: item.subtitle, label: fields.subtitle, onCommit: save(item.id, "subtitle") }]}
+        start={fields.date ? { value: item.date, label: fields.date, onCommit: save(item.id, "date") } : none}
+        end={none}
+      />
+      {fields.bullets && <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />}
     </div>
   ));
 }
 
-function CoreContent({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
+function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: string; set?: (change: Partial<Resume>) => void }) {
   switch (sectionKey) {
     case "summary":
-      return <p>{resume.summary}</p>;
-    case "experience":
+      return (
+        <Editable
+          as="p"
+          value={resume.summary}
+          label="Summary"
+          onCommit={set && ((summary) => set({ summary }))}
+        />
+      );
+    case "experience": {
+      const save = (id: string, key: "role" | "company" | "location" | "start" | "end" | "bullets") =>
+        set && ((next: string) => set({ experience: patch(resume.experience, id, { [key]: next }) }));
       return resume.experience.filter(hasExperience).map((item) => (
         <div key={item.id} className="break-inside-avoid">
-          <EntryLine bold={item.role} rest={[item.company, item.location]} start={item.start} end={item.end} />
-          <Bullets text={item.bullets} />
+          <EntryLine
+            bold={{ value: item.role, label: "Job title", onCommit: save(item.id, "role") }}
+            rest={[
+              { value: item.company, label: "Company", onCommit: save(item.id, "company") },
+              { value: item.location, label: "Location", onCommit: save(item.id, "location") },
+            ]}
+            start={{ value: item.start, label: "Start date", onCommit: save(item.id, "start") }}
+            end={{ value: item.end, label: "End date", onCommit: save(item.id, "end") }}
+          />
+          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />
         </div>
       ));
-    case "projects":
+    }
+    case "projects": {
+      const save = (id: string, key: "name" | "bullets") =>
+        set && ((next: string) => set({ projects: patch(resume.projects, id, { [key]: next }) }));
       return resume.projects.filter(hasProject).map((item) => (
         <div key={item.id} className="break-inside-avoid">
           <p>
-            <span className="font-bold text-neutral-950">{item.name}</span>
+            {item.name && text({ value: item.name, label: "Project name", onCommit: save(item.id, "name") }, "font-bold text-neutral-950")}
             {item.link && (
               <>
                 {" — "}
@@ -166,27 +238,73 @@ function CoreContent({ resume, sectionKey }: { resume: Resume; sectionKey: strin
               </>
             )}
           </p>
-          <Bullets text={item.bullets} />
+          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />
         </div>
       ));
-    case "education":
-      return resume.education.filter(hasEducation).map((item) => (
-        <div key={item.id} className="break-inside-avoid">
-          <EntryLine bold={item.degree} rest={[item.school, item.location]} start={item.start} end={item.end} />
-          {item.details && <p className="mt-0.5">{item.details}</p>}
-        </div>
-      ));
+    }
+    case "education": {
+      const save = (id: string, key: "degree" | "school" | "location" | "start" | "end" | "details") =>
+        set && ((next: string) => set({ education: patch(resume.education, id, { [key]: next }) }));
+      // The degree in bold with the dates, then the school (and place) on the line below
+      return resume.education.filter(hasEducation).map((item) => {
+        const degree: Field = { value: item.degree, label: "Degree", onCommit: save(item.id, "degree") };
+        const school: Field = { value: item.school, label: "School", onCommit: save(item.id, "school") };
+        const location: Field = { value: item.location, label: "Location", onCommit: save(item.id, "location") };
+        const second = [item.degree ? school : none, location].filter((field) => field.value);
+        return (
+          <div key={item.id} className="break-inside-avoid">
+            <EntryLine
+              bold={item.degree ? degree : school}
+              rest={[]}
+              start={{ value: item.start, label: "Start year", onCommit: save(item.id, "start") }}
+              end={{ value: item.end, label: "End year", onCommit: save(item.id, "end") }}
+            />
+            {second.length > 0 && (
+              <p>
+                {second.map((field, i) => (
+                  <span key={field.label}>
+                    {i > 0 && " — "}
+                    {text(field)}
+                  </span>
+                ))}
+              </p>
+            )}
+            {item.details && (
+              <Editable as="p" className="mt-0.5" value={item.details} label="Details" onCommit={save(item.id, "details")} />
+            )}
+          </div>
+        );
+      });
+    }
     case "skills":
-      return <p>{toList(resume.skills).join(", ")}</p>;
+      return (
+        <Editable
+          as="p"
+          value={toList(resume.skills).join(", ")}
+          label="Skills, separated by commas"
+          onCommit={set && ((skills) => set({ skills }))}
+        />
+      );
     default:
       return null;
   }
 }
 
-export default function ResumePreview({ resume, paper }: { resume: Resume; paper: PaperSize }) {
+export default function ResumePreview({
+  resume,
+  paper,
+  onChange,
+}: {
+  resume: Resume;
+  paper: PaperSize;
+  // When given, the page can be edited in place
+  onChange?: (next: Resume) => void;
+}) {
   const { basics } = resume;
   const size = PAPER[paper];
   const { spec, fontSize, gap, lineHeight } = layoutFor(resume.style);
+  const set = onChange && ((change: Partial<Resume>) => onChange({ ...resume, ...change }));
+  const setBasics = set && ((change: Partial<Resume["basics"]>) => set({ basics: { ...basics, ...change } }));
 
   return (
     <article
@@ -207,18 +325,21 @@ export default function ResumePreview({ resume, paper }: { resume: Resume; paper
           paddingBottom: spec.headerRule ? 10 : 0,
         }}
       >
-        <h1
+        <Editable
+          as="h1"
           className="leading-tight text-neutral-950"
           style={{
             fontSize: `${spec.name.scale}em`,
             fontWeight: spec.name.bold ? 700 : 400,
             letterSpacing: `${spec.name.letterSpacing}em`,
           }}
-        >
-          {basics.name || "Your Name"}
-        </h1>
+          value={basics.name || "Your Name"}
+          label="Full name"
+          onCommit={setBasics && ((name) => setBasics({ name }))}
+        />
         {basics.title && (
-          <p
+          <Editable
+            as="p"
             className="mt-0.5"
             style={{
               fontSize: "1.12em",
@@ -226,19 +347,26 @@ export default function ResumePreview({ resume, paper }: { resume: Resume; paper
               fontWeight: spec.title.bold ? 600 : 400,
               fontStyle: spec.title.italic ? "italic" : "normal",
             }}
-          >
-            {basics.title}
-          </p>
+            value={basics.title}
+            label="Job title"
+            onCommit={setBasics && ((title) => setBasics({ title }))}
+          />
         )}
-        <Contact basics={basics} mode={resume.style.links} />
+        <Contact resume={resume} set={setBasics} />
       </header>
 
       {visibleSections(resume).map((section) => (
         <Section key={section.key} title={section.title} gap={gap} spec={spec}>
           {section.extra ? (
-            <ExtraContent section={section.extra} />
+            <ExtraContent
+              section={section.extra}
+              setSection={
+                set &&
+                ((next) => set({ extras: resume.extras.map((extra) => (extra.id === next.id ? next : extra)) }))
+              }
+            />
           ) : (
-            <CoreContent resume={resume} sectionKey={section.key} />
+            <CoreContent resume={resume} sectionKey={section.key} set={set} />
           )}
         </Section>
       ))}

@@ -137,12 +137,17 @@ function Core({ resume, sectionKey }: { resume: Resume; sectionKey: string }) {
         </View>
       ));
     case "education":
-      return resume.education.filter(hasEducation).map((school) => (
-        <View key={school.id} wrap={false}>
-          <EntryLine bold={school.degree} rest={[school.school, school.location]} start={school.start} end={school.end} />
-          {school.details ? <Text style={{ marginTop: 1 }}>{pdfSafe(school.details)}</Text> : null}
-        </View>
-      ));
+      // The degree in bold with the dates, then the school (and place) on the line below
+      return resume.education.filter(hasEducation).map((school) => {
+        const second = [school.degree ? school.school : "", school.location].filter(Boolean).join(" — ");
+        return (
+          <View key={school.id} wrap={false}>
+            <EntryLine bold={school.degree || school.school} rest={[]} start={school.start} end={school.end} />
+            {second ? <Text>{pdfSafe(second)}</Text> : null}
+            {school.details ? <Text style={{ marginTop: 1 }}>{pdfSafe(school.details)}</Text> : null}
+          </View>
+        );
+      });
     case "skills":
       return <Text>{pdfSafe(toList(resume.skills).join(", "))}</Text>;
     default:

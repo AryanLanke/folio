@@ -31,6 +31,16 @@ describe("resume PDF", () => {
     });
   }
 
+  it("puts the degree and dates on one line and the school on the next", async () => {
+    const buffer = await renderToBuffer(ResumeDocument({ resume: createSampleResume(), paper: "letter" }));
+    const { text } = await extractText(new Uint8Array(buffer), { mergePages: true });
+    const lines = text.split("\n").map((line) => line.trim());
+    const degree = lines.findIndex((line) => line.startsWith("B.S. Computer Science"));
+    expect(lines[degree]).toMatch(/B\.S\. Computer Science.*2019 – 2023/);
+    expect(lines[degree]).not.toContain("University of Texas");
+    expect(lines[degree + 1]).toBe("University of Texas at Austin — Austin, TX");
+  });
+
   it("spills onto a second page when there is too much content", async () => {
     const resume = createSampleResume();
     resume.experience[0].bullets = Array.from({ length: 60 }, (_, i) => `Delivered project number ${i + 1}`).join("\n");

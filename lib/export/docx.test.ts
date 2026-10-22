@@ -29,6 +29,19 @@ describe("Word export", () => {
     });
   }
 
+  it("puts the degree and dates in one paragraph and the school in the next", async () => {
+    const { default: JSZip } = await import("jszip");
+    const zip = await JSZip.loadAsync(await Packer.toBuffer(resumeDocx(createSampleResume(), "letter")));
+    const xml = await zip.file("word/document.xml")!.async("string");
+    const paragraphs = [...xml.matchAll(/<w:p[ >][\s\S]*?<\/w:p>/g)].map((p) =>
+      [...p[0].matchAll(/<w:t(?: [^>]*)?>([^<]*)<\/w:t>/g)].map((m) => m[1]).join(""),
+    );
+    const degree = paragraphs.findIndex((p) => p.startsWith("B.S. Computer Science"));
+    expect(paragraphs[degree]).toContain("2019 – 2023");
+    expect(paragraphs[degree]).not.toContain("University of Texas");
+    expect(paragraphs[degree + 1]).toBe("University of Texas at Austin — Austin, TX");
+  });
+
   it("shows link labels that open the full address", async () => {
     const document = resumeDocx(createSampleResume(), "letter");
     const text = await wordText(document);

@@ -161,7 +161,7 @@ export default function Builder() {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
       const target = e.target as HTMLElement;
-      if (target.closest("input, textarea, [contenteditable='true']")) return;
+      if (target.closest("input, textarea, [contenteditable]:not([contenteditable='false'])")) return;
       const key = e.key.toLowerCase();
       if (key === "z" && !e.shiftKey) {
         e.preventDefault();
@@ -603,7 +603,7 @@ export default function Builder() {
               {editorView === "letter" ? (
                 <CoverLetterPreview resume={resume} paper={paper} />
               ) : (
-                <ResumePreview resume={resume} paper={paper} />
+                <ResumePreview resume={resume} paper={paper} onChange={(next) => update(next, true)} />
               )}
             </PagedPreview>
           )}
