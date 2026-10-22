@@ -77,6 +77,64 @@ describe("parseImport", () => {
   });
 });
 
+describe("sorting imported links", () => {
+  const imported = (basicsLink: string, projects: { name: string; link?: string }[]) =>
+    parseImport(
+      JSON.stringify({
+        basics: { name: "Priya Manjare", link: basicsLink },
+        projects: projects.map((p) => ({ ...p, bullets: ["Built it"] })),
+      }),
+    )!;
+
+  it("keeps profiles in the header and moves repository links to their projects", () => {
+    const resume = imported(
+      "https://github.com/Priyamanjare54, leetcode.com/u/priya, linkedin.com/in/priya-manjare, https://github.com/Priyamanjare54/budget-buddy, https://github.com/Priyamanjare54/fastapi-compliance-platform",
+      [{ name: "Budget Buddy" }, { name: "Multi-client Compliance Service" }],
+    );
+    expect(resume.basics.link).toBe("https://github.com/Priyamanjare54, leetcode.com/u/priya, linkedin.com/in/priya-manjare");
+    expect(resume.projects.map((p) => p.link)).toEqual([
+      "https://github.com/Priyamanjare54/budget-buddy",
+      "https://github.com/Priyamanjare54/fastapi-compliance-platform",
+    ]);
+  });
+
+  it("lists each link once, however it's written", () => {
+    const resume = imported("github.com/priya, https://www.GitHub.com/priya/, linkedin.com/in/priya", [
+      { name: "Chat App", link: "github.com/priya/chat-app, https://github.com/priya/chat-app" },
+    ]);
+    expect(resume.basics.link).toBe("github.com/priya, linkedin.com/in/priya");
+    expect(resume.projects[0].link).toBe("github.com/priya/chat-app");
+  });
+
+  it("drops a repository link from the header when its project already has it", () => {
+    const resume = imported("github.com/priya, github.com/priya/chat-app", [{ name: "Chat App", link: "github.com/priya/chat-app" }]);
+    expect(resume.basics.link).toBe("github.com/priya");
+    expect(resume.projects[0].link).toBe("github.com/priya/chat-app");
+  });
+
+  it("pairs leftover repository links with projects in order when the numbers match", () => {
+    const resume = imported("github.com/priya, github.com/priya/repo-one, github.com/priya/repo-two", [
+      { name: "Weather Dashboard" },
+      { name: "Expense Tracker" },
+    ]);
+    expect(resume.basics.link).toBe("github.com/priya");
+    expect(resume.projects.map((p) => p.link)).toEqual(["github.com/priya/repo-one", "github.com/priya/repo-two"]);
+  });
+
+  it("keeps a repository link it can't place in the header rather than losing it", () => {
+    const resume = imported("github.com/priya, github.com/priya/repo-one, github.com/priya/repo-two", [
+      { name: "Weather Dashboard" },
+    ]);
+    expect(resume.basics.link).toBe("github.com/priya, github.com/priya/repo-one, github.com/priya/repo-two");
+  });
+
+  it("doesn't match projects on common words like app", () => {
+    const resume = imported("github.com/priya/chat-app", [{ name: "Budget App", link: "github.com/priya/budget" }, { name: "Chat App" }]);
+    expect(resume.projects.map((p) => p.link)).toEqual(["github.com/priya/budget", "github.com/priya/chat-app"]);
+    expect(resume.basics.link).toBe("");
+  });
+});
+
 describe("buildImportMessages", () => {
   it("tells the model to copy, not rewrite or invent", () => {
     const [system, user] = buildImportMessages("Priya Shah resume");

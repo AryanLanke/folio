@@ -99,7 +99,7 @@ export function buildDraftMessages(turns: ChatTurn[]) {
     "- \"title\" at the top is the job title they have now or are aiming for, worded the same way.",
     "- Write a 2 to 3 sentence summary from their own facts, in implied first person (no \"I\").",
     "- Put each skill or tool they mentioned as its own item.",
-    '- Put every profile link they gave (LinkedIn, GitHub, portfolio) in basics "link", separated by commas.',
+    '- Put every profile link they gave (LinkedIn, GitHub profile, portfolio) in basics "link", separated by commas. A link to one project or repository goes in that project\'s "link" instead.',
     `- Plain, natural English. Never use these words: ${BANNED_WORDS.join(", ")}.`,
     "",
     "Respond with JSON only, in exactly this shape:",

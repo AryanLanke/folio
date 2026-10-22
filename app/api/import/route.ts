@@ -23,7 +23,7 @@ async function fileText(file: File): Promise<string | Response> {
     // Links labelled "LinkedIn" hide their address from the text, so list the addresses too
     const { links } = await extractLinks(bytes.slice()).catch(() => ({ links: [] as string[] }));
     const web = [...new Set(links.filter((link) => /^https?:\/\//i.test(link)))];
-    return web.length > 0 ? `${text}\n\nLinks in this file: ${web.join(", ")}` : text;
+    return web.length > 0 ? `${text}\n\nLinks in this file, in the order they appear: ${web.join(", ")}` : text;
   } catch {
     return fileError("unreadable", 422);
   }
