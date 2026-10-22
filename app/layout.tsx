@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import Script from "next/script";
+import { ANALYTICS_ON } from "@/lib/site";
 import "./globals.css";
 
 const figtree = Figtree({
@@ -24,8 +25,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${figtree.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         {children}
-        {/* Vercel Web Analytics: cookieless page-view counts, only on the live site */}
-        {process.env.VERCEL_ENV === "production" && (
+        {/* Vercel Web Analytics: cookieless page-view counts, once switched on (see lib/site.ts) */}
+        {ANALYTICS_ON && (
           <Script src="/_vercel/insights/script.js" strategy="afterInteractive" />
         )}
       </body>
