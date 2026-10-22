@@ -2,6 +2,9 @@ import { parseImport } from "@/lib/importer";
 import { buildDraftCheckMessages, buildDraftMessages, validateChat } from "@/lib/interview";
 import { aiError, chatJson, overServerLimit } from "@/lib/server/ai";
 
+// Two AI calls of up to 45 seconds each (draft, then fact-check), so allow more than the usual limit
+export const maxDuration = 120;
+
 // Turns the chat into a resume, then fact-checks the draft against what the person said
 export async function POST(request: Request) {
   const turns = validateChat(await request.json().catch(() => null));

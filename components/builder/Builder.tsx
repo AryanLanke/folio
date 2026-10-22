@@ -305,7 +305,8 @@ export default function Builder() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    const entries = readBackup(await file.text(), file.name.replace(/\.json$/i, "").replace(/-/g, " ") || "Restored resume");
+    const text = await file.text().catch(() => "");
+    const entries = readBackup(text, file.name.replace(/\.json$/i, "").replace(/-/g, " ") || "Restored resume");
     if (entries) restoreBackup(entries);
     else alert("That file isn't a Folio backup. Choose the .json file you saved from Folio.");
   };

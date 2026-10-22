@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useEscape } from "@/components/ui/useEscape";
 import { callAi } from "@/lib/client/ai";
-import { MAX_IMPORT_LENGTH } from "@/lib/importer";
+import { MAX_IMPORT_FILE_BYTES, MAX_IMPORT_LENGTH } from "@/lib/importer";
 import { type Resume, normalizeResume } from "@/lib/resume";
 
 // Brings in an existing resume: upload a PDF or Word file, or paste the text, and AI sorts it into fields.
@@ -24,6 +24,11 @@ export default function ImportDialog({
   const ready = mode === "pdf" ? file !== null : text.trim().length >= 100;
 
   const start = async () => {
+    // Checked here too, so a big file isn't uploaded only to be turned away
+    if (mode === "pdf" && file && file.size > MAX_IMPORT_FILE_BYTES) {
+      setError("That file is too big. Use a PDF or Word file under 4 MB.");
+      return;
+    }
     setBusy(true);
     setError("");
     let body: object | FormData;

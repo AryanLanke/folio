@@ -1,6 +1,9 @@
 import { buildCoverLetterMessages, buildFactCheckMessages, parseCoverLetter, validateCoverLetter } from "@/lib/coverletter";
 import { aiError, chatJson, overServerLimit } from "@/lib/server/ai";
 
+// Two AI calls of up to 30 seconds each (letter, then fact-check)
+export const maxDuration = 90;
+
 // Writes a cover letter from the resume (and the target job, if there is one), then runs a
 // separate fact-check pass that strikes anything the resume doesn't support.
 export async function POST(request: Request) {
