@@ -13,7 +13,7 @@ export function checkAction(label: string, resume: Resume, onChange?: (next: Res
       onClick={() => onChange(fixed)}
       className="rounded-full bg-accent px-3 py-1 text-xs font-bold text-black transition-colors hover:bg-accent-hover"
     >
-      ✨ Fix automatically
+      Fix automatically
     </button>
   );
 }

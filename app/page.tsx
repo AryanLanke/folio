@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
+import Sparkle from "@/components/ui/Sparkle";
 
 const features = [
   {
@@ -22,7 +23,7 @@ const features = [
   },
   {
     title: "AI that doesn't make things up",
-    body: "✨ Enhance fixes grammar and wording, then make it shorter, more formal, simpler or more impactful. It never adds facts you didn't write.",
+    body: "Enhance fixes grammar and wording, then make it shorter, more formal, simpler or more impactful. It never adds facts you didn't write.",
   },
   {
     title: "Five ATS-safe templates",
@@ -106,9 +107,10 @@ export default function Home() {
             </Link>
             <Link
               href="/builder?chat"
-              className="inline-flex h-12 items-center rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
+              className="inline-flex h-12 items-center gap-2 rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
             >
-              ✨ Build with AI
+              <Sparkle className="text-accent" />
+              Build with AI
             </Link>
             <Link
               href="/builder?score"
@@ -150,7 +152,7 @@ export default function Home() {
             <h2 className="text-3xl font-bold tracking-tight">Know your match before you apply</h2>
             <p className="mt-4 leading-7 text-muted">
               Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
-              resume against them as you type, and tailors ✨ Enhance to the job&apos;s wording, without adding
+              resume against them as you type, and tailors AI suggestions to the job&apos;s wording, without adding
               anything you haven&apos;t done.
             </p>
             <Link

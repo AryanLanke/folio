@@ -420,7 +420,7 @@ function contentChecks(resume: Resume): Draft[] {
           : `${weak.length} of ${bullets.length} bullets start weakly, like ${quote(weak[0])}.`,
       fix: noBullets
         ? addBullets
-        : 'Start each bullet with what you did: "Built", "Cut", "Designed", or "Contributed to" for team work. ✨ Enhance can rewrite it.',
+        : 'Start each bullet with what you did: "Built", "Cut", "Designed", or "Contributed to" for team work. Enhance with AI can rewrite it.',
     },
     {
       label: "Numbers and results",

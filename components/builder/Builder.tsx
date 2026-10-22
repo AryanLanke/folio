@@ -9,15 +9,18 @@ import ImportDialog from "@/components/builder/ImportDialog";
 import AtsView from "@/components/resume/AtsView";
 import CoverLetterPreview from "@/components/resume/CoverLetterPreview";
 import JobMatch from "@/components/resume/JobMatch";
+import { OptimizeEffect, OptimizePanel, type Optimized, REVEAL_MS, optimizeResume } from "@/components/resume/Optimizer";
 import PagedPreview from "@/components/resume/PagedPreview";
 import ScoreView from "@/components/resume/ScoreView";
 import ResumePreview from "@/components/resume/ResumePreview";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
 import Segmented from "@/components/ui/Segmented";
+import Sparkle from "@/components/ui/Sparkle";
 import { type BackupEntry, backupFileName, makeBackup, readBackup } from "@/lib/backup";
 import { exportName, saveBlob } from "@/lib/export/text";
 import { type History, emptyHistory, record, redo, undo } from "@/lib/history";
 import type { ChatTurn } from "@/lib/interview";
+import { type OptimizeChange, revertChange } from "@/lib/optimize";
 import {
   type Library,
   addEntry,
@@ -129,6 +132,14 @@ export default function Builder() {
   const [backupNudge, setBackupNudge] = useState(false);
   const nudgeDismissed = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // Optimize: the effect on the page while it works, then what it changed
+  const [optimizing, setOptimizing] = useState<"working" | "reveal" | null>(null);
+  const [optimized, setOptimized] = useState<Optimized | null>(null);
+  // The resume as it is now, so Optimize can tell if it was edited while it worked
+  const latestResume = useRef(resume);
+  useEffect(() => {
+    latestResume.current = resume;
+  }, [resume]);
 
   const activeName = library.items.find((item) => item.id === library.activeId)?.name ?? "My resume";
 
@@ -178,6 +189,39 @@ export default function Builder() {
   const setStyle = (patch: Partial<ResumeStyle>) => update({ ...resume, style: { ...resume.style, ...patch } });
   const setTarget = (target: JobTarget, checkpoint = false) => update({ ...resume, target }, checkpoint);
   const setLetter = (coverLetter: string, checkpoint = false) => update({ ...resume, coverLetter }, checkpoint);
+
+  // Optimize happens on the page, so it switches there first. The result is one undo step.
+  const optimize = async () => {
+    setPreviewView("page");
+    setMobileView("preview");
+    setOptimized(null);
+    setOptimizing("working");
+    const result = await optimizeResume(resume, paper);
+    // Applying it now would throw away whatever was typed while it worked
+    if (latestResume.current !== result.before) {
+      setOptimizing(null);
+      alert("The resume changed while it was being optimized, so nothing was applied. Try Optimize again.");
+      return;
+    }
+    if (result.after !== result.before) update(result.after, true);
+    setOptimized(result);
+    setOptimizing("reveal");
+    setTimeout(() => setOptimizing(null), REVEAL_MS);
+  };
+
+  const revertOptimize = (change: OptimizeChange) => {
+    if (!optimized) return;
+    const next = revertChange(resume, optimized.before, change.key);
+    const changes = optimized.changes.filter((c) => c.key !== change.key);
+    update(next, true);
+    setOptimized(changes.length > 0 ? { ...optimized, after: next, changes } : null);
+  };
+
+  const undoOptimize = () => {
+    if (!optimized) return;
+    update(optimized.before, true);
+    setOptimized(null);
+  };
 
   const changePaper = (next: PaperSize) => {
     setPaper(next);
@@ -395,7 +439,10 @@ export default function Builder() {
               Import an existing resume…
             </button>
             <button type="button" className={menuItemClass} onClick={() => setChatOpen(true)}>
-              ✨ Build with AI…
+              <span className="flex items-center gap-2">
+                <Sparkle className="text-accent" />
+                Build with AI…
+              </span>
             </button>
             <MenuDivider />
             <button type="button" className={menuItemClass} onClick={rename}>
@@ -547,9 +594,10 @@ export default function Builder() {
                     <button
                       type="button"
                       onClick={() => setChatOpen(true)}
-                      className="rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
+                      className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 text-sm font-bold text-black transition-colors hover:bg-accent-hover"
                     >
-                      ✨ Build with AI
+                      <Sparkle />
+                      Build with AI
                     </button>
                     <button
                       type="button"
@@ -585,7 +633,7 @@ export default function Builder() {
         <div
           className={`flex-1 overflow-y-auto bg-[#0b0b0b] p-4 sm:p-8 lg:block ${mobileView === "preview" ? "block" : "hidden"}`}
         >
-          <div className="mx-auto mb-4 w-full max-w-[816px]">
+          <div className="mx-auto mb-4 flex w-full max-w-[816px] flex-wrap items-center justify-between gap-2">
             <Segmented
               options={[
                 { value: "page", label: editorView === "letter" ? "Letter" : "Page" },
@@ -596,14 +644,42 @@ export default function Builder() {
               value={previewView}
               onChange={setPreviewView}
             />
+            {editorView === "resume" && (
+              <button
+                type="button"
+                onClick={optimize}
+                disabled={optimizing !== null || resumeIsEmpty}
+                title="Fixes formatting, rewords weak lines without adding facts, and fits the layout to the page. Uses 1 AI action."
+                className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-1.5 text-sm font-bold text-background transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-40"
+              >
+                <Sparkle className={optimizing === "working" ? "animate-pulse" : ""} />
+                {optimizing === "working" ? "Optimizing…" : "Optimize"}
+              </button>
+            )}
           </div>
+
+          {previewView === "page" && editorView === "resume" && optimized && resume === optimized.after && (
+            <div className="mx-auto w-full max-w-[816px]">
+              <OptimizePanel
+                optimized={optimized}
+                onRevert={revertOptimize}
+                onUndoAll={undoOptimize}
+                onClose={() => setOptimized(null)}
+              />
+            </div>
+          )}
 
           {previewView === "page" && (
             <PagedPreview paper={paper} toolbar={layoutControls}>
               {editorView === "letter" ? (
                 <CoverLetterPreview resume={resume} paper={paper} />
               ) : (
-                <ResumePreview resume={resume} paper={paper} onChange={(next) => update(next, true)} />
+                <>
+                  <div className="optimize-target" data-working={optimizing === "working" || undefined}>
+                    <ResumePreview resume={resume} paper={paper} onChange={(next) => update(next, true)} />
+                  </div>
+                  {optimizing && <OptimizeEffect phase={optimizing} />}
+                </>
               )}
             </PagedPreview>
           )}

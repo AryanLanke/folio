@@ -5,7 +5,7 @@ export type EnhanceKind = "summary" | "bullets";
 
 // Ways to enhance. "polish" is the first pass; the others refine a suggestion further.
 export const ENHANCE_STYLES = {
-  polish: { label: "✨ Polish", instruction: "" },
+  polish: { label: "Polish", instruction: "" },
   shorter: {
     label: "Shorter",
     instruction: "Make it noticeably shorter and tighter. Cut filler words and repetition, but keep every fact.",
@@ -152,7 +152,7 @@ export function plainCharacters(text: string) {
 }
 
 // Strips bullet symbols and wrapping quotes the model sometimes adds
-function cleanLine(line: string) {
+export function cleanLine(line: string) {
   return plainCharacters(line)
     .trim()
     .replace(/^[•\-*–]\s*/, "")

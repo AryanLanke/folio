@@ -4,7 +4,7 @@
 
 Write your resume, match it to the job, polish it with honest AI, and download a PDF or Word file. No sign-up, no watermark, no paywall at the download button.
 
-**[Try it live →](https://resume-builder-chi-dusky.vercel.app)** · [See an example](https://resume-builder-chi-dusky.vercel.app/builder?example) · [Job match demo](https://resume-builder-chi-dusky.vercel.app/builder?example&view=job)
+**[Try it live →](https://folio-resumes.vercel.app)** · [See an example](https://folio-resumes.vercel.app/builder?example) · [Job match demo](https://folio-resumes.vercel.app/builder?example&view=job)
 
 ![The Folio editor: a form on the left and the resume on a real page on the right](docs/screenshot.png)
 
@@ -50,7 +50,7 @@ Most resume builders let you spend half an hour writing, then charge before you 
 
 ## Privacy
 
-Your resumes are stored in your browser, not on a server: Folio has no accounts and no database. Folio asks the browser to keep that storage, and a backup file keeps a copy you control. PDF and Word files are generated on your device. AI only sees the text for the action you click, and nothing is stored. Details on the [privacy page](https://resume-builder-chi-dusky.vercel.app/privacy).
+Your resumes are stored in your browser, not on a server: Folio has no accounts and no database. Folio asks the browser to keep that storage, and a backup file keeps a copy you control. PDF and Word files are generated on your device. AI only sees the text for the action you click, and nothing is stored. Details on the [privacy page](https://folio-resumes.vercel.app/privacy).
 
 ## How it works
 

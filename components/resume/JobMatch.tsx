@@ -52,7 +52,7 @@ export default function JobMatch({
         <h2 className="text-base font-bold">Match your resume to a job</h2>
         <p className="mt-1 text-sm text-muted">
           Paste a job posting. Folio picks out the skills and keywords it asks for, shows which ones your
-          resume already covers, and tailors ✨ Enhance suggestions to this job.
+          resume already covers, and tailors AI suggestions to this job.
         </p>
         <textarea
           className="mt-4 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none placeholder:text-neutral-600 focus:border-accent"
@@ -166,8 +166,8 @@ export default function JobMatch({
 
       <section className="rounded-lg border border-dashed border-border p-5 text-sm text-muted">
         <p>
-          <b className="text-foreground">✨ Enhance is now tailored to this job.</b> It uses the job&apos;s wording for
-          skills you already have, and never adds ones you don&apos;t.
+          <b className="text-foreground">AI suggestions are now tailored to this job.</b> They use the job&apos;s
+          wording for skills you already have, and never add ones you don&apos;t.
         </p>
         <button
           type="button"
