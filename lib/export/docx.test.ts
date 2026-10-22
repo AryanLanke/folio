@@ -18,8 +18,8 @@ describe("Word export", () => {
       const sample = createSampleResume();
       const resume = { ...sample, style: { ...sample.style, template } };
       const text = await wordText(resumeDocx(resume, "letter"));
-      expect(text).toContain("Jordan Patel");
-      expect(text).toContain("jordan.patel@email.com");
+      expect(text).toContain("Emily Carter");
+      expect(text).toContain("emily.carter@example.com");
       expect(text).toContain("Brightpath Software");
       expect(text).toContain("cutting page load time from 4.1s to 1.6s");
       expect(text).toContain("AWS Certified Cloud Practitioner");
@@ -50,13 +50,13 @@ describe("Word export", () => {
     const { default: JSZip } = await import("jszip");
     const zip = await JSZip.loadAsync(await Packer.toBuffer(resumeDocx(createSampleResume(), "letter")));
     const rels = await zip.file("word/_rels/document.xml.rels")!.async("string");
-    expect(rels).toContain('Target="https://linkedin.com/in/jordanpatel"');
-    expect(rels).toContain('Target="https://github.com/jordanpatel/budget-buddy"');
+    expect(rels).toContain('Target="https://linkedin.com/in/emily-carter-example"');
+    expect(rels).toContain('Target="https://github.com/emily-carter-example/budget-buddy"');
   });
 
   it("writes the cover letter paragraphs", async () => {
     const resume = createSampleResume();
-    resume.coverLetter = "Dear Hiring Manager,\n\nI am applying for the role.\n\nSincerely,\nJordan Patel";
+    resume.coverLetter = "Dear Hiring Manager,\n\nI am applying for the role.\n\nSincerely,\nEmily Carter";
     const text = await wordText(coverLetterDocx(resume, "a4"));
     expect(text).toContain("Dear Hiring Manager,");
     expect(text).toContain("I am applying for the role.");

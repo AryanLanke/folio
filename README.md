@@ -24,7 +24,9 @@ Most resume builders let you spend half an hour writing, then charge before you 
 
 **Write**
 - Live preview on a real page (Letter or A4), with a marker where page two starts
-- Five ATS-safe templates: Classic, Modern, Executive, Compact and Serif
+- Edit right on the page, like in Word: click any text to change it, make it bold, italic or underlined, press Enter to split a bullet or start a new one, Backspace to join it back, and Alt+Up or Alt+Down to move it. Arrows beside each heading move whole sections
+- Five ATS-safe templates: Classic, Modern, Executive, Compact and Serif, in your own heading colour
+- Rename any section by clicking its heading ("Profile" instead of "Summary"); the ATS check warns if a name might confuse screening software
 - Text size and spacing controls to fit everything on one page
 - Any section order, plus certifications, awards, volunteering, languages or custom sections
 - Clean links: LinkedIn, GitHub and other profiles show as short labels ("LinkedIn", "GitHub") that open the full address, on screen, in the PDF and in Word. Switch to full addresses for job portals whose ATS needs them
@@ -40,7 +42,8 @@ Most resume builders let you spend half an hour writing, then charge before you 
 **AI that stays honest** (optional, 15 free actions a day)
 - **Build with AI:** chat, or talk with voice typing, about your work in your own words. AI asks a few follow-up questions, then writes the resume from only what you said, with a fact-check pass afterwards
 - **Import:** upload an old resume (PDF or Word) or paste its text, and every field fills in using your exact words, links included
-- **✨ Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write, and never turns "helped with" into "led"
+- **Optimize:** one click tidies the whole resume: fixes bullet formatting, rewords weak lines and picks the most readable text size and spacing that keep it to the fewest pages. Every change is highlighted on the page (point at one to see what it said before), with Revert for each and Undo all. A rewrite that adds a number you didn't write is thrown away
+- **Enhance:** clearer, more professional wording for your summary and bullets, tailored to the target job's terms. Then refine it: shorter, more impact, more formal, simpler words, or another version, and step back to an earlier version if it was better. Every round works from your original facts, so it never adds numbers, skills or experience you didn't write, and never turns "helped with" into "led"
 - **Cover letters:** written only from your resume, then checked by a second AI pass that strikes anything your resume doesn't support
 
 **Download**
@@ -54,14 +57,16 @@ Your resumes are stored in your browser, not on a server: Folio has no accounts 
 
 ## How it works
 
-Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser; the only server code is four small API routes that pass the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
+Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser; the only server code is a few small API routes that pass the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
 
 ```
 app/                    Pages: home, editor (/builder), privacy, and /api AI routes
 components/builder/     Editor form, cover letter editor, import dialog, toolbar
-components/resume/      Resume page, page-break preview, ATS check, job match
+components/resume/      Resume page (editable like Word), page-break preview, ATS check, job match, Optimize
 lib/resume.ts           The resume data model and safe loading of saved data
-lib/templates.ts        How each template looks, shared by preview, PDF and Word
+lib/rich.ts             Bold, italic and underline in resume text, and the plain words for everything else
+lib/templates.ts        How each template looks and its heading colour, shared by preview, PDF and Word
+lib/optimize.ts         Optimize: the AI prompt, the fact check on its answer, layout fitting and the change list
 lib/export/             PDF (react-pdf) and Word (docx) generation
 lib/jobmatch.ts         Job keyword extraction prompt and live matching
 lib/enhance.ts          AI enhance rules, response cleanup, daily limit

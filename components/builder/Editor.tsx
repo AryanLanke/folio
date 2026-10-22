@@ -327,14 +327,14 @@ export default function Editor({
     <div className="space-y-4">
       <Card title="Personal info">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Full name" value={basics.name} onChange={(v) => setBasics({ name: v })} placeholder="Jordan Patel" />
+          <Field label="Full name" value={basics.name} onChange={(v) => setBasics({ name: v })} placeholder="Emily Carter" />
           <Field label="Job title" value={basics.title} onChange={(v) => setBasics({ title: v })} placeholder="Frontend Developer" />
           <Field
             label="Email"
             type="email"
             value={basics.email}
             onChange={(v) => setBasics({ email: v })}
-            placeholder="you@email.com"
+            placeholder="you@example.com"
             warning={checkEmail(basics.email)}
           />
           <Field
@@ -342,7 +342,7 @@ export default function Editor({
             type="tel"
             value={basics.phone}
             onChange={(v) => setBasics({ phone: v })}
-            placeholder="(555) 123-4567"
+            placeholder="(512) 555-0142"
             warning={checkPhone(basics.phone)}
           />
           <Field label="Location" value={basics.location} onChange={(v) => setBasics({ location: v })} placeholder="Austin, TX" />

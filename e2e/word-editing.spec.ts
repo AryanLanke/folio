@@ -57,7 +57,7 @@ test("format text on the page like in Word, and it's kept for the downloads", as
   await page.locator("summary", { hasText: "Download" }).click();
   const download = page.waitForEvent("download");
   await page.getByText("Best for applying online").click();
-  expect((await download).suggestedFilename()).toBe("Jordan-Patel-resume.pdf");
+  expect((await download).suggestedFilename()).toBe("Emily-Carter-resume.pdf");
 });
 
 test("Enter, Backspace and Alt+arrows work on bullets like a Word list", async ({ page }) => {
