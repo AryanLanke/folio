@@ -136,10 +136,15 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
         ...bullets(project.bullets, ctx),
       ]);
     case "education":
-      return resume.education.filter(hasEducation).flatMap((school, i) => [
-        entryLine(school.degree, [school.school, school.location], dates(school.start, school.end), ctx, i === 0),
-        ...(school.details ? [plain(school.details, ctx)] : []),
-      ]);
+      // The degree in bold with the dates, then the school (and place) on the line below
+      return resume.education.filter(hasEducation).flatMap((school, i) => {
+        const second = [school.degree ? school.school : "", school.location].filter(Boolean).join(" — ");
+        return [
+          entryLine(school.degree || school.school, [], dates(school.start, school.end), ctx, i === 0),
+          ...(second ? [plain(second, ctx)] : []),
+          ...(school.details ? [plain(school.details, ctx)] : []),
+        ];
+      });
     case "skills":
       return [plain(toList(resume.skills).join(", "), ctx)];
     default:
