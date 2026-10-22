@@ -6,7 +6,6 @@ import {
   removeEntry,
   renameEntry,
   selectEntry,
-  touchEntry,
   uniqueName,
 } from "@/lib/library";
 
@@ -29,7 +28,6 @@ describe("library", () => {
     const firstId = start.activeId;
     expect(renameEntry(two, id, "  ").items[1].name).toBe("Untitled resume");
     expect(renameEntry(two, id, "Data roles").items[1].name).toBe("Data roles");
-    expect(touchEntry(two, firstId, 99).items[0].updatedAt).toBe(99);
     expect(selectEntry(two, firstId).activeId).toBe(firstId);
     expect(selectEntry(two, "missing").activeId).toBe(id);
   });

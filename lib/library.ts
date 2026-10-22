@@ -42,10 +42,6 @@ export function renameEntry(library: Library, id: string, name: string): Library
   return { ...library, items: library.items.map((item) => (item.id === id ? { ...item, name: clean } : item)) };
 }
 
-export function touchEntry(library: Library, id: string, now = Date.now()): Library {
-  return { ...library, items: library.items.map((item) => (item.id === id ? { ...item, updatedAt: now } : item)) };
-}
-
 export function selectEntry(library: Library, id: string): Library {
   return library.items.some((item) => item.id === id) ? { ...library, activeId: id } : library;
 }
