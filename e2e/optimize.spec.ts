@@ -30,10 +30,17 @@ test("Optimize rewords the resume, shows what changed, and each change can be pu
   await expect(sheet).toContainText("Optimized: Rebuilt the customer dashboard");
   await expect(page.locator(".optimize-effect")).toBeHidden();
 
-  // One change goes back on its own; the rest stay
+  // Every reworded line is highlighted on the page, and says what it was before
+  await expect(panel).toContainText("Reworded lines are highlighted on the page");
+  const marks = sheet.locator(".optimize-mark");
+  await expect(marks).toHaveCount(3);
+  await expect(marks.first()).toHaveAttribute("title", /^Before Optimize: Rebuilt the customer dashboard/);
+
+  // One change goes back on its own, and its highlight with it; the rest stay
   await panel.locator("li", { hasText: "Brightpath" }).getByRole("button", { name: "Revert" }).click();
   await expect(sheet).not.toContainText("Optimized: Rebuilt");
   await expect(sheet).toContainText("Optimized: Built landing pages");
+  await expect(marks).toHaveCount(2);
 
   // Undo all puts everything back
   await panel.getByRole("button", { name: "Undo all" }).click();

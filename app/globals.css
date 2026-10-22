@@ -51,10 +51,12 @@ body {
   filter: blur(1.2px) saturate(0.4);
 }
 
+/* Monochrome, like frosted glass: the page dims to a soft grey so a band of white light can
+   sweep across it */
 .optimize-veil {
   position: absolute;
   inset: 0;
-  background: rgb(255 255 255 / 0.45);
+  background: rgb(23 23 23 / 0.12);
   animation: optimize-fade-in 0.35s ease-out;
 }
 
@@ -65,25 +67,44 @@ body {
   height: 32%;
   background: linear-gradient(
     to bottom,
-    rgb(29 185 84 / 0),
-    rgb(29 185 84 / 0.14) 38%,
-    rgb(120 240 170 / 0.34) 50%,
-    rgb(29 185 84 / 0.14) 62%,
-    rgb(29 185 84 / 0)
+    rgb(255 255 255 / 0),
+    rgb(255 255 255 / 0.55) 36%,
+    rgb(255 255 255 / 0.95) 50%,
+    rgb(255 255 255 / 0.55) 64%,
+    rgb(255 255 255 / 0)
   );
   animation: optimize-sweep 1.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-/* The shimmer: two fine grids of green specks that flicker as they drift */
+/* The shimmer: a fine grid of white specks and a sparser one of silver, flickering as they
+   drift, like light catching dust */
 .optimize-band::before {
   content: "";
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle, rgb(29 185 84 / 0.95) 0 1px, transparent 1.6px) 0 0 / 13px 13px,
-    radial-gradient(circle, rgb(10 110 55 / 0.75) 0 0.8px, transparent 1.4px) 6px 4px / 19px 19px;
-  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+    radial-gradient(circle, rgb(255 255 255 / 1) 0 1.1px, transparent 1.7px) 0 0 / 11px 11px,
+    radial-gradient(circle, rgb(120 120 128 / 0.55) 0 0.8px, transparent 1.4px) 5px 4px / 17px 17px;
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
   animation: optimize-glitter 0.8s steps(4) infinite;
+}
+
+/* Lines Optimize changed: a soft marker stroke behind the text, like a highlighter pen */
+.optimize-mark {
+  background-image: linear-gradient(transparent 12%, rgb(191 219 254 / 0.85) 12%, rgb(191 219 254 / 0.85) 92%, transparent 92%);
+  background-repeat: no-repeat;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation: optimize-mark-in 0.6s ease-out;
+}
+
+@keyframes optimize-mark-in {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
 }
 
 .optimize-effect[data-phase="reveal"] .optimize-veil {
@@ -149,6 +170,9 @@ body {
   }
   .optimize-target {
     transition: none;
+  }
+  .optimize-mark {
+    animation: none;
   }
   .optimize-veil {
     animation: optimize-breathe 1.6s ease-in-out infinite alternate;

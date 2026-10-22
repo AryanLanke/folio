@@ -21,6 +21,7 @@ import {
   visibleSections,
 } from "@/lib/resume";
 import { type LinkMode, resumeLinks } from "@/lib/links";
+import type { ChangedLines } from "@/lib/optimize";
 import { plainText } from "@/lib/rich";
 import { HTML_FONT, TEMPLATE_SPECS, type TemplateSpec, layoutFor } from "@/lib/templates";
 
@@ -125,10 +126,28 @@ function Dates({ start, end }: { start: Field; end: Field }) {
   );
 }
 
+// A line Optimize changed: highlighted, with what it said before in its tooltip
+function markProps(before: string | undefined) {
+  if (before === undefined) return {};
+  return {
+    className: "optimize-mark",
+    hint: before ? `Before Optimize: ${plainText(before)}` : "Changed by Optimize",
+  };
+}
+
 // One bullet per line, edited like a list in Word: Enter splits a bullet (or starts a new one),
 // Backspace at the start joins it to the one above, Alt+Up and Alt+Down move it. Editing a
 // bullet to nothing removes it.
-function Bullets({ value, onCommit }: { value: string; onCommit?: (next: string) => void }) {
+function Bullets({
+  value,
+  onCommit,
+  marked,
+}: {
+  value: string;
+  onCommit?: (next: string) => void;
+  // Lines Optimize changed (by line number), with what each said before
+  marked?: Record<number, string>;
+}) {
   const lines = toLines(value);
   const listRef = useRef<HTMLUListElement>(null);
   // A new empty bullet from Enter: it only becomes part of the resume once something is typed
@@ -201,7 +220,13 @@ function Bullets({ value, onCommit }: { value: string; onCommit?: (next: string)
     <ul ref={listRef} className="mt-1 list-disc space-y-0.5 pl-4">
       {shown.map((line, i) => (
         <li key={i}>
-          <Editable value={line} label="Bullet point" onCommit={commitLine(i)} lineKeys={onCommit && keys(i)} />
+          <Editable
+            value={line}
+            label="Bullet point"
+            onCommit={commitLine(i)}
+            lineKeys={onCommit && keys(i)}
+            {...markProps(marked?.[i])}
+          />
         </li>
       ))}
     </ul>
@@ -281,7 +306,15 @@ function EntryLine({ bold, rest, start, end }: { bold: Field; rest: Field[]; sta
 
 const none: Field = { value: "", label: "" };
 
-function ExtraContent({ section, setSection }: { section: ExtraSection; setSection?: (next: ExtraSection) => void }) {
+function ExtraContent({
+  section,
+  setSection,
+  changed,
+}: {
+  section: ExtraSection;
+  setSection?: (next: ExtraSection) => void;
+  changed?: ChangedLines;
+}) {
   const items = section.items.filter(hasExtraItem);
   if (section.kind === "languages") {
     const line = items.map((item) => (item.subtitle ? `${item.title} (${item.subtitle})` : item.title));
@@ -298,12 +331,24 @@ function ExtraContent({ section, setSection }: { section: ExtraSection; setSecti
         start={fields.date ? { value: item.date, label: fields.date, onCommit: save(item.id, "date") } : none}
         end={none}
       />
-      {fields.bullets && <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />}
+      {fields.bullets && (
+        <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} marked={changed?.[`extras:${section.id}:${item.id}`]} />
+      )}
     </div>
   ));
 }
 
-function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: string; set?: (change: Partial<Resume>) => void }) {
+function CoreContent({
+  resume,
+  sectionKey,
+  set,
+  changed,
+}: {
+  resume: Resume;
+  sectionKey: string;
+  set?: (change: Partial<Resume>) => void;
+  changed?: ChangedLines;
+}) {
   switch (sectionKey) {
     case "summary":
       return (
@@ -312,6 +357,7 @@ function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: 
           value={resume.summary}
           label="Summary"
           onCommit={set && ((summary) => set({ summary }))}
+          {...markProps(changed?.summary?.[0])}
         />
       );
     case "experience": {
@@ -328,7 +374,7 @@ function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: 
             start={{ value: item.start, label: "Start date", onCommit: save(item.id, "start") }}
             end={{ value: item.end, label: "End date", onCommit: save(item.id, "end") }}
           />
-          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />
+          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} marked={changed?.[`experience:${item.id}`]} />
         </div>
       ));
     }
@@ -357,7 +403,7 @@ function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: 
           {item.tech && (
             <Editable as="p" className="text-neutral-600" value={item.tech} label="Built with" onCommit={save(item.id, "tech")} />
           )}
-          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />
+          <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} marked={changed?.[`projects:${item.id}`]} />
         </div>
       ));
     }
@@ -438,11 +484,14 @@ export default function ResumePreview({
   resume,
   paper,
   onChange,
+  changed,
 }: {
   resume: Resume;
   paper: PaperSize;
   // When given, the page can be edited in place
   onChange?: (next: Resume) => void;
+  // Lines Optimize just changed, highlighted until the person moves on
+  changed?: ChangedLines;
 }) {
   const { basics } = resume;
   const size = PAPER[paper];
@@ -553,9 +602,10 @@ export default function ResumePreview({
                 set &&
                 ((next) => set({ extras: resume.extras.map((extra) => (extra.id === next.id ? next : extra)) }))
               }
+              changed={changed}
             />
           ) : (
-            <CoreContent resume={resume} sectionKey={section.key} set={set} />
+            <CoreContent resume={resume} sectionKey={section.key} set={set} changed={changed} />
           )}
         </Section>
       ))}

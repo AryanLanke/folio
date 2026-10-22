@@ -22,7 +22,7 @@ import { type BackupEntry, backupFileName, makeBackup, readBackup } from "@/lib/
 import { exportName, saveBlob } from "@/lib/export/text";
 import { type History, emptyHistory, record, redo, undo } from "@/lib/history";
 import type { ChatTurn } from "@/lib/interview";
-import { type OptimizeChange, revertChange } from "@/lib/optimize";
+import { type OptimizeChange, changedLines, revertChange } from "@/lib/optimize";
 import {
   type Library,
   addEntry,
@@ -389,6 +389,9 @@ export default function Builder() {
 
   const resumeIsEmpty = !resume.basics.name && !resume.summary && !resume.experience.some(hasExperience);
   const hasLetter = resume.coverLetter.trim() !== "";
+  // What Optimize changed stays on show (panel and highlights) until Done or the next edit
+  const showOptimized =
+    previewView === "page" && editorView === "resume" && optimized !== null && resume === optimized.after;
 
   const layoutControls = (
     <>
@@ -670,7 +673,7 @@ export default function Builder() {
             )}
           </div>
 
-          {previewView === "page" && editorView === "resume" && optimized && resume === optimized.after && (
+          {showOptimized && (
             <div className="mx-auto w-full max-w-[816px]">
               <OptimizePanel
                 optimized={optimized}
@@ -688,7 +691,12 @@ export default function Builder() {
               ) : (
                 <>
                   <div className="optimize-target" data-working={optimizing === "working" || undefined}>
-                    <ResumePreview resume={resume} paper={paper} onChange={(next) => update(next, true)} />
+                    <ResumePreview
+                      resume={resume}
+                      paper={paper}
+                      onChange={(next) => update(next, true)}
+                      changed={showOptimized ? changedLines(optimized.changes) : undefined}
+                    />
                   </div>
                   {optimizing && <OptimizeEffect phase={optimizing} />}
                 </>

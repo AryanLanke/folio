@@ -4,6 +4,7 @@ import {
   applyOptimize,
   bestLayout,
   buildOptimizeMessages,
+  changedLines,
   keepsFacts,
   layoutCandidates,
   listChanges,
@@ -163,6 +164,24 @@ describe("layout", () => {
     const large = { ...DEFAULT_STYLE, fontSize: "large" as const };
     const candidates = layoutCandidates(large);
     expect(bestLayout(large, candidates, candidates.map(() => 1))).toBe(large);
+  });
+});
+
+describe("changedLines", () => {
+  it("marks just the lines that changed, with what each said before", () => {
+    expect(
+      changedLines([
+        { key: "summary", label: "Summary", before: ["Old summary."], after: ["New summary."] },
+        { key: "experience:a", label: "Job", before: ["one", "two", "three"], after: ["one", "Two, better", "three"] },
+        { key: "projects:b", label: "Project", before: ["• one • two"], after: ["one", "two"] },
+        { key: "layout", label: "Layout", before: ["Classic"], after: ["Compact"] },
+      ]),
+    ).toEqual({
+      summary: { 0: "Old summary." },
+      "experience:a": { 1: "two" },
+      // Split or joined bullets have no single old line
+      "projects:b": { 0: "", 1: "" },
+    });
   });
 });
 

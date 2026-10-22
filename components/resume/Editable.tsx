@@ -83,6 +83,7 @@ export default function Editable({
   className = "",
   style,
   lineKeys,
+  hint = "Click to edit",
 }: {
   value: string;
   // Without it, the text is shown normally and can't be edited
@@ -93,6 +94,8 @@ export default function Editable({
   className?: string;
   style?: React.CSSProperties;
   lineKeys?: LineKeys;
+  // The tooltip, like what a line said before Optimize changed it
+  hint?: string;
 }) {
   const ref = useRef<HTMLElement>(null);
   const latest = useRef(value);
@@ -150,7 +153,7 @@ export default function Editable({
       suppressContentEditableWarning
       role="textbox"
       aria-label={label}
-      title="Click to edit"
+      title={hint}
       spellCheck
       className={`cursor-text rounded-sm outline-none transition-colors hover:bg-amber-100/70 focus:bg-amber-100 ${className}`}
       style={style}

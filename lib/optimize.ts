@@ -236,6 +236,25 @@ export function listChanges(before: Resume, after: Resume): OptimizeChange[] {
   return changes;
 }
 
+// Which lines Optimize changed, for highlighting them on the page: for each piece (by change
+// key), the changed line numbers and what each said before. Bullets that were split or joined
+// have no single old line, so they're marked with an empty "before".
+export type ChangedLines = Record<string, Record<number, string>>;
+
+export function changedLines(changes: OptimizeChange[]): ChangedLines {
+  const marked: ChangedLines = {};
+  for (const change of changes) {
+    if (change.key === "layout") continue;
+    const lines: Record<number, string> = {};
+    change.after.forEach((line, i) => {
+      if (change.before.length !== change.after.length) lines[i] = "";
+      else if (line !== change.before[i]) lines[i] = change.before[i];
+    });
+    marked[change.key] = lines;
+  }
+  return marked;
+}
+
 // Puts one piece back the way it was before Optimize, keeping every other change
 export function revertChange(current: Resume, before: Resume, key: string): Resume {
   const [kind, id, itemId] = key.split(":");
