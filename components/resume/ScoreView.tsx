@@ -1,4 +1,4 @@
-import CheckItem, { bar, tone } from "@/components/resume/CheckItem";
+import CheckItem, { bar, checkAction, tone } from "@/components/resume/CheckItem";
 import { type Resume } from "@/lib/resume";
 import { scoreResume, scoreVerdict } from "@/lib/score";
 
@@ -9,7 +9,7 @@ const PART_HELP: Record<string, string> = {
 };
 
 // One score out of 100, broken into the parts and checks it's made of, each with what to fix
-export default function ScoreView({ resume }: { resume: Resume }) {
+export default function ScoreView({ resume, onChange }: { resume: Resume; onChange?: (next: Resume) => void }) {
   const { total, parts } = scoreResume(resume);
 
   return (
@@ -56,7 +56,7 @@ export default function ScoreView({ resume }: { resume: Resume }) {
             {[...part.items]
               .sort((a, b) => a.score - b.score)
               .map((item) => (
-                <CheckItem key={item.label} {...item} />
+                <CheckItem key={item.label} {...item} action={checkAction(item.label, resume, onChange)} />
               ))}
           </ul>
         </section>

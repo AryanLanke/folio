@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { atsChecks, atsScore, brokenBulletLines, resumeToPlainText } from "@/lib/ats";
+import { atsChecks, atsScore, brokenBulletLines, fixBulletFormatting, fixBulletText, resumeToPlainText } from "@/lib/ats";
 import { createEmptyResume, createSampleResume } from "@/lib/resume";
 
 function check(resume: ReturnType<typeof createSampleResume>, label: string) {
@@ -147,6 +147,40 @@ describe("brokenBulletLines", () => {
       "platform using FastAPI.",
       "Shipped the new checkout flow for 3 markets",
     ]);
+  });
+
+  it("finds nothing once fixed, and the fix joins and splits the right lines", () => {
+    const text = [
+      "• • Built dashboards",
+      "Built reports • Cut report time by 30%",
+      "Developed backend services for a multi-client compliance",
+      "platform using FastAPI.",
+      "Worked with the design team and",
+      "Shipped the new checkout flow for 3 markets",
+    ].join("\n");
+    const fixed = fixBulletText(text);
+    expect(fixed.split("\n")).toEqual([
+      "Built dashboards",
+      "Built reports",
+      "Cut report time by 30%",
+      "Developed backend services for a multi-client compliance platform using FastAPI.",
+      "Worked with the design team and Shipped the new checkout flow for 3 markets",
+    ]);
+    expect(brokenBulletLines(fixed)).toEqual([]);
+  });
+
+  it("leaves clean bullets unchanged when fixing", () => {
+    const clean = "Built the app in React\nnpm package used by 2 teams\niOS app with 4.8 stars";
+    expect(fixBulletText(clean)).toBe(clean);
+    const sample = createSampleResume();
+    expect(fixBulletFormatting(sample)).toEqual(sample);
+  });
+
+  it("fixing a weak resume passes bullet formatting and raises the score", () => {
+    const resume = weakResume();
+    const fixed = fixBulletFormatting(resume);
+    expect(check(fixed, "Bullet formatting").status).toBe("pass");
+    expect(atsScore(atsChecks(fixed))).toBeGreaterThan(atsScore(atsChecks(resume)));
   });
 
   it("leaves clean bullets and lowercase tool names alone", () => {

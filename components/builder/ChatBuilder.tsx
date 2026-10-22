@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useEscape } from "@/components/ui/useEscape";
 import { callAi } from "@/lib/client/ai";
 import { type ChatTurn, MAX_TURNS, OPENING } from "@/lib/interview";
 import { type Resume, normalizeResume } from "@/lib/resume";
@@ -44,6 +45,7 @@ export default function ChatBuilder({
   const [error, setError] = useState("");
   const [listening, setListening] = useState(false);
   const [canListen] = useState(() => createRecognition() !== null);
+  useEscape(onClose, !creating);
   const recognition = useRef<Recognition | null>(null);
   const spokenBase = useRef("");
   const bottom = useRef<HTMLDivElement>(null);
