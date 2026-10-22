@@ -1,14 +1,26 @@
 import { type DocumentProps, renderToBuffer } from "@react-pdf/renderer";
-import { extractLinks, extractText } from "unpdf";
+import { extractLinks, extractText, getDocumentProxy } from "unpdf";
 import { describe, expect, it } from "vitest";
 import { CoverLetterDocument, ResumeDocument } from "@/lib/export/pdf";
 import { type Resume, TEMPLATES, type TemplateName, createSampleResume } from "@/lib/resume";
+import { layoutFor } from "@/lib/templates";
 
 // Reads the PDF back the way ATS software does: as plain text
 async function readBack(element: React.ReactElement<DocumentProps>) {
   const buffer = await renderToBuffer(element);
   const { text, totalPages } = await extractText(new Uint8Array(buffer), { mergePages: true });
   return { text: text.replace(/\s+/g, " "), totalPages };
+}
+
+// How far down the first page each line starting with these words is, in points
+async function lineTops(element: React.ReactElement<DocumentProps>, starts: string[]) {
+  const pdf = await getDocumentProxy(new Uint8Array(await renderToBuffer(element)));
+  const page = await pdf.getPage(1);
+  const { items } = await page.getTextContent();
+  return starts.map((start) => {
+    const item = items.find((i) => "str" in i && i.str.startsWith(start));
+    return item && "transform" in item ? page.view[3] - item.transform[5] : NaN;
+  });
 }
 
 describe("resume PDF", () => {
@@ -52,6 +64,23 @@ describe("resume PDF", () => {
     expect(lines[project + 1]).toBe("Next.js, PostgreSQL");
     expect(lines).toContain("Languages: C++, Python");
     expect(lines).toContain("Tools: Git, Docker");
+  });
+
+  it("sets skill groups close together, like on the page, so the PDF isn't taller than the preview", async () => {
+    const resume = createSampleResume();
+    resume.skills = "Languages: C++, Python\nBackend: Node.js, FastAPI\nTools: Git, Docker\nCloud: AWS, Docker";
+    const tops = await lineTops(ResumeDocument({ resume, paper: "letter" }), ["Languages:", "Backend:", "Tools:", "Cloud:"]);
+    const { fontSize, lineHeight } = layoutFor(resume.style);
+    // One line plus the 2px (1.5pt) the page leaves between groups, not the gap between jobs
+    const expected = fontSize * 0.75 * lineHeight + 1.5;
+    for (let i = 1; i < tops.length; i++) expect(Math.abs(tops[i] - tops[i - 1] - expected)).toBeLessThan(1);
+  });
+
+  it("joins skills typed on separate lines without labels into one paragraph, like the page", async () => {
+    const resume = createSampleResume();
+    resume.skills = "Python\nGo\nSQL";
+    const { text } = await readBack(ResumeDocument({ resume, paper: "letter" }));
+    expect(text).toContain("Python, Go, SQL");
   });
 
   it("spills onto a second page when there is too much content", async () => {
