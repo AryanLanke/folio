@@ -29,7 +29,7 @@ jobs:
       - run: npx playwright test
 
       # When a browser test fails, keep its recording (screenshots and steps) to look at
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
