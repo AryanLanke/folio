@@ -58,6 +58,25 @@ export function linkDisplay(text: string) {
     .replace(/\/$/, "");
 }
 
+// Share buttons add tracking to links ("linkedin.com/in/you?utm_source=share_via&utm_medium=..."),
+// which only makes them long. LinkedIn profile links never need anything after the "?".
+const TRACKING = /^(utm_|fbclid$|gclid$|igshid$|ref_src$|trk$|si$)/;
+
+export function withoutTracking(link: string) {
+  const trimmed = link.trim();
+  const queryAt = trimmed.indexOf("?");
+  if (queryAt < 0) return trimmed;
+  try {
+    const url = new URL(linkHref(trimmed));
+    const linkedIn = /(^|\.)linkedin\.com$/.test(url.hostname.toLowerCase());
+    for (const key of [...url.searchParams.keys()]) if (linkedIn || TRACKING.test(key)) url.searchParams.delete(key);
+    const query = url.searchParams.toString();
+    return query ? `${trimmed.slice(0, queryAt)}?${query}` : trimmed.slice(0, queryAt);
+  } catch {
+    return trimmed;
+  }
+}
+
 // The same address however it's written: "https://www.GitHub.com/priya/" and "github.com/priya"
 export function linkKey(text: string) {
   return linkDisplay(text).toLowerCase().replace(/[?#].*$/, "").replace(/\/$/, "");

@@ -20,7 +20,7 @@ import {
   hasExtraItem,
   hasProject,
   toLines,
-  toList,
+  skillGroups,
   visibleSections,
 } from "@/lib/resume";
 import { type TemplateSpec, layoutFor } from "@/lib/templates";
@@ -121,8 +121,10 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
       ]);
     case "projects":
       return resume.projects.filter(hasProject).flatMap((project, i) => [
+        // Name and links, with the date at the right edge; what it's built with below
         new Paragraph({
           keepNext: true,
+          tabStops: [{ type: TabStopType.RIGHT, position: ctx.tabAt }],
           spacing: { before: i === 0 ? 0 : Math.round(ctx.gap * 160) },
           children: [
             new TextRun({ text: project.name, bold: true, font: ctx.font, size: ctx.half }),
@@ -131,8 +133,12 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
               ...(j > 0 ? [new TextRun({ text: ", ", font: ctx.font, size: ctx.half })] : []),
               link(item.text, ctx, item.href),
             ]),
+            ...(project.date ? [new TextRun({ text: `	${project.date}`, color: MUTED, font: ctx.font, size: ctx.half })] : []),
           ],
         }),
+        ...(project.tech
+          ? [new Paragraph({ keepNext: true, children: [new TextRun({ text: project.tech, color: MUTED, font: ctx.font, size: ctx.half })] })]
+          : []),
         ...bullets(project.bullets, ctx),
       ]);
     case "education":
@@ -146,7 +152,16 @@ function core(resume: Resume, key: string, ctx: Ctx): Paragraph[] {
         ];
       });
     case "skills":
-      return [plain(toList(resume.skills).join(", "), ctx)];
+      // One paragraph per group, its label in bold; a plain list is a single paragraph
+      return skillGroups(resume.skills).map(
+        (group) =>
+          new Paragraph({
+            children: [
+              ...(group.label ? [new TextRun({ text: `${group.label}: `, bold: true, font: ctx.font, size: ctx.half })] : []),
+              new TextRun({ text: group.items.join(", "), font: ctx.font, size: ctx.half }),
+            ],
+          }),
+      );
     default:
       return [];
   }

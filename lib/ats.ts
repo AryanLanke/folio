@@ -9,8 +9,9 @@ import {
   hasExperience,
   hasExtraItem,
   hasProject,
+  skillGroups,
+  skillList,
   toLines,
-  toList,
   visibleSections,
 } from "@/lib/resume";
 import { checkDate, checkEmail, checkPhone, parseDate } from "@/lib/validate";
@@ -73,7 +74,10 @@ export function resumeToPlainText(resume: Resume): string {
         break;
       case "projects":
         for (const project of resume.projects.filter(hasProject)) {
-          lines.push(joinParts([project.name, ...resumeLinks(project.link, resume.style.links).map((link) => link.text)]));
+          lines.push(
+            joinParts([project.name, ...resumeLinks(project.link, resume.style.links).map((link) => link.text), project.date]),
+          );
+          if (project.tech.trim()) lines.push(project.tech.trim());
           lines.push(...bullets(project.bullets));
         }
         break;
@@ -84,7 +88,9 @@ export function resumeToPlainText(resume: Resume): string {
         }
         break;
       case "skills":
-        lines.push(toList(resume.skills).join(", "));
+        for (const group of skillGroups(resume.skills)) {
+          lines.push((group.label ? `${group.label}: ` : "") + group.items.join(", "));
+        }
         break;
     }
   }
@@ -241,7 +247,7 @@ function readChecks(resume: Resume): Draft[] {
   const mixed = mixedJobDates.length > 0 ? mixedJobDates : mixedSchoolDates;
   const bulletCount = allBullets(resume).length;
   const broken = bulletFields(resume).flatMap(brokenBulletLines);
-  const skillCount = toList(resume.skills).length;
+  const skillCount = skillList(resume.skills).length;
   const untitled = resume.extras.filter((e) => e.items.some(hasExtraItem) && !e.title.trim());
   const emailProblem = basics.email.trim() ? checkEmail(basics.email) : null;
   const phoneProblem = basics.phone.trim() ? checkPhone(basics.phone) : null;

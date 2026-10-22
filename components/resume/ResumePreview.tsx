@@ -10,8 +10,10 @@ import {
   hasExperience,
   hasExtraItem,
   hasProject,
+  skillGroups,
+  skillList,
+  skillsText,
   toLines,
-  toList,
   visibleSections,
 } from "@/lib/resume";
 import { type LinkMode, resumeLinks } from "@/lib/links";
@@ -225,19 +227,30 @@ function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: 
       ));
     }
     case "projects": {
-      const save = (id: string, key: "name" | "bullets") =>
+      const save = (id: string, key: "name" | "tech" | "date" | "bullets") =>
         set && ((next: string) => set({ projects: patch(resume.projects, id, { [key]: next }) }));
+      // Name and links, with the date on the right; what it's built with on the line below
       return resume.projects.filter(hasProject).map((item) => (
         <div key={item.id} className="break-inside-avoid">
-          <p>
-            {item.name && text({ value: item.name, label: "Project name", onCommit: save(item.id, "name") }, "font-bold text-neutral-950")}
-            {item.link && (
-              <>
-                {" — "}
-                <WebLinks field={item.link} mode={resume.style.links} />
-              </>
+          <div className="flex items-baseline justify-between gap-4">
+            <p>
+              {item.name && text({ value: item.name, label: "Project name", onCommit: save(item.id, "name") }, "font-bold text-neutral-950")}
+              {item.link && (
+                <>
+                  {" — "}
+                  <WebLinks field={item.link} mode={resume.style.links} />
+                </>
+              )}
+            </p>
+            {item.date && (
+              <span className="shrink-0 text-neutral-600">
+                {text({ value: item.date, label: "Project date", onCommit: save(item.id, "date") })}
+              </span>
             )}
-          </p>
+          </div>
+          {item.tech && (
+            <Editable as="p" className="text-neutral-600" value={item.tech} label="Built with" onCommit={save(item.id, "tech")} />
+          )}
           <Bullets value={item.bullets} onCommit={save(item.id, "bullets")} />
         </div>
       ));
@@ -276,15 +289,40 @@ function CoreContent({ resume, sectionKey, set }: { resume: Resume; sectionKey: 
         );
       });
     }
-    case "skills":
+    case "skills": {
+      const groups = skillGroups(resume.skills);
+      if (!groups.some((group) => group.label)) {
+        return (
+          <Editable
+            as="p"
+            value={skillList(resume.skills).join(", ")}
+            label="Skills, separated by commas"
+            onCommit={set && ((skills) => set({ skills }))}
+          />
+        );
+      }
+      // Grouped: one line per group, its label in bold. Emptying a group's skills removes it.
+      const saveGroup = (index: number) =>
+        set &&
+        ((next: string) =>
+          set({
+            skills: skillsText(
+              groups
+                .map((group, i) => (i === index ? { ...group, items: skillList(next) } : group))
+                .filter((group) => group.items.length > 0),
+            ),
+          }));
       return (
-        <Editable
-          as="p"
-          value={toList(resume.skills).join(", ")}
-          label="Skills, separated by commas"
-          onCommit={set && ((skills) => set({ skills }))}
-        />
+        <div className="flex flex-col gap-0.5">
+          {groups.map((group, i) => (
+            <p key={i}>
+              {group.label && <span className="font-bold text-neutral-950">{group.label}: </span>}
+              {text({ value: group.items.join(", "), label: group.label ? `${group.label} skills` : "Skills", onCommit: saveGroup(i) })}
+            </p>
+          ))}
+        </div>
       );
+    }
     default:
       return null;
   }

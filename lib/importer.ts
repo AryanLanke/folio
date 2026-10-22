@@ -3,12 +3,16 @@
 
 import { plainCharacters } from "@/lib/enhance";
 import { continuesLine } from "@/lib/ats";
-import { linkKey, repoName, splitLinks } from "@/lib/links";
+import { linkKey, repoName, splitLinks, withoutTracking } from "@/lib/links";
 import {
   CORE_SECTIONS,
+  EXTRA_KINDS,
+  type Education,
+  type Experience,
   type ExtraKind,
   type ExtraSection,
   PRESENT,
+  type Project,
   type Resume,
   createEmptyResume,
   newEducation,
@@ -16,11 +20,27 @@ import {
   newExtraItem,
   newId,
   newProject,
+  skillsText,
 } from "@/lib/resume";
 
 export const MAX_IMPORT_LENGTH = 15000;
 // Largest file the import accepts; Vercel turns away request bodies over 4.5 MB before they arrive
 export const MAX_IMPORT_FILE_BYTES = 4 * 1024 * 1024;
+
+// The JSON the model fills in, shared with "Build with AI" so one parser reads both
+export const RESUME_SHAPE = JSON.stringify({
+  basics: { name: "", title: "", email: "", phone: "", location: "", link: "" },
+  summary: "",
+  experience: [{ role: "", company: "", location: "", start: "", end: "", bullets: [""] }],
+  education: [{ school: "", degree: "", location: "", start: "", end: "", details: "" }],
+  projects: [{ name: "", link: "", tech: "", date: "", bullets: [""] }],
+  skills: [{ group: "", items: [""] }],
+  certifications: [{ name: "", issuer: "", date: "" }],
+  awards: [{ name: "", issuer: "", date: "" }],
+  volunteering: [{ role: "", organization: "", dates: "", bullets: [""] }],
+  languages: [{ language: "", level: "" }],
+  other: [{ title: "", items: [{ name: "", detail: "", date: "", bullets: [""] }] }],
+});
 
 export function buildImportMessages(text: string) {
   const system = [
@@ -29,27 +49,19 @@ export function buildImportMessages(text: string) {
     "Rules:",
     "- Copy the person's wording exactly. Do not rewrite, improve, summarize or translate anything.",
     "- Never invent information. Use an empty string or empty list for anything not in the text.",
+    "- Include every entry of every section; never skip one. That includes school-level education (Class X, Class XII, HSC, SSC, high school) even when no school name is given.",
     `- For a current job, set "end" to "${PRESENT}".`,
     "- Put each bullet point or achievement as its own item in \"bullets\", without bullet symbols. If one bullet's sentence carries on to the next line of the text, it's still one bullet: join it.",
-    "- Split skills into individual items.",
+    '- Split skills into individual items. If the resume groups its skills under labels (like "Languages:" or "Tools-"), keep each group with its label in "group"; otherwise use one group with an empty "group".',
+    '- For each project, put the line of tools or technologies it was built with in "tech", and its date or date range in "date".',
+    '- Every section of the resume must end up somewhere. A section that fits none of the others (for example achievements, open source, publications, extracurricular activities) goes in "other", with its heading as "title". An entry with a name goes in "name" (details in "detail" and "bullets"); a single line with no name of its own goes in "name" by itself. Jobs, internships, projects, education, skills and certifications always go in their own lists, never in "other".',
     '- Put only the person\'s own profile links in basics "link", separated by commas: LinkedIn, their GitHub profile (github.com/username), portfolio, LeetCode and similar.',
     '- A link to one repository, demo or project (like github.com/username/project-name) goes in that project\'s "link", never in basics. Separate several with commas.',
     "- List each link only once.",
     "- Ignore page numbers, headers and footers.",
     "",
     "Respond with JSON only, in exactly this shape:",
-    JSON.stringify({
-      basics: { name: "", title: "", email: "", phone: "", location: "", link: "" },
-      summary: "",
-      experience: [{ role: "", company: "", location: "", start: "", end: "", bullets: [""] }],
-      education: [{ school: "", degree: "", location: "", start: "", end: "", details: "" }],
-      projects: [{ name: "", link: "", bullets: [""] }],
-      skills: [""],
-      certifications: [{ name: "", issuer: "", date: "" }],
-      awards: [{ name: "", issuer: "", date: "" }],
-      volunteering: [{ role: "", organization: "", dates: "", bullets: [""] }],
-      languages: [{ language: "", level: "" }],
-    }),
+    RESUME_SHAPE,
   ].join("\n");
 
   return [
@@ -60,6 +72,17 @@ export function buildImportMessages(text: string) {
 
 // Every value goes through plainCharacters: models write look-alike hyphens and spaces
 const str = (value: unknown) => (typeof value === "string" ? plainCharacters(value).trim() : "");
+
+// "Apr'25" and "July’24" are common but ATS software can't read them: write the year out
+// ("Apr 2025"). Years more than ten ahead of now are taken as the 1900s ("Jun'98" → "Jun 1998").
+export function fullYears(text: string) {
+  const soon = (new Date().getFullYear() % 100) + 10;
+  return text.replace(/\b([A-Za-z]{3,9})\.?\s*['’‘`]\s*(\d{2})\b/g, (_, month: string, year: string) =>
+    `${month} ${Number(year) > soon ? "19" : "20"}${year}`,
+  );
+}
+
+const date = (value: unknown) => fullYears(str(value));
 
 const list = (value: unknown): Record<string, unknown>[] =>
   Array.isArray(value) ? value.filter((v): v is Record<string, unknown> => Boolean(v) && typeof v === "object") : [];
@@ -96,11 +119,79 @@ function extraSection(kind: ExtraKind, title: string, items: Record<string, unkn
       ...newExtraItem(),
       title: str(item[titleKey]),
       subtitle: str(item[subtitleKey]),
-      date: dateKey ? str(item[dateKey]) : "",
+      date: dateKey ? date(item[dateKey]) : "",
       bullets: bulletsKey ? lines(item[bulletsKey]) : "",
     }))
-    .filter((item) => item.title || item.subtitle);
+    .filter((item) => item.title || item.subtitle || item.bullets);
   return parsed.length > 0 ? ({ id: newId(), kind, title, items: parsed } satisfies ExtraSection) : null;
+}
+
+// "OPEN SOURCE & ACHIEVEMENTS" reads better as "Open Source & Achievements"; templates that use
+// capital headings still show it in capitals
+const titleCase = (text: string) =>
+  text === text.toUpperCase() ? text.toLowerCase().replace(/\b\p{L}/gu, (c) => c.toUpperCase()) : text;
+
+// "May 2024 – July 2024" as a start and an end
+function dateRange(value: unknown) {
+  const [start = "", end = ""] = date(value).split(/\s+(?:–|-|to)\s+/i);
+  return { start, end: /^(present|current|now)$/i.test(end) ? PRESENT : end };
+}
+
+// Where an "other" section really belongs, going by its heading. The model sometimes files a
+// job under "other" with the heading "Work Experience"; this puts it back with the jobs.
+const BELONGS: [RegExp, "experience" | "projects" | "education" | ExtraKind][] = [
+  [/experience|employment|work|internship|career/i, "experience"],
+  [/project/i, "projects"],
+  [/education|academic|qualification/i, "education"],
+  [/certif/i, "certifications"],
+  [/award|honou?r/i, "awards"],
+  [/volunteer/i, "volunteering"],
+];
+
+// Sections that fit nowhere else ("Open Source & Achievements") become custom sections that
+// keep their own heading, so nothing on the resume is lost. Ones that do fit somewhere are
+// moved there instead.
+function otherSections(value: unknown) {
+  const moved = { experience: [] as Experience[], projects: [] as Project[], education: [] as Education[] };
+  const extras: ExtraSection[] = [];
+  for (const section of list(value)) {
+    const title = titleCase(str(section.title));
+    const items = list(section.items);
+    const home = BELONGS.find(([pattern]) => pattern.test(title))?.[1];
+    if (home === "experience") {
+      moved.experience.push(
+        ...items.map((item) => ({ ...newExperience(), role: str(item.name), company: str(item.detail), ...dateRange(item.date), bullets: lines(item.bullets) })),
+      );
+    } else if (home === "projects") {
+      moved.projects.push(...items.map((item) => ({ ...newProject(), name: str(item.name), date: date(item.date), bullets: lines(item.bullets) })));
+    } else if (home === "education") {
+      moved.education.push(
+        ...items.map((item) => ({ ...newEducation(), degree: str(item.name), school: str(item.detail), ...dateRange(item.date) })),
+      );
+    } else {
+      const kind = home ?? "custom";
+      const section = extraSection(kind, kind === "custom" ? title || EXTRA_KINDS.custom.title : EXTRA_KINDS[kind].title, items, [
+        "name",
+        "detail",
+        "date",
+        "bullets",
+      ]);
+      if (section) extras.push(section);
+    }
+  }
+  return { moved, extras };
+}
+
+// Skills as groups ([{group, items}]) or a plain list of strings, written as Folio's skills text
+function parseSkills(value: unknown) {
+  if (typeof value === "string") return value;
+  if (!Array.isArray(value)) return "";
+  const plain = value.filter((s): s is string => typeof s === "string").map(str).filter(Boolean);
+  const groups = list(value).map((group) => ({
+    label: str(group.group).replace(/[:\-–\s]+$/, ""),
+    items: (Array.isArray(group.items) ? group.items : []).map(str).filter(Boolean),
+  }));
+  return skillsText([...(plain.length > 0 ? [{ label: "", items: plain }] : []), ...groups].filter((g) => g.items.length > 0));
 }
 
 // Words too common in project and repository names to show they're the same project
@@ -126,9 +217,10 @@ function fit(repo: string, project: string) {
   return contains + words;
 }
 
+// Each link once, without share-tracking tails ("?utm_source=share_via...")
 const uniqueLinks = (links: string[]) => {
   const seen = new Set<string>();
-  return links.filter((link) => {
+  return links.map(withoutTracking).filter((link) => {
     const key = linkKey(link);
     if (!key || seen.has(key)) return false;
     seen.add(key);
@@ -175,6 +267,18 @@ export function sortLinks(resume: Resume): Resume {
   };
 }
 
+// Two "Certifications" sections (one from the list, one filed under "other") become one.
+// Custom sections stay separate: each has its own heading.
+function mergeSameKind(sections: ExtraSection[]) {
+  const merged: ExtraSection[] = [];
+  for (const section of sections) {
+    const same = section.kind === "custom" ? undefined : merged.find((s) => s.kind === section.kind);
+    if (same) same.items.push(...section.items);
+    else merged.push(section);
+  }
+  return merged;
+}
+
 // Turns the model's JSON into a Folio resume, or null if nothing useful came back
 export function parseImport(raw: unknown): Resume | null {
   if (typeof raw !== "string") return null;
@@ -200,6 +304,7 @@ export function parseImport(raw: unknown): Resume | null {
     link: str(basics.link),
   };
   resume.summary = str(data.summary);
+  const other = otherSections(data.other);
 
   resume.experience = list(data.experience)
     .map((job) => ({
@@ -207,10 +312,11 @@ export function parseImport(raw: unknown): Resume | null {
       role: str(job.role),
       company: str(job.company),
       location: str(job.location),
-      start: str(job.start),
-      end: /^(present|current|now|till date|to date)$/i.test(str(job.end)) ? PRESENT : str(job.end),
+      start: date(job.start),
+      end: /^(present|current|now|till date|to date)$/i.test(str(job.end)) ? PRESENT : date(job.end),
       bullets: lines(job.bullets),
     }))
+    .concat(other.moved.experience)
     .filter((job) => job.role || job.company || job.bullets)
     // "2019 – 2019" reads better as "2019"
     .map((job) => (job.end && job.end === job.start ? { ...job, end: "" } : job));
@@ -221,29 +327,36 @@ export function parseImport(raw: unknown): Resume | null {
       school: str(school.school),
       degree: str(school.degree),
       location: str(school.location),
-      start: str(school.start),
-      end: str(school.end),
+      start: date(school.start),
+      end: date(school.end),
       details: str(school.details),
     }))
+    .concat(other.moved.education)
     .filter((school) => school.school || school.degree);
 
   resume.projects = list(data.projects)
-    .map((project) => ({ ...newProject(), name: str(project.name), link: str(project.link), bullets: lines(project.bullets) }))
+    .map((project) => ({
+      ...newProject(),
+      name: str(project.name),
+      link: str(project.link),
+      tech: str(project.tech),
+      date: date(project.date),
+      bullets: lines(project.bullets),
+    }))
+    .concat(other.moved.projects)
     .filter((project) => project.name || project.bullets);
 
-  const skills = Array.isArray(data.skills) ? data.skills : typeof data.skills === "string" ? data.skills.split(",") : [];
-  resume.skills = skills
-    .filter((s): s is string => typeof s === "string")
-    .map((s) => str(s))
-    .filter(Boolean)
-    .join(", ");
+  resume.skills = parseSkills(data.skills);
 
-  resume.extras = [
-    extraSection("certifications", "Certifications", list(data.certifications), ["name", "issuer", "date"]),
-    extraSection("awards", "Awards", list(data.awards), ["name", "issuer", "date"]),
-    extraSection("volunteering", "Volunteering", list(data.volunteering), ["role", "organization", "dates", "bullets"]),
-    extraSection("languages", "Languages", list(data.languages), ["language", "level", ""]),
-  ].filter((section): section is ExtraSection => section !== null);
+  resume.extras = mergeSameKind(
+    [
+      extraSection("certifications", "Certifications", list(data.certifications), ["name", "issuer", "date"]),
+      extraSection("awards", "Awards", list(data.awards), ["name", "issuer", "date"]),
+      extraSection("volunteering", "Volunteering", list(data.volunteering), ["role", "organization", "dates", "bullets"]),
+      extraSection("languages", "Languages", list(data.languages), ["language", "level", ""]),
+      ...other.extras,
+    ].filter((section): section is ExtraSection => section !== null),
+  );
   resume.order = [...CORE_SECTIONS, ...resume.extras.map((section) => section.id)];
 
   // Keep at least one empty job and school so the editor has fields to fill in

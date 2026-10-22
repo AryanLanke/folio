@@ -41,6 +41,19 @@ describe("resume PDF", () => {
     expect(lines[degree + 1]).toBe("University of Texas at Austin — Austin, TX");
   });
 
+  it("shows a project's date and what it's built with, and skill groups on their own lines", async () => {
+    const resume = createSampleResume();
+    resume.skills = "Languages: C++, Python\nTools: Git, Docker";
+    const buffer = await renderToBuffer(ResumeDocument({ resume, paper: "letter" }));
+    const { text } = await extractText(new Uint8Array(buffer), { mergePages: true });
+    const lines = text.split("\n").map((line) => line.trim());
+    const project = lines.findIndex((line) => line.startsWith("Budget Buddy"));
+    expect(lines[project]).toContain("2024");
+    expect(lines[project + 1]).toBe("Next.js, PostgreSQL");
+    expect(lines).toContain("Languages: C++, Python");
+    expect(lines).toContain("Tools: Git, Docker");
+  });
+
   it("spills onto a second page when there is too much content", async () => {
     const resume = createSampleResume();
     resume.experience[0].bullets = Array.from({ length: 60 }, (_, i) => `Delivered project number ${i + 1}`).join("\n");

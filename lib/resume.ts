@@ -35,6 +35,10 @@ export type Project = {
   id: string;
   name: string;
   link: string;
+  // The tools or technologies it's built with, shown under the name ("React, Node.js, MongoDB")
+  tech: string;
+  // When it was done: "2025" or "Feb 2024 – May 2024"
+  date: string;
   bullets: string;
 };
 
@@ -145,7 +149,7 @@ export function newEducation(): Education {
 }
 
 export function newProject(): Project {
-  return { id: newId(), name: "", link: "", bullets: "" };
+  return { id: newId(), name: "", link: "", tech: "", date: "", bullets: "" };
 }
 
 export function newExtraItem(): ExtraItem {
@@ -231,6 +235,8 @@ export function createSampleResume(): Resume {
         id: newId(),
         name: "Budget Buddy",
         link: "github.com/jordanpatel/budget-buddy",
+        tech: "Next.js, PostgreSQL",
+        date: "2024",
         bullets: "Personal finance tracker built with Next.js and PostgreSQL, used by 300+ people",
       },
     ],
@@ -357,7 +363,7 @@ export function visibleSections(resume: Resume): { key: string; title: string; e
     experience: resume.experience.some(hasExperience),
     projects: resume.projects.some(hasProject),
     education: resume.education.some(hasEducation),
-    skills: toList(resume.skills).length > 0,
+    skills: skillList(resume.skills).length > 0,
   };
 
   return resume.order.flatMap((key) => {
@@ -393,4 +399,37 @@ export function toList(text: string) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+// Skills can be one list ("Python, SQL, Excel") or grouped, one group per line
+// ("Languages: Python, SQL" then "Tools: Git, Docker"). A line without a label is its own group.
+export type SkillGroup = { label: string; items: string[] };
+
+const splitSkills = (text: string) =>
+  text
+    .split(/[,|]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+export function skillGroups(text: string): SkillGroup[] {
+  return toLines(text)
+    .map((line) => {
+      // "Languages: Python, SQL", and also "Skills- Python | SQL" from some templates. A dash only
+      // counts when a space follows it, so "CI-CD, Docker" stays a plain list.
+      const labelled = line.match(/^([^,:|]{1,40}?)\s*(?::|-\s)\s*(.*)$/);
+      return labelled
+        ? { label: labelled[1].trim(), items: splitSkills(labelled[2]) }
+        : { label: "", items: splitSkills(line) };
+    })
+    .filter((group) => group.items.length > 0);
+}
+
+// How grouped skills are written back into the skills field, one group per line
+export function skillsText(groups: SkillGroup[]) {
+  return groups.map((group) => (group.label ? `${group.label}: ` : "") + group.items.join(", ")).join("\n");
+}
+
+// Every skill, whether or not they're grouped. "|" separates skills as well as commas.
+export function skillList(text: string) {
+  return skillGroups(text).flatMap((group) => group.items);
 }

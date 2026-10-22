@@ -54,12 +54,20 @@ describe("chatJson when the AI is busy", () => {
     expect(models).toEqual([DEFAULT_GROQ_MODEL, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL]);
   });
 
-  it("gives up as busy after three tries", async () => {
-    const models = fakeProvider([busy(), busy(), busy()]);
-    const reply = chatJson([]);
+  it("waits on the main model twice more, then gives up as busy", async () => {
+    const models = fakeProvider([busy(), busy(), busy(), busy()]);
+    const reply = chatJson([], { timeoutMs: 45_000 });
     await vi.runAllTimersAsync();
     expect(await reply).toEqual({ error: "busy" });
-    expect(models).toHaveLength(3);
+    expect(models).toEqual([DEFAULT_GROQ_MODEL, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL, DEFAULT_GROQ_MODEL]);
+  });
+
+  it("never uses the smaller model when asked not to, and waits for the main one instead", async () => {
+    const models = fakeProvider([busy(2), answer('{"ok":true}')]);
+    const reply = chatJson([], { timeoutMs: 45_000, fallback: false });
+    await vi.runAllTimersAsync();
+    expect(await reply).toEqual({ content: '{"ok":true}' });
+    expect(models).toEqual([DEFAULT_GROQ_MODEL, DEFAULT_GROQ_MODEL]);
   });
 
   it("doesn't wait past the time limit", async () => {
