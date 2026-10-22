@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
-import { FEEDBACK_EMAIL } from "@/lib/site";
+import { ANALYTICS_ON, FEEDBACK_EMAIL } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Privacy · Folio",
@@ -32,12 +32,17 @@ const sections = [
       "An uploaded PDF or Word file is read in memory to get its text, then discarded.",
     ],
   },
-  {
-    title: "Visitor statistics",
-    body: [
-      "Folio uses Vercel Web Analytics to count page visits. It doesn't use cookies, doesn't track you across sites, and never sees what you type in the editor.",
-    ],
-  },
+  // Only described when it's actually switched on
+  ...(ANALYTICS_ON
+    ? [
+        {
+          title: "Visitor statistics",
+          body: [
+            "Folio uses Vercel Web Analytics to count page visits. It doesn't use cookies, doesn't track you across sites, and never sees what you type in the editor.",
+          ],
+        },
+      ]
+    : []),
   {
     title: "Questions",
     body: [`Email ${FEEDBACK_EMAIL} with any question about privacy, or to report a bug or suggest an idea.`],

@@ -11,6 +11,13 @@ test("the home page works on a phone and has a feedback link", async ({ page }) 
   );
 });
 
+test("security headers are sent, and still allow the microphone for voice typing", async ({ request }) => {
+  const headers = (await request.get("/builder")).headers();
+  expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(headers["x-content-type-options"]).toBe("nosniff");
+  expect(headers["permissions-policy"]).toContain("microphone=(self)");
+});
+
 test("the privacy page explains backups and how to get in touch", async ({ page }) => {
   await page.goto("/privacy");
   await expect(page.getByText("Save backup file")).toBeVisible();
