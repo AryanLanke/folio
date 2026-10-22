@@ -15,6 +15,8 @@ const MESSAGES: Record<string, string> = {
   old_word: "That's an old Word file (.doc). Open it in Word and save it as .docx or PDF, or paste the text instead.",
   unreadable: "Couldn't read any text from that file. If it's a scanned image, paste the text instead.",
   bad_request: "There isn't enough text to work with yet.",
+  // Vercel's firewall answers 429 itself when one visitor sends a lot of AI requests quickly
+  too_fast: "That's a lot of AI requests in a few minutes. Wait a little and try again.",
 };
 
 const listeners = new Set<() => void>();
@@ -45,7 +47,9 @@ export async function callAi<T>(
     });
     const data = await response.json().catch(() => null);
     if (!response.ok || !data) {
-      return { ok: false, message: MESSAGES[data?.error] ?? "Something went wrong. Try again." };
+      // A 429 that isn't Folio's own daily limit comes from the firewall's rate limit
+      const code = response.status === 429 && !data?.error ? "too_fast" : data?.error;
+      return { ok: false, message: MESSAGES[code] ?? "Something went wrong. Try again." };
     }
     if (count) {
       recordAiUse();
