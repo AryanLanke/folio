@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TextArea } from "@/components/builder/fields";
+import Sparkle from "@/components/ui/Sparkle";
 import { callAi, useAiUsesLeft } from "@/lib/client/ai";
 import { coverLetterRequest } from "@/lib/coverletter";
 import { type Resume, hasExperience } from "@/lib/resume";
@@ -67,9 +68,10 @@ export default function CoverLetterEditor({
             type="button"
             onClick={write}
             disabled={busy || !enoughResume}
-            className="rounded-full bg-accent px-5 py-2 text-sm font-bold text-black transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2 text-sm font-bold text-black transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-40"
           >
-            {busy ? "Writing…" : resume.coverLetter.trim() ? "✨ Write a new draft" : "✨ Write with AI"}
+            {!busy && <Sparkle />}
+            {busy ? "Writing…" : resume.coverLetter.trim() ? "Write a new draft" : "Write with AI"}
           </button>
         </div>
         {!enoughResume && (

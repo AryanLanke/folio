@@ -29,6 +29,147 @@ body {
   color: var(--foreground);
 }
 
+/* Optimize: while it works, the page goes soft and a band of light with a fine shimmer sweeps
+   down it, the way a photo app shows it retouching a picture. Then one last sweep uncovers the
+   result. The reveal takes 0.9s (REVEAL_MS in components/resume/Optimizer.tsx). */
+.optimize-effect {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.optimize-effect[data-phase="reveal"] {
+  pointer-events: none;
+}
+
+/* The page itself goes soft (a backdrop blur would mirror text at the edges of the view) */
+.optimize-target {
+  transition: filter 0.5s ease-out;
+}
+
+.optimize-target[data-working] {
+  filter: blur(1.2px) saturate(0.4);
+}
+
+.optimize-veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(255 255 255 / 0.45);
+  animation: optimize-fade-in 0.35s ease-out;
+}
+
+.optimize-band {
+  position: absolute;
+  inset-inline: 0;
+  top: -32%;
+  height: 32%;
+  background: linear-gradient(
+    to bottom,
+    rgb(29 185 84 / 0),
+    rgb(29 185 84 / 0.14) 38%,
+    rgb(120 240 170 / 0.34) 50%,
+    rgb(29 185 84 / 0.14) 62%,
+    rgb(29 185 84 / 0)
+  );
+  animation: optimize-sweep 1.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* The shimmer: two fine grids of green specks that flicker as they drift */
+.optimize-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, rgb(29 185 84 / 0.95) 0 1px, transparent 1.6px) 0 0 / 13px 13px,
+    radial-gradient(circle, rgb(10 110 55 / 0.75) 0 0.8px, transparent 1.4px) 6px 4px / 19px 19px;
+  mask-image: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  animation: optimize-glitter 0.8s steps(4) infinite;
+}
+
+.optimize-effect[data-phase="reveal"] .optimize-veil {
+  animation: optimize-uncover 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.optimize-effect[data-phase="reveal"] .optimize-band {
+  animation: optimize-sweep-once 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes optimize-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes optimize-sweep {
+  from {
+    top: -32%;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+/* The band's middle rides the edge of the uncovered part */
+@keyframes optimize-sweep-once {
+  from {
+    top: -16%;
+  }
+  to {
+    top: 84%;
+  }
+}
+
+@keyframes optimize-glitter {
+  0% {
+    opacity: 0.5;
+    background-position: 0 0, 6px 4px;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+    background-position: 13px 6px, -13px 15px;
+  }
+}
+
+@keyframes optimize-uncover {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+/* No sweeping for people who turn animations off: the page just dims, then clears */
+@media (prefers-reduced-motion: reduce) {
+  .optimize-band {
+    display: none;
+  }
+  .optimize-target {
+    transition: none;
+  }
+  .optimize-veil {
+    animation: optimize-breathe 1.6s ease-in-out infinite alternate;
+  }
+  .optimize-effect[data-phase="reveal"] .optimize-veil {
+    animation: optimize-fade-out 0.4s forwards;
+  }
+}
+
+@keyframes optimize-breathe {
+  from {
+    opacity: 0.5;
+  }
+}
+
+@keyframes optimize-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
 /* The downloaded PDF is a white page, even with "Background graphics" turned on */
 @media print {
   body {

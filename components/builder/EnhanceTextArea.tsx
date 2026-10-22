@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TextArea } from "@/components/builder/fields";
+import Sparkle from "@/components/ui/Sparkle";
 import { callAi, useAiUsesLeft } from "@/lib/client/ai";
 import { ENHANCE_STYLES, type EnhanceKind, type EnhanceResult, type EnhanceStyle } from "@/lib/enhance";
 
@@ -86,9 +87,10 @@ export default function EnhanceTextArea({
           onClick={enhance}
           disabled={empty || state.status === "loading"}
           title="Sends only this text to our AI provider to suggest better wording"
-          className="rounded-full border border-border px-3 py-1 text-xs font-bold text-foreground transition-colors hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold text-foreground transition-colors hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-40"
         >
-          {state.status === "loading" ? "Enhancing…" : tailored ? "✨ Enhance for this job" : "✨ Enhance with AI"}
+          {state.status !== "loading" && <Sparkle className="text-accent" />}
+          {state.status === "loading" ? "Enhancing…" : tailored ? "Enhance for this job" : "Enhance with AI"}
         </button>
       </div>
 
