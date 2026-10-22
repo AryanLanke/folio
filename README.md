@@ -25,7 +25,7 @@ Most resume builders let you spend half an hour writing, then charge before you 
 **Write**
 - Live preview on a real page (Letter or A4), with a marker where page two starts
 - Edit right on the page, like in Word: click any text to change it, make it bold, italic or underlined, press Enter to split a bullet or start a new one, Backspace to join it back, and Alt+Up or Alt+Down to move it. Arrows beside each heading move whole sections
-- Five ATS-safe templates: Classic, Modern, Executive, Compact and Serif, in your own heading colour
+- Nine ATS-safe templates: Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant, in your own heading colour. The picker previews your own resume in each one
 - Rename any section by clicking its heading ("Profile" instead of "Summary"); the ATS check warns if a name might confuse screening software
 - Text size and spacing controls to fit everything on one page
 - Any section order, plus certifications, awards, volunteering, languages or custom sections

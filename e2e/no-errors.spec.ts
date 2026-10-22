@@ -23,8 +23,9 @@ test("every page and tab opens without a single error", async ({ page }) => {
   for (const tab of ["Score", "ATS check", "Job match", "Page"]) {
     await page.getByRole("radio", { name: tab, exact: true }).click();
   }
-  // Every template, so each one renders
-  for (const template of ["Modern", "Executive", "Compact", "Serif", "Classic"]) {
+  // Every template, picked from the template previews, so each one renders
+  for (const template of ["Modern", "Executive", "Compact", "Serif", "Academic", "Minimal", "Bold", "Elegant", "Classic"]) {
+    await page.locator("summary", { hasText: "change template" }).click();
     await page.getByRole("radio", { name: template, exact: true }).click();
   }
   await page.getByRole("radio", { name: "Cover letter", exact: true }).click();

@@ -12,6 +12,7 @@ export default function Menu({
   panelClass = "w-60",
   align = "right",
   className = "",
+  onToggle,
   children,
 }: {
   label: React.ReactNode;
@@ -19,6 +20,8 @@ export default function Menu({
   panelClass?: string;
   align?: "left" | "right";
   className?: string;
+  // Told when the menu opens or closes, for menus whose contents are costly to draw
+  onToggle?: (open: boolean) => void;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDetailsElement>(null);
@@ -44,7 +47,7 @@ export default function Menu({
   }, []);
 
   return (
-    <details ref={ref} className={`relative ${className}`}>
+    <details ref={ref} className={`relative ${className}`} onToggle={(e) => onToggle?.(e.currentTarget.open)}>
       <summary className={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${buttonClass}`}>{label}</summary>
       <div
         className={`absolute z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-surface p-1.5 shadow-2xl ${

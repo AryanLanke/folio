@@ -16,7 +16,7 @@ import {
   visibleSections,
 } from "@/lib/resume";
 import { parseRich, plainText } from "@/lib/rich";
-import { type TemplateSpec, layoutFor } from "@/lib/templates";
+import { type TemplateSpec, layoutFor, upperRich } from "@/lib/templates";
 
 // A real text PDF, drawn from the same template description as the on-screen preview.
 // Standard PDF fonts keep the text selectable and readable by ATS software.
@@ -51,6 +51,13 @@ function layout(resume: Resume): Layout {
   return { ...base, size: base.fontSize * PX, family: base.spec.serif ? "Times-Roman" : "Helvetica" };
 }
 
+// The name as the template shows it: in capitals for some templates (the PDF fonts have no
+// capitals style, so the letters themselves change)
+const nameText = (name: string, spec: TemplateSpec) => {
+  const text = name || "Your Name";
+  return spec.name.uppercase ? upperRich(text) : text;
+};
+
 function Heading({ title, spec, size }: { title: string; spec: TemplateSpec; size: number }) {
   const { heading } = spec;
   // PDF fonts have no small caps, so those headings become slightly smaller capitals
@@ -69,6 +76,7 @@ function Heading({ title, spec, size }: { title: string; spec: TemplateSpec; siz
         style={{
           fontSize: size * scale,
           fontWeight: "bold",
+          fontFamily: spec.displaySerif ? "Times-Roman" : undefined,
           color: heading.color,
           letterSpacing: size * scale * heading.letterSpacing,
         }}
@@ -277,11 +285,12 @@ function Header({ resume, l }: { resume: Resume; l: Layout }) {
           fontSize: size * spec.name.scale,
           fontWeight: spec.name.bold ? "bold" : "normal",
           letterSpacing: size * spec.name.scale * spec.name.letterSpacing,
+          fontFamily: spec.displaySerif ? "Times-Roman" : undefined,
           color: "#0a0a0a",
           lineHeight: 1.2,
         }}
       >
-        <Rich text={basics.name || "Your Name"} />
+        <Rich text={nameText(basics.name, spec)} />
       </Text>
       {basics.title ? (
         <Text
@@ -336,8 +345,16 @@ export function CoverLetterDocument({ resume, paper }: { resume: Resume; paper: 
         style={{ padding: MARGIN * 1.25, fontFamily: l.family, fontSize: l.size + 0.5, lineHeight: 1.55, color: "#262626" }}
       >
         <View style={{ textAlign: l.spec.align, borderBottomWidth: rule.width * PX, borderBottomColor: rule.color, paddingBottom: 9 }}>
-          <Text style={{ fontSize: l.size * 1.9, fontWeight: l.spec.name.bold ? "bold" : "normal", color: "#0a0a0a", lineHeight: 1.2 }}>
-            {pdfSafe(plainText(basics.name) || "Your Name")}
+          <Text
+            style={{
+              fontSize: l.size * 1.9,
+              fontWeight: l.spec.name.bold ? "bold" : "normal",
+              fontFamily: l.spec.displaySerif ? "Times-Roman" : undefined,
+              color: "#0a0a0a",
+              lineHeight: 1.2,
+            }}
+          >
+            {pdfSafe(plainText(nameText(basics.name, l.spec)))}
           </Text>
           <ContactLine resume={resume} style={{ marginTop: 3 }} />
         </View>

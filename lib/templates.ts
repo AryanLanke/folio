@@ -6,8 +6,10 @@ import type { ResumeStyle, TemplateName } from "@/lib/resume";
 
 export type TemplateSpec = {
   serif: boolean;
+  // The name and headings in a serif face, while the rest follows `serif` (a classic-modern mix)
+  displaySerif: boolean;
   align: "center" | "left";
-  name: { scale: number; bold: boolean; letterSpacing: number };
+  name: { scale: number; bold: boolean; letterSpacing: number; uppercase: boolean };
   title: { color: string; bold: boolean; italic: boolean };
   heading: {
     scale: number;
@@ -31,8 +33,9 @@ const NAVY = "#1e3a5f";
 export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
   classic: {
     serif: false,
+    displaySerif: false,
     align: "center",
-    name: { scale: 2.08, bold: true, letterSpacing: 0 },
+    name: { scale: 2.08, bold: true, letterSpacing: 0, uppercase: false },
     title: { color: "#404040", bold: false, italic: false },
     heading: { scale: 0.88, uppercase: true, smallCaps: false, letterSpacing: 0.04, color: INK, rule: 1, ruleColor: "#d4d4d4" },
     headerRule: null,
@@ -40,8 +43,9 @@ export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
   },
   modern: {
     serif: false,
+    displaySerif: false,
     align: "left",
-    name: { scale: 2.3, bold: true, letterSpacing: -0.01 },
+    name: { scale: 2.3, bold: true, letterSpacing: -0.01, uppercase: false },
     title: { color: GREEN, bold: true, italic: false },
     heading: { scale: 0.9, uppercase: true, smallCaps: false, letterSpacing: 0.04, color: GREEN, rule: 2, ruleColor: GREEN },
     headerRule: null,
@@ -49,8 +53,9 @@ export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
   },
   executive: {
     serif: false,
+    displaySerif: false,
     align: "left",
-    name: { scale: 2.4, bold: true, letterSpacing: 0 },
+    name: { scale: 2.4, bold: true, letterSpacing: 0, uppercase: false },
     title: { color: NAVY, bold: false, italic: false },
     heading: { scale: 1, uppercase: false, smallCaps: false, letterSpacing: 0.02, color: NAVY, rule: 0, ruleColor: NAVY },
     headerRule: { width: 3, color: NAVY },
@@ -58,8 +63,9 @@ export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
   },
   compact: {
     serif: false,
+    displaySerif: false,
     align: "left",
-    name: { scale: 1.75, bold: true, letterSpacing: 0 },
+    name: { scale: 1.75, bold: true, letterSpacing: 0, uppercase: false },
     title: { color: "#404040", bold: false, italic: false },
     heading: { scale: 0.82, uppercase: true, smallCaps: false, letterSpacing: 0.04, color: INK, rule: 0.75, ruleColor: "#a3a3a3" },
     headerRule: null,
@@ -67,10 +73,56 @@ export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
   },
   serif: {
     serif: true,
+    displaySerif: false,
     align: "center",
-    name: { scale: 2.1, bold: false, letterSpacing: 0.03 },
+    name: { scale: 2.1, bold: false, letterSpacing: 0.03, uppercase: false },
     title: { color: "#404040", bold: false, italic: true },
     heading: { scale: 1.05, uppercase: false, smallCaps: true, letterSpacing: 0.03, color: INK, rule: 1, ruleColor: "#a3a3a3" },
+    headerRule: null,
+    density: 1,
+  },
+  // The traditional university format: all serif, the name in capitals, black lines under headings
+  academic: {
+    serif: true,
+    displaySerif: false,
+    align: "center",
+    name: { scale: 1.95, bold: true, letterSpacing: 0.02, uppercase: true },
+    title: { color: "#404040", bold: false, italic: false },
+    heading: { scale: 0.95, uppercase: true, smallCaps: false, letterSpacing: 0.03, color: INK, rule: 1, ruleColor: INK },
+    headerRule: null,
+    density: 0.9,
+  },
+  // Lots of white space: a light name, and small grey headings with wide letter spacing, no lines.
+  // Spacing much past 0.1 and PDF readers (and ATS software) see "S U M M A R Y" instead of a word.
+  minimal: {
+    serif: false,
+    displaySerif: false,
+    align: "left",
+    name: { scale: 2.3, bold: false, letterSpacing: -0.01, uppercase: false },
+    title: { color: "#525252", bold: false, italic: false },
+    heading: { scale: 0.76, uppercase: true, smallCaps: false, letterSpacing: 0.08, color: "#737373", rule: 0, ruleColor: "#737373" },
+    headerRule: null,
+    density: 1.1,
+  },
+  // Strong and black: a big name in capitals over a thick bar, heavy headings and lines
+  bold: {
+    serif: false,
+    displaySerif: false,
+    align: "left",
+    name: { scale: 2.5, bold: true, letterSpacing: 0.01, uppercase: true },
+    title: { color: "#404040", bold: true, italic: false },
+    heading: { scale: 0.98, uppercase: true, smallCaps: false, letterSpacing: 0.05, color: INK, rule: 2, ruleColor: INK },
+    headerRule: { width: 4, color: INK },
+    density: 1,
+  },
+  // Serif name and headings in a warm colour over a clean sans-serif body, with an italic title
+  elegant: {
+    serif: false,
+    displaySerif: true,
+    align: "center",
+    name: { scale: 2.3, bold: false, letterSpacing: 0.04, uppercase: false },
+    title: { color: "#57534e", bold: false, italic: true },
+    heading: { scale: 1.08, uppercase: false, smallCaps: false, letterSpacing: 0.02, color: "#7c2d12", rule: 0.75, ruleColor: "#d6d3d1" },
     headerRule: null,
     density: 1,
   },
@@ -132,3 +184,6 @@ export const HTML_FONT = {
   sans: "Arial, Helvetica, sans-serif",
   serif: "Georgia, 'Times New Roman', serif",
 };
+
+// The name in capitals, keeping any bold, italic or underline tags as they are
+export const upperRich = (text: string) => text.replace(/(<\/?[biu]>)|[^<]+|</g, (part, tag) => (tag ? part : part.toUpperCase()));

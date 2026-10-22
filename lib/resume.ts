@@ -91,6 +91,10 @@ export const TEMPLATES = {
   executive: { label: "Executive" },
   compact: { label: "Compact" },
   serif: { label: "Serif" },
+  academic: { label: "Academic" },
+  minimal: { label: "Minimal" },
+  bold: { label: "Bold" },
+  elegant: { label: "Elegant" },
 } as const;
 
 export type TemplateName = keyof typeof TEMPLATES;
