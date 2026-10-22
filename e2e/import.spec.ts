@@ -50,3 +50,13 @@ test("a busy AI shows a plain message instead of failing silently", async ({ pag
   await page.getByRole("dialog").getByRole("button", { name: "Import", exact: true }).click();
   await expect(page.getByRole("dialog")).toContainText("AI is busy right now");
 });
+
+test("the firewall's rate limit shows a plain message too", async ({ page }) => {
+  await page.route("**/api/import", (route) => route.fulfill({ status: 429, body: "Too Many Requests" }));
+  await page.goto("/builder");
+  await page.getByRole("button", { name: "Import resume" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Paste text" }).click();
+  await page.getByRole("dialog").locator("textarea").fill("Priya Manjare\nBackend developer\n".repeat(10));
+  await page.getByRole("dialog").getByRole("button", { name: "Import", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("a lot of AI requests");
+});
