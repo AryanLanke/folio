@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { callAi } from "@/lib/client/ai";
 import { type JobAnalysis, MAX_JOB_LENGTH, matchResume } from "@/lib/jobmatch";
 import { type JobTarget, type Resume, emptyTarget } from "@/lib/resume";
@@ -15,6 +15,55 @@ function Chip({ text, found }: { text: string; found: boolean }) {
       {found ? "✓ " : ""}
       {text}
     </li>
+  );
+}
+
+// The score counts up from 0 when it first shows, then glides to each new value as the resume
+// changes. People who turn animations off see the number straight away.
+function useCountUp(value: number) {
+  const [shown, setShown] = useState(0);
+  const from = useRef(0);
+
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      from.current = value;
+      setShown(value);
+      return;
+    }
+    const start = from.current;
+    const duration = 600 + Math.abs(value - start) * 12;
+    // Timed from the first frame's own timestamp, so every step uses the same clock
+    let began: number | undefined;
+    let frame = requestAnimationFrame(function step(now) {
+      began ??= now;
+      const t = Math.min(1, (now - began) / duration);
+      const next = Math.round(start + (value - start) * (1 - (1 - t) ** 3));
+      from.current = next;
+      setShown(next);
+      if (t < 1) frame = requestAnimationFrame(step);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return shown;
+}
+
+function Meter({ score, tone, children }: { score: number; tone: string; children: React.ReactNode }) {
+  const shown = useCountUp(score);
+  return (
+    <div className="mt-5 flex items-center gap-4">
+      {/* Wide enough for "100%", so the bar and text beside it stay put while the number counts */}
+      <span className={`min-w-[2.8em] text-5xl font-bold tabular-nums ${tone}`}>{shown}%</span>
+      <div className="min-w-0 flex-1">
+        <div className="h-2 overflow-hidden rounded-full bg-background">
+          <div
+            className={`h-full rounded-full ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-amber-300" : "bg-red-400"}`}
+            style={{ width: `${shown}%` }}
+          />
+        </div>
+        <p className="mt-2 text-sm text-muted">{children}</p>
+      </div>
+    </div>
   );
 }
 
@@ -122,20 +171,9 @@ export default function JobMatch({
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-4">
-          <span className={`text-5xl font-bold tabular-nums ${tone}`}>{score}%</span>
-          <div className="min-w-0 flex-1">
-            <div className="h-2 overflow-hidden rounded-full bg-background">
-              <div
-                className={`h-full rounded-full ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-amber-300" : "bg-red-400"}`}
-                style={{ width: `${score}%` }}
-              />
-            </div>
-            <p className="mt-2 text-sm text-muted">
-              {matched.length} of {target.keywords.length} keywords found. {verdict}
-            </p>
-          </div>
-        </div>
+        <Meter score={score} tone={tone}>
+          {matched.length} of {target.keywords.length} keywords found. {verdict}
+        </Meter>
       </section>
 
       {missing.length > 0 && (

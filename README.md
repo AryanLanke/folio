@@ -26,7 +26,7 @@ Folio just gives you the file.
 
 ## Nine templates. All of them get read.
 
-![All nine Folio templates showing the same example resume](docs/templates.png)
+![The example resume in each of the nine templates in turn: Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant](docs/templates.gif)
 
 Classic, Modern, Executive, Compact, Serif, Academic, Minimal, Bold and Elegant. Pick one from a gallery that previews **your** resume, not a stock one, then make the headings your colour.
 
@@ -46,7 +46,7 @@ Every template is ATS-safe: one column, real text and standard headings. An ATS 
 
 ## Get past the bots
 
-![Job match: a 75% score, missing keywords GraphQL and Jest, and the keywords already on the resume](public/screenshots/job-match.png)
+![Job match: the score counts up to 75%, then climbs to 88% and 100% as GraphQL and Jest are typed into skills](docs/job-match.gif)
 
 - **Resume score:** out of 100, and every point is explained. No mystery number. Upload an old resume to score it in seconds
 - **Job match:** paste a job posting and see your match score, the keywords you have, and the ones you're missing, live as you type. It understands short forms ("JS", "ML", "K8s")
