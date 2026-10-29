@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import DemoVideo from "@/components/site/DemoVideo";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import Sparkle from "@/components/ui/Sparkle";
@@ -125,13 +125,10 @@ export default function Home() {
         </section>
 
         <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
-          <Image
-            src="/screenshots/editor.png"
-            alt="The Folio editor: a form on the left and the resume on a real page on the right"
-            width={1440}
-            height={900}
-            priority
-            className="h-auto w-full"
+          <DemoVideo
+            name="editor"
+            label="The Folio editor: switching the example resume between templates and heading colours"
+            eager
           />
         </div>
 
@@ -163,12 +160,9 @@ export default function Home() {
             </Link>
           </div>
           <div className="overflow-hidden rounded-xl border border-border shadow-2xl">
-            <Image
-              src="/screenshots/job-match.png"
-              alt="Job match: a 75% score, missing keywords GraphQL and Jest, and the keywords already on the resume"
-              width={1440}
-              height={900}
-              className="h-auto w-full"
+            <DemoVideo
+              name="job-match"
+              label="Job match: the score counts up to 75%, then climbs to 88% and 100% as GraphQL and Jest are typed into skills"
             />
           </div>
         </section>
