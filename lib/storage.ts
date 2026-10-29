@@ -11,7 +11,8 @@ const RESUME_PREFIX = "folio:resume:";
 // Where the single resume lived before multiple resumes existed
 const LEGACY_RESUME_KEY = "folio:resume";
 const PAPER_KEY = "folio:paper";
-// "light" when someone switched to light mode; dark is the default. app/layout.tsx reads it too.
+// "light" when someone switched to light mode during this visit; dark is the default. Kept in
+// sessionStorage, not localStorage (see saveTheme). app/layout.tsx reads it too.
 export const THEME_KEY = "folio:theme";
 const AI_USES_KEY = "folio:ai-uses";
 // When resumes last changed and when a backup file was last saved, to know if it's out of date
@@ -97,12 +98,15 @@ export function savePaper(paper: PaperSize) {
 
 export type Theme = "dark" | "light";
 
-export function loadTheme(): Theme {
-  return read(THEME_KEY) === "light" ? "light" : "dark";
-}
-
+// Light mode lasts for this visit only (this tab, across pages), so every new visit opens in dark
 export function saveTheme(theme: Theme) {
-  write(THEME_KEY, theme);
+  try {
+    sessionStorage.setItem(THEME_KEY, theme);
+  } catch {
+    // Storage is blocked; the switch still works until the next page
+  }
+  // A choice kept from when light mode was remembered for good
+  remove(THEME_KEY);
 }
 
 const readTime = (key: string) => Number(read(key)) || 0;

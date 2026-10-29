@@ -21,8 +21,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Runs before the page paints, so someone who chose light mode never sees a flash of dark
-const applyTheme = `try{if(localStorage.getItem(${JSON.stringify(THEME_KEY)})==="light")document.documentElement.dataset.theme="light"}catch{}`;
+// Runs before the page paints, so someone who chose light mode during this visit never sees a
+// flash of dark. Every new visit opens in dark; a light choice remembered from before is cleared.
+const key = JSON.stringify(THEME_KEY);
+const applyTheme = `try{localStorage.removeItem(${key});if(sessionStorage.getItem(${key})==="light")document.documentElement.dataset.theme="light"}catch{}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
