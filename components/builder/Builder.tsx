@@ -713,36 +713,38 @@ export default function Builder() {
           )}
 
           {previewView === "page" && (
-            <PagedPreview paper={paper} toolbar={layoutControls}>
-              {editorView === "letter" ? (
-                <CoverLetterPreview resume={resume} paper={paper} />
-              ) : (
-                <>
-                  <div className="optimize-target" data-working={optimizing === "working" || undefined}>
-                    <ResumePreview
-                      resume={resume}
-                      paper={paper}
-                      onChange={(next) => update(next, true)}
-                      changed={showOptimized ? changedLines(optimized.changes) : undefined}
-                    />
-                  </div>
-                  {optimizing && <OptimizeEffect phase={optimizing} />}
-                </>
-              )}
-            </PagedPreview>
+            <div className="view-in">
+              <PagedPreview paper={paper} toolbar={layoutControls}>
+                {editorView === "letter" ? (
+                  <CoverLetterPreview resume={resume} paper={paper} />
+                ) : (
+                  <>
+                    <div className="optimize-target" data-working={optimizing === "working" || undefined}>
+                      <ResumePreview
+                        resume={resume}
+                        paper={paper}
+                        onChange={(next) => update(next, true)}
+                        changed={showOptimized ? changedLines(optimized.changes) : undefined}
+                      />
+                    </div>
+                    {optimizing && <OptimizeEffect phase={optimizing} />}
+                  </>
+                )}
+              </PagedPreview>
+            </div>
           )}
           {previewView === "score" && (
-            <div className="mx-auto w-full max-w-[816px]">
+            <div className="view-in mx-auto w-full max-w-[816px]">
               <ScoreView resume={resume} onChange={(next) => update(next, true)} />
             </div>
           )}
           {previewView === "ats" && (
-            <div className="mx-auto w-full max-w-[816px]">
+            <div className="view-in mx-auto w-full max-w-[816px]">
               <AtsView resume={resume} onChange={(next) => update(next, true)} />
             </div>
           )}
           {previewView === "job" && (
-            <div className="mx-auto w-full max-w-[816px]">
+            <div className="view-in mx-auto w-full max-w-[816px]">
               <JobMatch
                 resume={resume}
                 onChange={setTarget}

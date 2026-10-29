@@ -8,7 +8,7 @@ import { type JobTarget, type Resume, emptyTarget } from "@/lib/resume";
 function Chip({ text, found }: { text: string; found: boolean }) {
   return (
     <li
-      className={`rounded-full px-3 py-1 text-xs font-semibold ${
+      className={`chip-in rounded-full px-3 py-1 text-xs font-semibold ${
         found ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
       }`}
     >
@@ -53,11 +53,13 @@ function Meter({ score, tone, children }: { score: number; tone: string; childre
   return (
     <div className="mt-5 flex items-center gap-4">
       {/* Wide enough for "100%", so the bar and text beside it stay put while the number counts */}
-      <span className={`min-w-[2.8em] text-5xl font-bold tabular-nums ${tone}`}>{shown}%</span>
+      <span className={`min-w-[2.8em] text-5xl font-bold tabular-nums transition-colors duration-500 ${tone}`}>
+        {shown}%
+      </span>
       <div className="min-w-0 flex-1">
         <div className="h-2 overflow-hidden rounded-full bg-background">
           <div
-            className={`h-full rounded-full ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-amber-300" : "bg-red-400"}`}
+            className={`h-full rounded-full transition-colors duration-500 ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-amber-300" : "bg-red-400"}`}
             style={{ width: `${shown}%` }}
           />
         </div>
