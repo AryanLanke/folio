@@ -76,7 +76,7 @@ export function ColorSwatches({
         <CustomColor value={custom ? value : fallback} selected={custom} onChange={onChange} />
       </div>
       {value && tooLight(value) && (
-        <p className="mt-2 text-xs text-amber-300">Light colours can be hard to read, especially when printed.</p>
+        <p className="mt-2 text-xs text-warning">Light colours can be hard to read, especially when printed.</p>
       )}
     </div>
   );

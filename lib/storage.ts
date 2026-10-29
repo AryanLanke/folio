@@ -11,6 +11,8 @@ const RESUME_PREFIX = "folio:resume:";
 // Where the single resume lived before multiple resumes existed
 const LEGACY_RESUME_KEY = "folio:resume";
 const PAPER_KEY = "folio:paper";
+// "light" when someone switched to light mode; dark is the default. app/layout.tsx reads it too.
+export const THEME_KEY = "folio:theme";
 const AI_USES_KEY = "folio:ai-uses";
 // When resumes last changed and when a backup file was last saved, to know if it's out of date
 const EDITED_KEY = "folio:edited-at";
@@ -91,6 +93,16 @@ export function loadPaper(): PaperSize {
 
 export function savePaper(paper: PaperSize) {
   write(PAPER_KEY, paper);
+}
+
+export type Theme = "dark" | "light";
+
+export function loadTheme(): Theme {
+  return read(THEME_KEY) === "light" ? "light" : "dark";
+}
+
+export function saveTheme(theme: Theme) {
+  write(THEME_KEY, theme);
 }
 
 const readTime = (key: string) => Number(read(key)) || 0;

@@ -9,7 +9,7 @@ function Chip({ text, found }: { text: string; found: boolean }) {
   return (
     <li
       className={`chip-in rounded-full px-3 py-1 text-xs font-semibold ${
-        found ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
+        found ? "bg-accent/15 text-accent-ink" : "bg-warning/15 text-warning"
       }`}
     >
       {found ? "✓ " : ""}
@@ -59,7 +59,7 @@ function Meter({ score, tone, children }: { score: number; tone: string; childre
       <div className="min-w-0 flex-1">
         <div className="h-2 overflow-hidden rounded-full bg-background">
           <div
-            className={`h-full rounded-full transition-colors duration-500 ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-amber-300" : "bg-red-400"}`}
+            className={`h-full rounded-full transition-colors duration-500 ${score >= 75 ? "bg-accent" : score >= 50 ? "bg-warning" : "bg-danger"}`}
             style={{ width: `${shown}%` }}
           />
         </div>
@@ -106,7 +106,7 @@ export default function JobMatch({
           resume already covers, and tailors AI suggestions to this job.
         </p>
         <textarea
-          className="mt-4 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none placeholder:text-neutral-600 focus:border-accent"
+          className="mt-4 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none placeholder:text-faint focus:border-accent"
           rows={10}
           maxLength={MAX_JOB_LENGTH}
           value={draft}
@@ -127,13 +127,13 @@ export default function JobMatch({
         {draft.trim().length > 0 && draft.trim().length < 50 && (
           <p className="mt-2 text-xs text-muted">Paste the whole posting, not just the title.</p>
         )}
-        {error && <p className="mt-2 text-xs text-amber-300">{error}</p>}
+        {error && <p className="mt-2 text-xs text-warning">{error}</p>}
       </section>
     );
   }
 
   const { score, matched, missing } = matchResume(resume, target.keywords);
-  const tone = score >= 75 ? "text-accent" : score >= 50 ? "text-amber-300" : "text-red-400";
+  const tone = score >= 75 ? "text-accent-ink" : score >= 50 ? "text-warning" : "text-danger";
   const verdict =
     score >= 75
       ? "Strong match. Your resume covers most of what this job asks for."
@@ -166,7 +166,7 @@ export default function JobMatch({
                 setDraft("");
                 onChange(emptyTarget(), true);
               }}
-              className="rounded px-2 py-1 text-xs font-semibold text-muted transition-colors hover:bg-surface-hover hover:text-red-400"
+              className="rounded px-2 py-1 text-xs font-semibold text-muted transition-colors hover:bg-surface-hover hover:text-danger"
             >
               Remove
             </button>
@@ -212,7 +212,7 @@ export default function JobMatch({
         <button
           type="button"
           onClick={onWriteCoverLetter}
-          className="mt-3 font-bold text-accent transition-colors hover:text-accent-hover"
+          className="mt-3 font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
         >
           Write a cover letter for this job →
         </button>

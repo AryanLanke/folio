@@ -7,10 +7,10 @@ import { hasFormatting, plainText } from "@/lib/rich";
 // Building blocks for the editor form
 
 const inputBase =
-  "w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-neutral-600 outline-none transition-colors disabled:opacity-40";
+  "w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-faint outline-none transition-colors disabled:opacity-40";
 
 function inputClass(warning?: string | null) {
-  return `${inputBase} ${warning ? "border-amber-400/70 focus:border-amber-300" : "border-border focus:border-accent"}`;
+  return `${inputBase} ${warning ? "border-warning/70 focus:border-warning" : "border-border focus:border-accent"}`;
 }
 
 export const smallButton =
@@ -18,7 +18,7 @@ export const smallButton =
 
 function Warning({ text }: { text?: string | null }) {
   if (!text) return null;
-  return <span className="mt-1 block text-xs text-amber-300">{text}</span>;
+  return <span className="mt-1 block text-xs text-warning">{text}</span>;
 }
 
 // The form shows just the words of text formatted on the page, and says that typing here
@@ -151,7 +151,7 @@ export function Card({
           </div>
         )}
         {onRemove && (
-          <button type="button" className={`${smallButton} hover:text-red-400`} onClick={onRemove}>
+          <button type="button" className={`${smallButton} hover:text-danger`} onClick={onRemove}>
             Remove
           </button>
         )}
@@ -180,7 +180,7 @@ export function ItemControls({
       <button type="button" className={smallButton} disabled={index === count - 1} onClick={() => onMove(index + 1)}>
         ↓ Down
       </button>
-      <button type="button" className={`${smallButton} hover:text-red-400`} onClick={onRemove}>
+      <button type="button" className={`${smallButton} hover:text-danger`} onClick={onRemove}>
         Remove
       </button>
     </div>
@@ -213,7 +213,7 @@ export function AddButton({ label, onClick }: { label: string; onClick: () => vo
     <button
       type="button"
       onClick={onClick}
-      className="w-full rounded-md border border-dashed border-border py-2.5 text-sm font-semibold text-muted transition-colors hover:border-accent hover:text-accent"
+      className="w-full rounded-md border border-dashed border-border py-2.5 text-sm font-semibold text-muted transition-colors hover:border-accent hover:text-accent-ink"
     >
       + {label}
     </button>

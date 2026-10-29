@@ -57,7 +57,7 @@ export default function TemplatePicker({
                   className="group rounded-lg p-1.5 text-left transition-colors hover:bg-surface-hover"
                 >
                   <div
-                    className={`overflow-hidden rounded bg-white outline-2 outline-offset-2 transition-[outline-color] ${
+                    className={`overflow-hidden rounded bg-white light:ring-1 light:ring-border outline-2 outline-offset-2 transition-[outline-color] ${
                       selected ? "outline-accent" : "outline-transparent group-hover:outline-border"
                     }`}
                     style={{ width: size.width * SCALE, height: size.height * SCALE * CROP }}
@@ -70,7 +70,7 @@ export default function TemplatePicker({
                       <ResumePreview resume={{ ...resume, style: { ...resume.style, template: name } }} paper={paper} />
                     </div>
                   </div>
-                  <span className={`mt-2 block text-xs font-semibold ${selected ? "text-accent" : "text-foreground"}`}>
+                  <span className={`mt-2 block text-xs font-semibold ${selected ? "text-accent-ink" : "text-foreground"}`}>
                     {TEMPLATES[name].label}
                   </span>
                 </button>

@@ -17,6 +17,7 @@ import ScoreView from "@/components/resume/ScoreView";
 import ResumePreview from "@/components/resume/ResumePreview";
 import { ColorSwatches } from "@/components/ui/ColorPicker";
 import Menu, { MenuDivider, MenuLabel, menuItemClass } from "@/components/ui/Menu";
+import { ThemeLabel, switchTheme } from "@/components/ui/ThemeToggle";
 import Segmented from "@/components/ui/Segmented";
 import Sparkle from "@/components/ui/Sparkle";
 import { type BackupEntry, backupFileName, makeBackup, readBackup } from "@/lib/backup";
@@ -415,7 +416,7 @@ export default function Builder() {
         {/* On narrow phones the resume name shrinks, so the buttons on the right always fit */}
         <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-4">
           <Link href="/" className="shrink-0 text-lg font-bold tracking-tight">
-            Folio<span className="text-accent">.</span>
+            Folio<span className="text-accent-ink">.</span>
           </Link>
 
           <Menu
@@ -435,7 +436,7 @@ export default function Builder() {
               <button key={item.id} type="button" className={menuItemClass} onClick={() => switchTo(item.id)}>
                 <span className="flex items-center justify-between gap-2">
                   <span className="truncate">{item.name}</span>
-                  {item.id === library.activeId && <span className="text-accent">✓</span>}
+                  {item.id === library.activeId && <span className="text-accent-ink">✓</span>}
                 </span>
               </button>
             ))}
@@ -452,7 +453,7 @@ export default function Builder() {
             </button>
             <button type="button" className={menuItemClass} onClick={() => setChatOpen(true)}>
               <span className="flex items-center gap-2">
-                <Sparkle className="text-accent" />
+                <Sparkle className="text-accent-ink" />
                 Build with AI…
               </span>
             </button>
@@ -460,17 +461,17 @@ export default function Builder() {
             <button type="button" className={menuItemClass} onClick={rename}>
               Rename
             </button>
-            <button type="button" className={`${menuItemClass} hover:text-red-400`} onClick={clearResume}>
+            <button type="button" className={`${menuItemClass} hover:text-danger`} onClick={clearResume}>
               Clear this resume
             </button>
             {library.items.length > 1 && (
-              <button type="button" className={`${menuItemClass} hover:text-red-400`} onClick={remove}>
+              <button type="button" className={`${menuItemClass} hover:text-danger`} onClick={remove}>
                 Delete this resume
               </button>
             )}
           </Menu>
 
-          <span className={`hidden truncate text-xs lg:inline ${saveState === "failed" ? "text-red-400" : "text-muted"}`}>
+          <span className={`hidden truncate text-xs lg:inline ${saveState === "failed" ? "text-danger" : "text-muted"}`}>
             {saveLabel}
           </span>
         </div>
@@ -520,6 +521,10 @@ export default function Builder() {
             </button>
             <button type="button" className={menuItemClass} onClick={() => fileInputRef.current?.click()}>
               Open backup file
+            </button>
+            <MenuDivider />
+            <button type="button" className={menuItemClass} onClick={switchTheme}>
+              <ThemeLabel />
             </button>
             <MenuDivider />
             <a href={FEEDBACK_URL} className={menuItemClass}>
@@ -640,7 +645,7 @@ export default function Builder() {
                     onClick={() => setChatOpen(true)}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold transition-colors hover:border-foreground"
                   >
-                    <Sparkle className="text-accent" />
+                    <Sparkle className="text-accent-ink" />
                     Build with AI
                   </button>
                   <button
@@ -653,7 +658,7 @@ export default function Builder() {
                   <button
                     type="button"
                     onClick={clearResume}
-                    className="rounded-full border border-border px-3 py-1 text-xs font-bold text-muted transition-colors hover:border-red-400 hover:text-red-400"
+                    className="rounded-full border border-border px-3 py-1 text-xs font-bold text-muted transition-colors hover:border-danger hover:text-danger"
                   >
                     Clear all
                   </button>
@@ -674,7 +679,7 @@ export default function Builder() {
         </div>
 
         <div
-          className={`flex-1 overflow-y-auto bg-[#0b0b0b] p-4 sm:p-8 lg:block ${mobileView === "preview" ? "block" : "hidden"}`}
+          className={`flex-1 overflow-y-auto bg-canvas p-4 sm:p-8 lg:block ${mobileView === "preview" ? "block" : "hidden"}`}
         >
           <div className="mx-auto mb-4 flex w-full max-w-[816px] flex-wrap items-center justify-between gap-2">
             <Segmented

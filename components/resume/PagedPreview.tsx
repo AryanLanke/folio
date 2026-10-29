@@ -43,7 +43,7 @@ export default function PagedPreview({
       {toolbar && <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">{toolbar}</div>}
       <p
         className={`mb-3 rounded-md px-3 py-2 text-xs font-bold ${
-          pages === 1 ? "bg-accent/15 text-accent" : "bg-amber-400/15 text-amber-300"
+          pages === 1 ? "bg-accent/15 text-accent-ink" : "bg-warning/15 text-warning"
         }`}
       >
         {pages === 1
@@ -55,7 +55,7 @@ export default function PagedPreview({
         <div style={{ width: size.width * scale, height: height * scale }}>
           <div
             ref={pageRef}
-            className="relative origin-top-left shadow-2xl"
+            className="relative origin-top-left shadow-2xl light:shadow-lg light:ring-1 light:ring-border"
             style={{ width: size.width, transform: `scale(${scale})` }}
           >
             {children}

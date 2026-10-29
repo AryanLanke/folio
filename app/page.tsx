@@ -90,7 +90,7 @@ export default function Home() {
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
         <section className="max-w-3xl pt-20 sm:pt-28">
-          <p className="text-sm font-bold text-accent">Free resume builder · no sign-up · no watermark</p>
+          <p className="text-sm font-bold text-accent-ink">Free resume builder · no sign-up · no watermark</p>
           <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
             The resume builder that&apos;s actually free.
           </h1>
@@ -109,7 +109,7 @@ export default function Home() {
               href="/builder?chat"
               className="inline-flex h-12 items-center gap-2 rounded-full border border-border px-6 text-base font-bold transition-colors hover:border-foreground"
             >
-              <Sparkle className="text-accent" />
+              <Sparkle className="text-accent-ink" />
               Build with AI
             </Link>
             <Link
@@ -124,11 +124,10 @@ export default function Home() {
           </p>
         </section>
 
-        <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl">
+        <div className="mt-16 overflow-hidden rounded-xl border border-border shadow-2xl light:shadow-lg">
           <DemoVideo
             name="editor"
             label="The Folio editor: switching the example resume between templates and heading colours"
-            eager
           />
         </div>
 
@@ -144,8 +143,8 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-24 grid items-center gap-10 lg:grid-cols-2">
-          <div>
+        <section className="mt-24">
+          <div className="max-w-3xl">
             <h2 className="text-3xl font-bold tracking-tight">Know your match before you apply</h2>
             <p className="mt-4 leading-7 text-muted">
               Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
@@ -154,12 +153,12 @@ export default function Home() {
             </p>
             <Link
               href="/builder?example&view=job"
-              className="mt-6 inline-block font-bold text-accent transition-colors hover:text-accent-hover"
+              className="mt-6 inline-block font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
             >
               Try job match on the example →
             </Link>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border shadow-2xl">
+          <div className="mt-10 overflow-hidden rounded-xl border border-border shadow-2xl light:shadow-lg">
             <DemoVideo
               name="job-match"
               label="Job match: the score counts up to 75%, then climbs to 88% and 100% as GraphQL and Jest are typed into skills"
@@ -174,7 +173,7 @@ export default function Home() {
               <thead className="bg-surface">
                 <tr>
                   <th className="p-4 font-semibold text-muted" />
-                  <th className="p-4 font-bold text-accent">Folio</th>
+                  <th className="p-4 font-bold text-accent-ink">Folio</th>
                   <th className="p-4 font-semibold text-muted">Most resume builders</th>
                 </tr>
               </thead>

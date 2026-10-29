@@ -19,13 +19,13 @@ export function checkAction(label: string, resume: Resume, onChange?: (next: Res
 }
 
 // Colors for a score out of 100, shared by the Score and ATS check tabs
-export const tone = (score: number) => (score >= 85 ? "text-accent" : score >= 60 ? "text-amber-300" : "text-red-400");
-export const bar = (score: number) => (score >= 85 ? "bg-accent" : score >= 60 ? "bg-amber-300" : "bg-red-400");
+export const tone = (score: number) => (score >= 85 ? "text-accent-ink" : score >= 60 ? "text-warning" : "text-danger");
+export const bar = (score: number) => (score >= 85 ? "bg-accent" : score >= 60 ? "bg-warning" : "bg-danger");
 
 const MARK: Record<CheckStatus, { icon: string; color: string; label: string }> = {
-  pass: { icon: "✓", color: "text-accent", label: "Passed" },
-  warn: { icon: "!", color: "text-amber-300", label: "Warning" },
-  fail: { icon: "✕", color: "text-red-400", label: "Needs fixing" },
+  pass: { icon: "✓", color: "text-accent-ink", label: "Passed" },
+  warn: { icon: "!", color: "text-warning", label: "Warning" },
+  fail: { icon: "✕", color: "text-danger", label: "Needs fixing" },
 };
 
 // One check: passed, a warning, or something to fix, with what was found and how to fix it.

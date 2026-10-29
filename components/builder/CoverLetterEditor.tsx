@@ -53,7 +53,7 @@ export default function CoverLetterEditor({
         ) : (
           <p className="mt-1 text-sm text-muted">
             AI drafts it from your resume. For a letter aimed at a specific job,{" "}
-            <button type="button" onClick={onOpenJobMatch} className="font-bold text-accent hover:text-accent-hover">
+            <button type="button" onClick={onOpenJobMatch} className="font-bold text-accent-ink hover:text-accent-ink-hover">
               add the job in Job match
             </button>{" "}
             first.
@@ -77,7 +77,7 @@ export default function CoverLetterEditor({
         {!enoughResume && (
           <p className="mt-2 text-xs text-muted">Add your name and at least one job to the resume first.</p>
         )}
-        {error && <p className="mt-2 text-xs text-amber-300">{error}</p>}
+        {error && <p className="mt-2 text-xs text-warning">{error}</p>}
       </section>
 
       <section className="rounded-lg bg-surface p-5">

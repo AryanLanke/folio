@@ -103,19 +103,19 @@ export default function EnhanceTextArea({
           onClick={enhance}
           disabled={empty || state.status === "loading"}
           title="Sends only this text to our AI provider to suggest better wording"
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold text-foreground transition-colors hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs font-bold text-foreground transition-colors hover:border-accent hover:text-accent-ink disabled:pointer-events-none disabled:opacity-40"
         >
-          {state.status !== "loading" && <Sparkle className="text-accent" />}
+          {state.status !== "loading" && <Sparkle className="text-accent-ink" />}
           {state.status === "loading" ? "Enhancing…" : tailored ? "Enhance for this job" : "Enhance with AI"}
         </button>
       </div>
 
-      {state.status === "error" && <p className="mt-2 text-xs text-amber-300">{state.message}</p>}
+      {state.status === "error" && <p className="mt-2 text-xs text-warning">{state.message}</p>}
 
       {state.status === "done" && (
         <div className="mt-3 rounded-md border border-accent/40 bg-accent/5 p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-bold text-accent">
+            <p className="text-xs font-bold text-accent-ink">
               {state.refining ? `Rewriting: ${ENHANCE_STYLES[state.refining].label.replace(/^↻ /, "")}…` : "Suggested wording"}
             </p>
             {state.versions.length > 1 && (
@@ -157,7 +157,7 @@ export default function EnhanceTextArea({
           </div>
 
           {state.versions[state.index].tip && (
-            <p className="mt-3 text-xs text-amber-300">
+            <p className="mt-3 text-xs text-warning">
               <b>Tip:</b> {state.versions[state.index].tip}
             </p>
           )}
@@ -171,14 +171,14 @@ export default function EnhanceTextArea({
                   type="button"
                   onClick={() => refine(style, state.versions, state.index)}
                   disabled={state.refining !== null || left <= 0}
-                  className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent disabled:pointer-events-none disabled:opacity-40"
+                  className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-ink disabled:pointer-events-none disabled:opacity-40"
                 >
                   {ENHANCE_STYLES[style].label}
                 </button>
               ))}
             </div>
           </div>
-          {state.error && <p className="mt-2 text-xs text-amber-300">{state.error}</p>}
+          {state.error && <p className="mt-2 text-xs text-warning">{state.error}</p>}
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <button

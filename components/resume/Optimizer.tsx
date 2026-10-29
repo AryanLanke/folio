@@ -142,7 +142,7 @@ export function OptimizePanel({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-sm font-bold">
-            <Sparkle className="text-accent" />
+            <Sparkle className="text-accent-ink" />
             {nothing ? "Already in good shape" : "Optimized"}
           </p>
           <p className="mt-1 text-xs text-muted">
@@ -177,7 +177,7 @@ export function OptimizePanel({
         </div>
       </div>
 
-      {optimized.note && <p className="mt-3 text-xs text-amber-300">{optimized.note}</p>}
+      {optimized.note && <p className="mt-3 text-xs text-warning">{optimized.note}</p>}
 
       {!nothing && (
         <ul className="mt-3 divide-y divide-border border-t border-border">

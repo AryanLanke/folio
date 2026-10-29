@@ -14,6 +14,7 @@ type Recognition = {
   interimResults: boolean;
   start: () => void;
   stop: () => void;
+  abort: () => void;
   onresult: ((event: { resultIndex: number; results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal: boolean }> }) => void) | null;
   onend: (() => void) | null;
   onerror: ((event: { error: string }) => void) | null;
@@ -24,6 +25,41 @@ function createRecognition(): Recognition | null {
   const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
   return Ctor ? new Ctor() : null;
 }
+
+// Chrome on Android repeats earlier words in later results ("Honestly.", "honestly I didn't", ...),
+// so words are compared without case or punctuation when joining results.
+const wordKey = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+const startsWithWords = (words: string[], start: string[]) => start.every((w, i) => words[i] === w);
+
+// Adds `next` onto `prev`, dropping the words `next` repeats
+function mergeWords(prev: string[], next: string[]): string[] {
+  const a = prev.map(wordKey);
+  const b = next.map(wordKey);
+  // `next` is everything so far and more, or just a repeat of words we already have
+  if (startsWithWords(b, a)) return next;
+  if (startsWithWords(a, b)) return prev;
+  // `next` picks up partway: skip the words where the end of `prev` and the start of `next` overlap
+  for (let k = Math.min(a.length, b.length) - 1; k > 0; k--) {
+    if (startsWithWords(b, a.slice(a.length - k))) return [...prev, ...next.slice(k)];
+  }
+  return [...prev, ...next];
+}
+
+// Joins a listening session's results into one transcript
+function joinResults(results: ArrayLike<ArrayLike<{ transcript: string }>>): string {
+  let words: string[] = [];
+  for (let i = 0; i < results.length; i++) {
+    words = mergeWords(words, results[i][0].transcript.split(/\s+/).filter(Boolean));
+  }
+  return words.join(" ");
+}
+
+const joinSpoken = (before: string, spoken: string) => {
+  const words = spoken.trim();
+  if (!words) return before;
+  return before ? `${before.trimEnd()} ${words}` : words;
+};
 
 // "Build with AI": chat (or talk) about your work, and AI writes the resume from it.
 // Chat messages are free; only "Create my resume" uses one of the daily AI actions.
@@ -57,7 +93,12 @@ export default function ChatBuilder({
   const [canListen] = useState(() => createRecognition() !== null);
   useEscape(onClose, !creating);
   const recognition = useRef<Recognition | null>(null);
+  // Text before the current listening session: what was typed, plus earlier sessions' words
   const spokenBase = useRef("");
+  const spokenNow = useRef("");
+  // True from tapping the mic until tapping it again. The browser ends a session after a pause,
+  // so while this is set a new one starts straight away.
+  const wantListening = useRef(false);
   const bottom = useRef<HTMLDivElement>(null);
 
   const conversation: ChatTurn[] = turns.length > 0 ? turns : [{ role: "assistant", content: OPENING }];
@@ -68,11 +109,55 @@ export default function ChatBuilder({
     bottom.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [conversation.length, thinking]);
 
-  useEffect(() => () => recognition.current?.stop(), []);
-
-  const stopListening = () => {
-    recognition.current?.stop();
+  // Stops for good. `discard` drops words still being processed, for when the draft is about to be cleared.
+  const stopListening = (discard = false) => {
+    wantListening.current = false;
+    const rec = recognition.current;
+    if (rec && discard) {
+      rec.onresult = null;
+      rec.abort();
+    } else rec?.stop();
     setListening(false);
+  };
+
+  useEffect(() => () => stopListening(true), []);
+
+  const listen = () => {
+    const rec = createRecognition();
+    if (!rec) return false;
+    rec.lang = navigator.language || "en-US";
+    // Continuous mode on Android sends the same words over and over. There, each session is one
+    // phrase and the next one starts as soon as it ends (see onend), so it still listens until tapped.
+    rec.continuous = !/Android/i.test(navigator.userAgent);
+    rec.interimResults = true;
+    spokenNow.current = "";
+    rec.onresult = (event) => {
+      spokenNow.current = joinResults(event.results);
+      setDraft(joinSpoken(spokenBase.current, spokenNow.current));
+    };
+    rec.onerror = (event) => {
+      const message = VOICE_ERRORS[event.error];
+      if (!message) return;
+      setError(message);
+      wantListening.current = false;
+    };
+    rec.onend = () => {
+      if (recognition.current !== rec) return;
+      spokenBase.current = joinSpoken(spokenBase.current, spokenNow.current);
+      spokenNow.current = "";
+      if (wantListening.current && listen()) return;
+      wantListening.current = false;
+      setListening(false);
+    };
+    recognition.current = rec;
+    // Some browsers throw here instead of calling onerror (for example, if the mic is busy)
+    try {
+      rec.start();
+    } catch {
+      setError(VOICE_ERRORS.unavailable);
+      return false;
+    }
+    return true;
   };
 
   const toggleMic = () => {
@@ -80,34 +165,10 @@ export default function ChatBuilder({
       stopListening();
       return;
     }
-    const rec = createRecognition();
-    if (!rec) return;
-    rec.lang = navigator.language || "en-US";
-    rec.continuous = true;
-    rec.interimResults = true;
-    spokenBase.current = draft ? `${draft.trimEnd()} ` : "";
-    rec.onresult = (event) => {
-      let finalText = "";
-      let interim = "";
-      for (let i = 0; i < event.results.length; i++) {
-        const result = event.results[i];
-        if (result.isFinal) finalText += result[0].transcript;
-        else interim += result[0].transcript;
-      }
-      setDraft(spokenBase.current + finalText + interim);
-    };
-    rec.onerror = (event) => {
-      const message = VOICE_ERRORS[event.error];
-      if (message) setError(message);
-      setListening(false);
-    };
-    rec.onend = () => setListening(false);
-    recognition.current = rec;
-    // Some browsers throw here instead of calling onerror (for example, if the mic is busy)
-    try {
-      rec.start();
-    } catch {
-      setError(VOICE_ERRORS.unavailable);
+    spokenBase.current = draft;
+    wantListening.current = true;
+    if (!listen()) {
+      wantListening.current = false;
       return;
     }
     setListening(true);
@@ -117,7 +178,7 @@ export default function ChatBuilder({
   const send = async () => {
     const text = draft.trim();
     if (!text || thinking) return;
-    stopListening();
+    stopListening(true);
     const next: ChatTurn[] = [...conversation, { role: "user", content: text }];
     onTurnsChange(next);
     setDraft("");
@@ -134,7 +195,7 @@ export default function ChatBuilder({
   };
 
   const create = async () => {
-    stopListening();
+    stopListening(true);
     setCreating(true);
     setError("");
     const reply = await callAi<{ resume: unknown }>("/api/chat/resume", { messages: conversation });
@@ -195,13 +256,13 @@ export default function ChatBuilder({
         </div>
 
         <div className="border-t border-border p-4">
-          {error && <p className="mb-2 text-xs text-amber-300">{error}</p>}
+          {error && <p className="mb-2 text-xs text-warning">{error}</p>}
           {atLimit ? (
             <p className="mb-2 text-xs text-muted">That&apos;s plenty to work with. Press Create my resume.</p>
           ) : (
             <div className="flex items-end gap-2">
               <textarea
-                className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm leading-6 text-foreground outline-none placeholder:text-neutral-600 focus:border-accent"
+                className="max-h-40 min-h-[44px] flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm leading-6 text-foreground outline-none placeholder:text-faint focus:border-accent"
                 rows={2}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
@@ -223,14 +284,14 @@ export default function ChatBuilder({
                   aria-pressed={listening}
                   className={`relative flex size-11 shrink-0 items-center justify-center rounded-full border text-xl transition-colors ${
                     listening
-                      ? "border-red-400/70 bg-red-500/15 text-red-300"
+                      ? "border-danger/70 bg-danger/15 text-danger"
                       : "border-border text-muted hover:border-foreground hover:text-foreground"
                   }`}
                 >
                   {listening && (
                     <span
                       aria-hidden="true"
-                      className="absolute inset-0 rounded-full border border-red-400/60 motion-safe:animate-ping"
+                      className="absolute inset-0 rounded-full border border-danger/60 motion-safe:animate-ping"
                     />
                   )}
                   <MicIcon active={listening} />

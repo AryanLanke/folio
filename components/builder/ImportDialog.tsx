@@ -97,7 +97,7 @@ export default function ImportDialog({
           </label>
         ) : (
           <textarea
-            className="mt-4 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none placeholder:text-neutral-600 focus:border-accent"
+            className="mt-4 w-full resize-y rounded-md border border-border bg-background px-3 py-2 text-sm leading-6 text-foreground outline-none placeholder:text-faint focus:border-accent"
             rows={9}
             maxLength={MAX_IMPORT_LENGTH}
             value={text}
@@ -109,7 +109,7 @@ export default function ImportDialog({
         <p className="mt-3 text-xs text-neutral-500">
           Uses 1 free AI action. Your file is read once to get the text and is not stored anywhere.
         </p>
-        {error && <p className="mt-2 text-sm text-amber-300">{error}</p>}
+        {error && <p className="mt-2 text-sm text-warning">{error}</p>}
 
         <div className="mt-6 flex justify-end gap-2">
           <button

@@ -57,7 +57,7 @@ export default function ErrorScreen({ error, retry }: { error: unknown; retry: (
         </button>
       </div>
       {backup === "saved" && (
-        <p className="mt-4 text-sm text-accent">Saved. Open it later from More → Open backup file.</p>
+        <p className="mt-4 text-sm text-accent-ink">Saved. Open it later from More → Open backup file.</p>
       )}
       {backup === "none" && <p className="mt-4 text-sm text-muted">There are no saved resumes in this browser yet.</p>}
       <p className="mt-10 text-sm text-muted">

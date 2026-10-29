@@ -49,9 +49,9 @@ export default function AtsView({ resume, onChange }: { resume: Resume; onChange
           <div className="min-w-0 flex-1 basis-52">
             <p className="font-bold">{scoreVerdict(score)}</p>
             <p className="mt-1 text-sm text-muted">
-              <span className="text-accent">{count("pass")} passed</span> ·{" "}
-              <span className="text-amber-300">{count("warn")} warnings</span> ·{" "}
-              <span className="text-red-400">{count("fail")} to fix</span>. Checks that matter more count for more.
+              <span className="text-accent-ink">{count("pass")} passed</span> ·{" "}
+              <span className="text-warning">{count("warn")} warnings</span> ·{" "}
+              <span className="text-danger">{count("fail")} to fix</span>. Checks that matter more count for more.
             </p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function AtsView({ resume, onChange }: { resume: Resume; onChange
           <ul className="mt-2 grid gap-1.5 text-sm sm:grid-cols-2">
             {BUILT_IN.map((item) => (
               <li key={item} className="flex gap-2">
-                <span className="font-bold text-accent" aria-hidden>
+                <span className="font-bold text-accent-ink" aria-hidden>
                   ✓
                 </span>
                 {item}

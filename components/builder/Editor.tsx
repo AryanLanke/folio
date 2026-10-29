@@ -387,7 +387,7 @@ export default function Editor({
               key={kind}
               type="button"
               onClick={() => addExtra(kind)}
-              className="rounded-full border border-border px-4 py-1.5 text-sm font-semibold text-muted transition-colors hover:border-accent hover:text-accent"
+              className="rounded-full border border-border px-4 py-1.5 text-sm font-semibold text-muted transition-colors hover:border-accent hover:text-accent-ink"
             >
               + {EXTRA_KINDS[kind].title}
             </button>
