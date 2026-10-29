@@ -65,6 +65,13 @@ body {
   color: var(--foreground);
 }
 
+/* Switching between light and dark mode: the whole page cross-fades (see switchTheme) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Optimize: while it works, the page goes soft and a band of light with a fine shimmer sweeps
    down it, the way a photo app shows it retouching a picture. Then one last sweep uncovers the
    result. The reveal takes 0.9s (REVEAL_MS in components/resume/Optimizer.tsx). */

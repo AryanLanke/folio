@@ -1,4 +1,5 @@
 import Link from "next/link";
+import PrivacyLink from "@/components/site/PrivacyLink";
 import { FEEDBACK_URL } from "@/lib/site";
 
 export default function SiteFooter() {
@@ -10,9 +11,7 @@ export default function SiteFooter() {
           <Link href="/builder" className="transition-colors hover:text-foreground">
             Open editor
           </Link>
-          <Link href="/privacy" className="transition-colors hover:text-foreground">
-            Privacy
-          </Link>
+          <PrivacyLink />
           <a href={FEEDBACK_URL} className="transition-colors hover:text-foreground">
             Send feedback
           </a>

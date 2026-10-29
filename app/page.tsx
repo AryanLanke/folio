@@ -3,6 +3,7 @@ import DemoVideo from "@/components/site/DemoVideo";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import Sparkle from "@/components/ui/Sparkle";
+import { FEEDBACK_URL } from "@/lib/site";
 
 const features = [
   {
@@ -32,6 +33,10 @@ const features = [
   {
     title: "A strict ATS check",
     body: "An ATS score out of 100 from 15 checks, like education, bullet formatting, dates, your summary, action verbs and numbers. Each one passes, warns or needs fixing, with how to fix it, and broken bullets fix in one click. Plus the exact text software like Workday reads from your PDF.",
+  },
+  {
+    title: "Edit right on the page",
+    body: "Click any line of your resume and type. Bold, italic and underline work too, Enter starts a new bullet, and the arrows next to each heading move whole sections.",
   },
   {
     title: "PDF, Word and cover letters",
@@ -89,16 +94,16 @@ export default function Home() {
       <SiteHeader />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6">
-        <section className="max-w-3xl pt-20 sm:pt-28">
+        <section className="mx-auto max-w-3xl pt-20 text-center sm:pt-28">
           <p className="text-sm font-bold text-accent-ink">Free resume builder · no sign-up · no watermark</p>
           <h1 className="mt-4 text-4xl font-bold leading-[1.1] tracking-tight sm:text-6xl">
             The resume builder that&apos;s actually free.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
+          <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted">
             Write your resume, match it to the job, polish it with honest AI, and download a PDF or Word file.
             No account, no paywall at the download button.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
               href="/builder"
               className="inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
@@ -144,19 +149,21 @@ export default function Home() {
         </section>
 
         <section className="mt-24">
-          <div className="max-w-3xl">
+          <div className="grid gap-4 lg:grid-cols-2 lg:gap-16">
             <h2 className="text-3xl font-bold tracking-tight">Know your match before you apply</h2>
-            <p className="mt-4 leading-7 text-muted">
-              Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
-              resume against them as you type, and tailors AI suggestions to the job&apos;s wording, without adding
-              anything you haven&apos;t done.
-            </p>
-            <Link
-              href="/builder?example&view=job"
-              className="mt-6 inline-block font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
-            >
-              Try job match on the example →
-            </Link>
+            <div>
+              <p className="leading-7 text-muted">
+                Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
+                resume against them as you type, and tailors AI suggestions to the job&apos;s wording, without adding
+                anything you haven&apos;t done.
+              </p>
+              <Link
+                href="/builder?example&view=job"
+                className="mt-6 inline-block font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
+              >
+                Try job match on the example →
+              </Link>
+            </div>
           </div>
           <div className="mt-10 overflow-hidden rounded-xl border border-border shadow-2xl light:shadow-lg">
             <DemoVideo
@@ -190,9 +197,18 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-24 max-w-3xl">
-          <h2 className="text-3xl font-bold tracking-tight">Questions</h2>
-          <div className="mt-8 divide-y divide-border border-y border-border">
+        <section className="mt-24 grid gap-8 lg:grid-cols-[1fr_2fr] lg:gap-16">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">Questions</h2>
+            <p className="mt-4 leading-7 text-muted">
+              Something else on your mind?{" "}
+              <a href={FEEDBACK_URL} className="font-bold text-accent-ink transition-colors hover:text-accent-ink-hover">
+                Send us a note
+              </a>
+              .
+            </p>
+          </div>
+          <div className="divide-y divide-border border-y border-border">
             {faqs.map((faq) => (
               <details key={faq.q} className="group py-5">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold [&::-webkit-details-marker]:hidden">

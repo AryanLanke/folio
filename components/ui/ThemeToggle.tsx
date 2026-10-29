@@ -2,12 +2,18 @@
 
 import { saveTheme } from "@/lib/storage";
 
-// Flips between dark (the default) and light mode, and remembers the choice in this browser
+// Flips between dark (the default) and light mode, and remembers the choice in this browser. The
+// page cross-fades from one to the other (timing in globals.css); browsers without view
+// transitions, and people who ask for less motion, get the change at once.
 export function switchTheme() {
   const light = document.documentElement.dataset.theme !== "light";
-  if (light) document.documentElement.dataset.theme = "light";
-  else delete document.documentElement.dataset.theme;
+  const apply = () => {
+    if (light) document.documentElement.dataset.theme = "light";
+    else delete document.documentElement.dataset.theme;
+  };
   saveTheme(light ? "light" : "dark");
+  if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) apply();
+  else document.startViewTransition(apply);
 }
 
 // A line-drawn sun in dark mode (to switch to light) and moon in light mode. Which one shows is
