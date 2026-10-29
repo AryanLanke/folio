@@ -148,24 +148,22 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mt-24">
-          <div className="grid gap-4 lg:grid-cols-2 lg:gap-16">
+        <section className="mt-24 grid items-center gap-10 lg:grid-cols-2">
+          <div>
             <h2 className="text-3xl font-bold tracking-tight">Know your match before you apply</h2>
-            <div>
-              <p className="leading-7 text-muted">
-                Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
-                resume against them as you type, and tailors AI suggestions to the job&apos;s wording, without adding
-                anything you haven&apos;t done.
-              </p>
-              <Link
-                href="/builder?example&view=job"
-                className="mt-6 inline-block font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
-              >
-                Try job match on the example →
-              </Link>
-            </div>
+            <p className="mt-4 leading-7 text-muted">
+              Paste the job posting. Folio picks out the skills and terms recruiters will search for, scores your
+              resume against them as you type, and tailors AI suggestions to the job&apos;s wording, without adding
+              anything you haven&apos;t done.
+            </p>
+            <Link
+              href="/builder?example&view=job"
+              className="mt-6 inline-block font-bold text-accent-ink transition-colors hover:text-accent-ink-hover"
+            >
+              Try job match on the example →
+            </Link>
           </div>
-          <div className="mt-10 overflow-hidden rounded-xl border border-border shadow-2xl light:shadow-lg">
+          <div className="overflow-hidden rounded-xl border border-border shadow-2xl light:shadow-lg">
             <DemoVideo
               name="job-match"
               label="Job match: the score counts up to 75%, then climbs to 88% and 100% as GraphQL and Jest are typed into skills"

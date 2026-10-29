@@ -4,11 +4,14 @@ import {
   DEFAULT_STYLE,
   createEmptyResume,
   createSampleResume,
+  isBlankResume,
   newExtraSection,
   normalizeResume,
+  renameSection,
   skillGroups,
   skillList,
   skillsText,
+  swapSections,
   toLines,
   toList,
   visibleSections,
@@ -143,5 +146,46 @@ describe("skill groups", () => {
     const old = { ...createSampleResume(), projects: [{ id: "p", name: "Site", link: "", bullets: "Built it" }] };
     const loaded = normalizeResume(JSON.parse(JSON.stringify(old)))!;
     expect(loaded.projects[0]).toEqual({ id: "p", name: "Site", link: "", tech: "", date: "", bullets: "Built it" });
+  });
+});
+
+describe("blank resumes", () => {
+  it("counts a resume with no name, summary or jobs as blank, whatever its look", () => {
+    expect(isBlankResume({ ...createEmptyResume(), style: { ...DEFAULT_STYLE, template: "bold" } })).toBe(true);
+    expect(isBlankResume(createSampleResume())).toBe(false);
+  });
+
+  it("stops being blank once anything is written", () => {
+    const empty = createEmptyResume();
+    expect(isBlankResume({ ...empty, summary: "Engineer" })).toBe(false);
+    expect(isBlankResume({ ...empty, basics: { ...empty.basics, name: "Sam" } })).toBe(false);
+    expect(isBlankResume({ ...empty, experience: [{ ...empty.experience[0], role: "Dev" }] })).toBe(false);
+  });
+});
+
+describe("moving and renaming sections", () => {
+  it("swaps two sections and leaves the rest where they were", () => {
+    const resume = createEmptyResume();
+    expect(swapSections(resume, "summary", "experience").order).toEqual(["experience", "summary", "projects", "education", "skills"]);
+    expect(resume.order).toEqual(CORE_SECTIONS);
+  });
+
+  it("ignores a section that isn't in the order", () => {
+    const resume = createEmptyResume();
+    expect(swapSections(resume, "summary", "nope")).toBe(resume);
+  });
+
+  it("renames a core section, and clearing the name puts the standard one back", () => {
+    const renamed = renameSection(createEmptyResume(), "summary", "Profile");
+    expect(renamed.titles).toEqual({ summary: "Profile" });
+    expect(renameSection(renamed, "summary", "").titles).toEqual({});
+    expect(renameSection(renamed, "summary", "Summary").titles).toEqual({});
+  });
+
+  it("renames an extra section, falling back to its kind's name", () => {
+    const extra = newExtraSection("awards");
+    const resume = { ...createEmptyResume(), extras: [extra], order: [...CORE_SECTIONS, extra.id] };
+    expect(renameSection(resume, extra.id, "Honours").extras[0].title).toBe("Honours");
+    expect(renameSection(resume, extra.id, "").extras[0].title).toBe("Awards");
   });
 });

@@ -88,24 +88,27 @@ No accounts and no database. Your resumes live in your browser, and PDF and Word
 Folio is a [Next.js](https://nextjs.org) app. The editor runs entirely in the browser. The only server code is a few small API routes that send the text for one AI action to [Groq](https://groq.com) (or Vercel AI Gateway) and return the result.
 
 ```
-app/                    Pages: home, editor (/builder), privacy, and /api AI routes
-components/builder/     Editor form, template picker, cover letter editor, import dialog, toolbar
-components/resume/      Resume page (editable like Word), page-break preview, ATS check, job match, Optimize
-lib/resume.ts           The resume data model and safe loading of saved data
-lib/rich.ts             Bold, italic and underline in resume text, and the plain words for everything else
-lib/templates.ts        How each template looks and its heading colour, shared by preview, PDF and Word
-lib/optimize.ts         Optimize: the AI prompt, the fact check on its answer, layout fitting and the change list
-lib/export/             PDF (react-pdf) and Word (docx) generation
-lib/jobmatch.ts         Job keyword extraction prompt and live matching
-lib/enhance.ts          AI enhance rules, response cleanup, daily limit
-lib/importer.ts         Resume import prompt and parsing
-lib/coverletter.ts      Cover letter and fact-check prompts
-lib/ats.ts              Plain-text export, the ATS check and score, and "Fix automatically"
-lib/library.ts          Multiple resumes
-lib/backup.ts           Backup files with every resume
-lib/storage.ts          Browser storage
-lib/server/ai.ts        The AI provider call shared by every route, with retries when it's busy
-e2e/                    Browser tests (Playwright) that click through the built app
+app/                        Pages: home, editor (/builder), privacy, and /api AI routes
+components/builder/         The editor page: form, template picker, cover letter editor, import dialog, toolbar
+components/builder/header/  The menus at the top: your resumes, More, and Download
+components/builder/use*.ts  Hooks for the resumes, undo and autosave (useResumeLibrary) and Optimize (useOptimize)
+components/resume/          Resume page (editable like Word), page-break preview, ATS check, job match, Optimize
+components/resume/page/     The parts of the resume page: sections, bullets, contact line, each kind of entry
+lib/resume.ts               The resume data model and safe loading of saved data
+lib/rich.ts                 Bold, italic and underline in resume text, and the plain words for everything else
+lib/templates.ts            How each template looks and its heading colour, shared by preview, PDF and Word
+lib/optimize.ts             Optimize: the AI prompt, the fact check on its answer, layout fitting and the change list
+lib/export/                 PDF (react-pdf) and Word (docx) generation
+lib/jobmatch.ts             Job keyword extraction prompt and live matching
+lib/enhance.ts              AI enhance rules, response cleanup, daily limit
+lib/importer.ts             Resume import prompt and parsing
+lib/coverletter.ts          Cover letter and fact-check prompts
+lib/ats.ts                  Plain-text export, the ATS check and score, and "Fix automatically"
+lib/library.ts              Multiple resumes
+lib/backup.ts               Backup files with every resume
+lib/storage.ts              Browser storage
+lib/server/ai.ts            The AI provider call shared by every route, with retries when it's busy
+e2e/                        Browser tests (Playwright) that click through the built app
 ```
 
 ## Run it locally

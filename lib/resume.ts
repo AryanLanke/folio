@@ -409,6 +409,36 @@ export function visibleSections(resume: Resume): { key: string; title: string; e
   });
 }
 
+// Nothing written yet: no name, no summary and no jobs. The look (template, colours) doesn't count.
+export function isBlankResume(resume: Resume) {
+  return !resume.basics.name && !resume.summary && !resume.experience.some(hasExperience);
+}
+
+// Two sections swap places in the saved order, which also holds the ones not on the page yet
+export function swapSections(resume: Resume, a: string, b: string): Resume {
+  const order = [...resume.order];
+  const i = order.indexOf(a);
+  const j = order.indexOf(b);
+  if (i < 0 || j < 0) return resume;
+  [order[i], order[j]] = [order[j], order[i]];
+  return { ...resume, order };
+}
+
+// Gives a section a new heading. Clearing it puts the standard name back.
+export function renameSection(resume: Resume, key: string, title: string): Resume {
+  if (key in CORE_TITLES) {
+    const titles = { ...resume.titles, [key]: title };
+    if (!title || title === CORE_TITLES[key as CoreSection]) delete titles[key as CoreSection];
+    return { ...resume, titles };
+  }
+  return {
+    ...resume,
+    extras: resume.extras.map((extra) =>
+      extra.id === key ? { ...extra, title: title || EXTRA_KINDS[extra.kind].title } : extra,
+    ),
+  };
+}
+
 // Page sizes in CSS pixels (96 per inch)
 export const PAPER = {
   letter: { label: "Letter", css: "letter", width: 816, height: 1056 },
