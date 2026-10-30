@@ -3,6 +3,7 @@ import DemoVideo from "@/components/site/DemoVideo";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import Sparkle from "@/components/ui/Sparkle";
+import { EXAMPLES } from "@/lib/examples";
 import { FEEDBACK_URL } from "@/lib/site";
 
 const features = [
@@ -169,6 +170,25 @@ export default function Home() {
               label="Job match: the score counts up to 75%, then climbs to 88% and 100% as GraphQL and Jest are typed into skills"
             />
           </div>
+        </section>
+
+        <section className="mt-24">
+          <h2 className="text-3xl font-bold tracking-tight">Start from an example</h2>
+          <p className="mt-4 max-w-2xl leading-7 text-muted">
+            Not sure what yours should look like? Pick your job, see a strong resume for it, and make it your own.
+          </p>
+          <ul className="mt-6 flex flex-wrap gap-3">
+            {EXAMPLES.map((example) => (
+              <li key={example.slug}>
+                <Link
+                  href={`/examples/${example.slug}`}
+                  className="inline-block rounded-full border border-border px-4 py-2 text-sm font-bold transition-colors hover:border-foreground"
+                >
+                  {example.role}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         <section className="mt-24">

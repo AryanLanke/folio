@@ -10,6 +10,9 @@ export default function SiteHeader() {
           Folio<span className="text-accent-ink">.</span>
         </Link>
         <nav className="flex items-center gap-5 text-sm font-bold">
+          <Link href="/examples" className="hidden text-muted transition-colors hover:text-foreground sm:inline">
+            Examples
+          </Link>
           <PrivacyLink className="hidden sm:inline" />
           <ThemeToggle className="-mx-2" />
           <Link

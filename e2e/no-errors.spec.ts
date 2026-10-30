@@ -13,7 +13,7 @@ function watchErrors(page: Page) {
 test("every page and tab opens without a single error", async ({ page }) => {
   const errors = watchErrors(page);
 
-  for (const path of ["/", "/privacy"]) {
+  for (const path of ["/", "/privacy", "/terms", "/examples", "/examples/nurse"]) {
     await page.goto(path);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   }

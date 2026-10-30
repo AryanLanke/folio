@@ -7,11 +7,17 @@ export default function SiteFooter() {
     <footer className="border-t border-border">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap justify-between gap-4 px-6 py-6 text-sm text-muted">
         <span>Folio · a free resume builder</span>
-        <nav className="flex gap-5">
+        <nav className="flex flex-wrap gap-x-5 gap-y-2">
           <Link href="/builder" className="transition-colors hover:text-foreground">
             Open editor
           </Link>
+          <Link href="/examples" className="transition-colors hover:text-foreground">
+            Examples
+          </Link>
           <PrivacyLink />
+          <Link href="/terms" className="transition-colors hover:text-foreground">
+            Terms
+          </Link>
           <a href={FEEDBACK_URL} className="transition-colors hover:text-foreground">
             Send feedback
           </a>

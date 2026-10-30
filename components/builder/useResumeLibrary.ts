@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { type BackupEntry, backupFileName, makeBackup, readBackup } from "@/lib/backup";
 import { saveBlob } from "@/lib/export/text";
+import { findExample } from "@/lib/examples";
 import { type History, emptyHistory, record, redo, undo } from "@/lib/history";
 import {
   type Library,
@@ -28,14 +29,25 @@ import {
 
 export type SaveState = "idle" | "saving" | "saved" | "failed";
 
-// Saved work always wins; "?example" only fills in a first visit (used by the home page link)
-function startingState(): { library: Library; resume: Resume } {
+// Saved work always wins; "?example" only fills in a first visit (used by the home page link).
+// "?example=<job>" comes from an example page's "Use this example": it opens that example as a
+// resume of its own, next to any saved ones, so nothing is ever overwritten. Being new, it's
+// saved straight away ("unsaved").
+function startingState(): { library: Library; resume: Resume; unsaved: boolean } {
+  const params = new URLSearchParams(window.location.search);
+  const picked = findExample(params.get("example") ?? "");
   const saved = loadLibrary();
-  if (saved) return { library: saved, resume: loadResume(saved.activeId) ?? createEmptyResume() };
-  const example = new URLSearchParams(window.location.search).has("example");
+  if (saved && picked) {
+    const { library } = addEntry(saved, uniqueName(saved, `${picked.role} example`));
+    return { library, resume: picked.resume(), unsaved: true };
+  }
+  if (saved) return { library: saved, resume: loadResume(saved.activeId) ?? createEmptyResume(), unsaved: false };
+  if (picked) return { library: createLibrary(`${picked.role} example`), resume: picked.resume(), unsaved: true };
+  const example = params.has("example");
   return {
     library: createLibrary(example ? "Example resume" : "My resume"),
     resume: example ? createSampleResume() : createEmptyResume(),
+    unsaved: false,
   };
 }
 
@@ -47,7 +59,7 @@ export function useResumeLibrary({ onOpen }: { onOpen: () => void }) {
   const [library, setLibrary] = useState<Library>(initial.library);
   const [resume, setResume] = useState<Resume>(initial.resume);
   const [history, setHistory] = useState<History<Resume>>(emptyHistory);
-  const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [saveState, setSaveState] = useState<SaveState>(initial.unsaved ? "saving" : "idle");
 
   const activeName = library.items.find((item) => item.id === library.activeId)?.name ?? "My resume";
 
@@ -116,6 +128,14 @@ export function useResumeLibrary({ onOpen }: { onOpen: () => void }) {
     window.addEventListener("pagehide", flush);
     return () => window.removeEventListener("pagehide", flush);
   }, [resume, saveState, library.activeId]);
+
+  // An example opened from an example page is now in the list, so a reload mustn't add it again
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (!findExample(url.searchParams.get("example") ?? "")) return;
+    url.searchParams.delete("example");
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
 
   // The list of resumes is saved as soon as it changes (first visit, new, rename, delete, switch)
   useEffect(() => {
