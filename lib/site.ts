@@ -1,3 +1,6 @@
+// The live address, for links that must be complete: share previews, the sitemap and robots.txt
+export const SITE_URL = "https://folio-resumes.vercel.app";
+
 // Where "Send feedback" links go: an email to the person who runs Folio
 export const FEEDBACK_EMAIL = "redischarmender@gmail.com";
 export const FEEDBACK_URL = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent("Folio feedback")}`;

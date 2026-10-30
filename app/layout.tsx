@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Figtree } from "next/font/google";
 import Script from "next/script";
-import { ANALYTICS_ON } from "@/lib/site";
+import { ANALYTICS_ON, SITE_URL } from "@/lib/site";
 import { THEME_KEY } from "@/lib/storage";
 import "./globals.css";
 
@@ -11,6 +11,8 @@ const figtree = Figtree({
 });
 
 export const metadata: Metadata = {
+  // Share previews link to the live address, whichever Vercel domain served the page
+  metadataBase: new URL(SITE_URL),
   title: "Folio · Free resume builder, no sign-up",
   description:
     "Build an ATS-friendly resume for free. Job match, honest AI, nine templates, PDF and Word downloads. No sign-up, no watermark.",

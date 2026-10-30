@@ -177,15 +177,15 @@ export default function Home() {
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead className="bg-surface">
                 <tr>
-                  <th className="p-4 font-semibold text-muted" />
-                  <th className="p-4 font-bold text-accent-ink">Folio</th>
-                  <th className="p-4 font-semibold text-muted">Most resume builders</th>
+                  <td className="p-4" />
+                  <th scope="col" className="p-4 font-bold text-accent-ink">Folio</th>
+                  <th scope="col" className="p-4 font-semibold text-muted">Most resume builders</th>
                 </tr>
               </thead>
               <tbody>
                 {comparison.map(([label, folio, others]) => (
                   <tr key={label} className="border-t border-border">
-                    <td className="p-4 font-semibold">{label}</td>
+                    <th scope="row" className="p-4 font-semibold">{label}</th>
                     <td className="p-4">✓ {folio}</td>
                     <td className="p-4 text-muted">{others}</td>
                   </tr>

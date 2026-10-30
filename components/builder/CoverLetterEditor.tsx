@@ -61,7 +61,7 @@ export default function CoverLetterEditor({
         )}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-muted">
             {left > 0 ? `Uses 1 of your ${left} free AI actions left today` : "No AI actions left today"}
           </span>
           <button
@@ -89,7 +89,7 @@ export default function CoverLetterEditor({
           onChange={(v) => onChange(v)}
           placeholder={"Dear Hiring Manager,\n\nI'm applying for…"}
         />
-        <p className="mt-3 text-xs text-neutral-500">
+        <p className="mt-3 text-xs text-muted">
           Read it through before sending. AI can get the tone right, but you know what&apos;s true.
         </p>
       </section>

@@ -95,7 +95,7 @@ export default function EnhanceTextArea({
       <TextArea {...textArea} />
 
       <div className="mt-2 flex items-center justify-between gap-3">
-        <span className="text-xs text-neutral-500">
+        <span className="text-xs text-muted">
           {left > 0 ? `${left} free AI actions left today` : "No AI actions left today"}
         </span>
         <button
@@ -197,7 +197,7 @@ export default function EnhanceTextArea({
               Keep mine
             </button>
           </div>
-          <p className="mt-3 text-[11px] text-neutral-500">
+          <p className="mt-3 text-[11px] text-muted">
             AI only rewords what you wrote. Each refinement uses 1 AI action. Check that every fact is still right
             before using it.
           </p>

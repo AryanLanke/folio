@@ -26,7 +26,7 @@ function Warning({ text }: { text?: string | null }) {
 function FormattedNote({ value }: { value: string }) {
   if (!hasFormatting(value)) return null;
   return (
-    <span className="mt-1 block text-[11px] text-neutral-500">
+    <span className="mt-1 block text-[11px] text-muted">
       Has bold, italic or underline from the page. Typing here keeps just the words.
     </span>
   );
@@ -89,7 +89,7 @@ export function TextArea({
     <label className="block">
       <span className="mb-1.5 flex items-baseline justify-between gap-2 text-xs font-semibold text-muted">
         {label}
-        {hint && <span className="font-normal text-neutral-500">{hint}</span>}
+        {hint && <span className="font-normal text-muted">{hint}</span>}
       </span>
       <textarea
         className={`${inputClass()} resize-y leading-6`}

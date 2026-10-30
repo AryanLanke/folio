@@ -309,7 +309,7 @@ export default function ChatBuilder({
           )}
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[11px] text-neutral-500">
+            <span className="text-[11px] text-muted">
               Chatting is free. Creating uses 1 AI action.
               {canListen && " Voice typing uses your browser's speech service."}
             </span>

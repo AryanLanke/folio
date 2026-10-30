@@ -106,7 +106,7 @@ export default function ImportDialog({
           />
         )}
 
-        <p className="mt-3 text-xs text-neutral-500">
+        <p className="mt-3 text-xs text-muted">
           Uses 1 free AI action. Your file is read once to get the text and is not stored anywhere.
         </p>
         {error && <p className="mt-2 text-sm text-warning">{error}</p>}

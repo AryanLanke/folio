@@ -85,7 +85,7 @@ export default function JobMatch({
           placeholder="Paste the full job description here…"
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs text-neutral-500">Uses 1 free AI action. Only the job posting is sent.</span>
+          <span className="text-xs text-muted">Uses 1 free AI action. Only the job posting is sent.</span>
           <button
             type="button"
             onClick={analyze}
