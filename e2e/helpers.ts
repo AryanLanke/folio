@@ -15,6 +15,13 @@ export async function savedLibrary(page: Page) {
   return page.evaluate(() => JSON.parse(localStorage.getItem("folio:library") ?? "null"));
 }
 
+// On a phone the editor and the page take turns on screen: shows the page, like tapping Preview.
+// On wider screens both are always there, so it does nothing.
+export async function showPage(page: Page) {
+  const preview = page.getByRole("button", { name: "preview" });
+  if (await preview.isVisible()) await preview.click();
+}
+
 // The big score number on the Score or ATS check tab
 export async function shownScore(page: Page) {
   const text = await page.locator(".text-6xl").first().textContent();

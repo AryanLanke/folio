@@ -62,9 +62,12 @@ const SAVE_LABELS = {
 // Only rendered in the browser (see ClientBuilder), so storage and the URL are readable here.
 export default function Builder() {
   const [editorView, setEditorView] = useState<"resume" | "letter">("resume");
-  const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
   const [previewView, setPreviewView] = useState<PreviewView>(startingView);
+  // On a phone only one half shows at a time: a link to a tab (Score, ATS check, Job match) opens
+  // on that tab, not on the editor
+  const [mobileView, setMobileView] = useState<"edit" | "preview">(previewView === "page" ? "edit" : "preview");
   const docs = useResumeLibrary({ onOpen: () => setEditorView("resume") });
+  const saveTone = docs.saveState === "failed" ? "text-danger" : "text-muted";
   const { resume, update } = docs;
   const [paper, setPaper] = useState<PaperSize>(loadPaper);
   const optimizer = useOptimize({ resume, paper, update });
@@ -148,9 +151,7 @@ export default function Builder() {
             onDelete={docs.remove}
           />
 
-          <span className={`hidden truncate text-xs lg:inline ${docs.saveState === "failed" ? "text-danger" : "text-muted"}`}>
-            {SAVE_LABELS[docs.saveState]}
-          </span>
+          <span className={`hidden truncate text-xs lg:inline ${saveTone}`}>{SAVE_LABELS[docs.saveState]}</span>
         </div>
 
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
@@ -214,7 +215,7 @@ export default function Builder() {
             mobileView === "edit" ? "block" : "hidden"
           }`}
         >
-          <div className="mb-4">
+          <div className="mb-4 flex items-center justify-between gap-3">
             <Segmented
               options={[
                 { value: "resume", label: "Resume" },
@@ -223,6 +224,8 @@ export default function Builder() {
               value={editorView}
               onChange={setEditorView}
             />
+            {/* Phones have no room in the header, so whether it saved shows here instead */}
+            <span className={`min-w-0 truncate text-right text-xs lg:hidden ${saveTone}`}>{SAVE_LABELS[docs.saveState]}</span>
           </div>
 
           {editorView === "resume" ? (

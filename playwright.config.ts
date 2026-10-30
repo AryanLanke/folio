@@ -13,7 +13,15 @@ export default defineConfig({
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    // The main flows again on a phone, where the editor and the page take turns on screen
+    {
+      name: "phone",
+      use: { ...devices["Pixel 7"] },
+      testMatch: /(home|examples|builder|ats|import|templates)\.spec\.ts/,
+    },
+  ],
   webServer: {
     command: "npm run start",
     url: "http://localhost:3000",

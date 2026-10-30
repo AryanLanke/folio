@@ -33,11 +33,15 @@ export function useCountUp(value: number) {
 }
 
 // The counting number, as wide as the final one from the start, so "/100" and the text beside it
-// stay put while it counts
+// stay put while it counts. An invisible copy of the final number (drawn by CSS, so it isn't part
+// of the page's text) sits in the same grid cell and sets the width.
 export function CountedNumber({ value, shown }: { value: number; shown: number }) {
   return (
-    <span className="inline-block text-right" style={{ minWidth: `${String(value).length}ch` }}>
-      {shown}
+    <span
+      data-final={value}
+      className="inline-grid justify-items-end before:invisible before:col-start-1 before:row-start-1 before:content-[attr(data-final)]"
+    >
+      <span className="col-start-1 row-start-1">{shown}</span>
     </span>
   );
 }

@@ -21,7 +21,7 @@ test("download, back up, lose everything, and restore it all from the backup", a
   await summary.click();
   await summary.press("End");
   await summary.pressSequentially(" Test edit.");
-  await expect(page.getByText("Saved in this browser only")).toBeVisible();
+  await expect(page.getByText("Saved in this browser only").filter({ visible: true })).toBeVisible();
 
   // Downloading the PDF brings up the backup reminder
   await page.locator("summary", { hasText: "Download" }).click();

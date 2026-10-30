@@ -1,10 +1,13 @@
 import { type Page, expect, test } from "@playwright/test";
+import { showPage } from "./helpers";
 
 const sheet = (page: Page) => page.locator(".origin-top-left");
 const openPicker = (page: Page) => page.locator("summary", { hasText: "change template" }).click();
 
 test("the template picker previews the resume in every template, and picking one applies it", async ({ page }) => {
   await page.goto("/builder?example");
+  await expect(page.locator("summary", { hasText: "Example resume" })).toBeVisible();
+  await showPage(page);
   await openPicker(page);
 
   const choices = page.getByRole("radiogroup", { name: "Template" }).getByRole("radio");
