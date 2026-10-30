@@ -1,4 +1,5 @@
 import CheckItem, { bar, checkAction, tone } from "@/components/resume/CheckItem";
+import { CountedNumber, useCountUp } from "@/components/ui/useCountUp";
 import { type Resume } from "@/lib/resume";
 import { scoreResume, scoreVerdict } from "@/lib/score";
 
@@ -8,17 +9,34 @@ const PART_HELP: Record<string, string> = {
   job: "Does it use the words the job posting asks for?",
 };
 
+// One part's score with its bar, both counting up from 0 like the total above them
+function PartBar({ label, score }: { label: string; score: number }) {
+  const shown = useCountUp(score);
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3 text-sm">
+        <span className="font-bold">{label}</span>
+        <span className={`font-bold tabular-nums transition-colors duration-500 ${tone(score)}`}>{shown}</span>
+      </div>
+      <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
+        <div className={`h-full rounded-full transition-colors duration-500 ${bar(score)}`} style={{ width: `${shown}%` }} />
+      </div>
+    </div>
+  );
+}
+
 // One score out of 100, broken into the parts and checks it's made of, each with what to fix
 export default function ScoreView({ resume, onChange }: { resume: Resume; onChange?: (next: Resume) => void }) {
   const { total, parts } = scoreResume(resume);
+  const shown = useCountUp(total);
 
   return (
     <div className="space-y-4">
       <section className="rounded-lg bg-surface p-5">
         <p className="text-xs font-semibold text-muted">Resume score</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <span className={`text-6xl font-bold tabular-nums ${tone(total)}`}>
-            {total}
+          <span className={`text-6xl font-bold tabular-nums transition-colors duration-500 ${tone(total)}`}>
+            <CountedNumber value={total} shown={shown} />
             <span className="text-2xl text-muted">/100</span>
           </span>
           <div className="min-w-0 flex-1 basis-52">
@@ -31,15 +49,7 @@ export default function ScoreView({ resume, onChange }: { resume: Resume; onChan
 
         <div className="mt-6 space-y-3">
           {parts.map((part) => (
-            <div key={part.key}>
-              <div className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="font-bold">{part.label}</span>
-                <span className={`font-bold tabular-nums ${tone(part.score)}`}>{part.score}</span>
-              </div>
-              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background">
-                <div className={`h-full rounded-full ${bar(part.score)}`} style={{ width: `${part.score}%` }} />
-              </div>
-            </div>
+            <PartBar key={part.key} label={part.label} score={part.score} />
           ))}
         </div>
       </section>

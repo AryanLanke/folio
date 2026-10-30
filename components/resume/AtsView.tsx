@@ -1,4 +1,5 @@
 import CheckItem, { checkAction, tone } from "@/components/resume/CheckItem";
+import { CountedNumber, useCountUp } from "@/components/ui/useCountUp";
 import { type AtsCheck, atsChecks, atsScore, linksHiddenFromAts, resumeToPlainText } from "@/lib/ats";
 import type { Resume } from "@/lib/resume";
 import { scoreVerdict } from "@/lib/score";
@@ -23,6 +24,7 @@ const BUILT_IN = [
 export default function AtsView({ resume, onChange }: { resume: Resume; onChange?: (next: Resume) => void }) {
   const checks = atsChecks(resume);
   const score = atsScore(checks);
+  const shown = useCountUp(score);
   const count = (status: AtsCheck["status"]) => checks.filter((c) => c.status === status).length;
   const text = resumeToPlainText(resume);
 
@@ -42,8 +44,8 @@ export default function AtsView({ resume, onChange }: { resume: Resume; onChange
       <section className="rounded-lg bg-surface p-5">
         <p className="text-xs font-semibold text-muted">ATS score</p>
         <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-3">
-          <span className={`text-6xl font-bold tabular-nums ${tone(score)}`}>
-            {score}
+          <span className={`text-6xl font-bold tabular-nums transition-colors duration-500 ${tone(score)}`}>
+            <CountedNumber value={score} shown={shown} />
             <span className="text-2xl text-muted">/100</span>
           </span>
           <div className="min-w-0 flex-1 basis-52">

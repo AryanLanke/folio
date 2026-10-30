@@ -1,6 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { seedResumes, shownScore, weakResume } from "./helpers";
 
+// Scores count up from 0; with animations off they show the final number straight away to read
+test.use({ reducedMotion: "reduce" });
+
 test("a weak resume can't get full marks, and broken bullets fix in one click with undo", async ({ page }) => {
   await seedResumes(page, { w: { name: "Weak resume", resume: weakResume } });
   await page.goto("/builder?view=ats");
