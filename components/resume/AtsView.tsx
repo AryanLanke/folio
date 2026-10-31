@@ -105,7 +105,12 @@ export default function AtsView({ resume, onChange }: { resume: Resume; onChange
           Your resume as plain text, in the order the software reads it. If something is missing here, the
           ATS won&apos;t see it either.
         </p>
-        <pre className="mt-4 max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-background p-4 font-mono text-xs leading-5 text-foreground">
+        {/* It scrolls, so it can be focused and scrolled from the keyboard too */}
+        <pre
+          tabIndex={0}
+          aria-label="What the ATS reads"
+          className="mt-4 max-h-[60vh] overflow-auto whitespace-pre-wrap rounded-md bg-background p-4 font-mono text-xs leading-5 text-foreground outline-accent focus-visible:outline-2"
+        >
           {text || "Nothing yet. Start filling in the editor."}
         </pre>
       </section>

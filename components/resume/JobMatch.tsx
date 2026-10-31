@@ -10,7 +10,7 @@ function Chip({ text, found }: { text: string; found: boolean }) {
   return (
     <li
       className={`chip-in rounded-full px-3 py-1 text-xs font-semibold ${
-        found ? "bg-accent/15 text-accent-ink" : "bg-warning/15 text-warning"
+        found ? "bg-accent/15 text-accent-tint-ink" : "bg-warning/15 text-warning-tint-ink"
       }`}
     >
       {found ? "✓ " : ""}
@@ -175,7 +175,7 @@ export default function JobMatch({
         </section>
       )}
 
-      <section className="rounded-lg border border-dashed border-border p-5 text-sm text-muted">
+      <section className="rounded-lg border border-dashed border-border bg-surface p-5 text-sm text-muted">
         <p>
           <b className="text-foreground">AI suggestions are now tailored to this job.</b> They use the job&apos;s
           wording for skills you already have, and never add ones you don&apos;t.

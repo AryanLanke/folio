@@ -82,7 +82,7 @@ No accounts, and your resumes never touch a server's storage. They live in your 
 | AI | [Groq](https://groq.com) open models; [Vercel AI Gateway](https://vercel.com/ai-gateway) when no Groq key is set |
 | Rate limiting | [Vercel Firewall](https://vercel.com/docs/vercel-firewall) for bursts, plus a daily count per address in [Upstash Redis](https://upstash.com) shared by every server instance |
 | Error monitoring | [Sentry](https://sentry.io) for crashes in the browser and server, and for AI failures people would notice. Errors only: no tracing, no session replays, no resume text |
-| Testing | [Vitest](https://vitest.dev) for unit tests, [Playwright](https://playwright.dev) for browser tests |
+| Testing | [Vitest](https://vitest.dev) for unit tests, [Playwright](https://playwright.dev) for browser tests, [axe](https://github.com/dequelabs/axe-core) for WCAG 2.2 AA accessibility checks on every page, menu and dialog, in both themes |
 | Quality and hosting | ESLint, GitHub Actions for checks, [Vercel](https://vercel.com) for hosting |
 
 ## How it works

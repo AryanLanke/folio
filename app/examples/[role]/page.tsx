@@ -85,7 +85,7 @@ function ExampleContent({ slug }: { slug: string }) {
             </p>
             <ul className="mt-4 flex flex-wrap gap-2">
               {example.keywords.map((keyword) => (
-                <li key={keyword} className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-ink">
+                <li key={keyword} className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent-tint-ink">
                   {keyword}
                 </li>
               ))}

@@ -98,7 +98,9 @@ export function ColorDot({
     <Menu
       align="right"
       className="group/dot"
-      panelClass="w-max p-3"
+      // The page is scaled down to fit the screen; the menu undoes that, so its swatches stay big
+      // enough to tap
+      panelClass="w-max origin-top-right p-3 [scale:calc(1/var(--page-scale,1))]"
       buttonClass="grid size-5 place-items-center rounded-full opacity-60 transition hover:scale-110 hover:opacity-100 focus-visible:opacity-100 group-open/dot:opacity-100"
       label={
         <>

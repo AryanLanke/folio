@@ -284,7 +284,7 @@ export default function ChatBuilder({
                   aria-pressed={listening}
                   className={`relative flex size-11 shrink-0 items-center justify-center rounded-full border text-xl transition-colors ${
                     listening
-                      ? "border-danger/70 bg-danger/15 text-danger"
+                      ? "border-danger/70 bg-danger/15 text-danger-tint-ink"
                       : "border-border text-muted hover:border-foreground hover:text-foreground"
                   }`}
                 >

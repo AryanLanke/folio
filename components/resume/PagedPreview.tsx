@@ -43,7 +43,7 @@ export default function PagedPreview({
       {toolbar && <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">{toolbar}</div>}
       <p
         className={`mb-3 rounded-md px-3 py-2 text-xs font-bold ${
-          pages === 1 ? "bg-accent/15 text-accent-ink" : "bg-warning/15 text-warning"
+          pages === 1 ? "bg-accent/15 text-accent-tint-ink" : "bg-warning/15 text-warning-tint-ink"
         }`}
       >
         {pages === 1
@@ -56,7 +56,8 @@ export default function PagedPreview({
           <div
             ref={pageRef}
             className="relative origin-top-left shadow-2xl light:shadow-lg light:ring-1 light:ring-border"
-            style={{ width: size.width, transform: `scale(${scale})` }}
+            // --page-scale lets menus opened on the page stay full size (see ColorDot)
+            style={{ width: size.width, transform: `scale(${scale})`, "--page-scale": scale } as React.CSSProperties}
           >
             {children}
             {breaks.map((top, i) => (

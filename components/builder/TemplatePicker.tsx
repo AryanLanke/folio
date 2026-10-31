@@ -62,8 +62,9 @@ export default function TemplatePicker({
                     }`}
                     style={{ width: size.width * SCALE, height: size.height * SCALE * CROP }}
                   >
+                    {/* Only a picture of the template: nothing in it can be tabbed to or read out */}
                     <div
-                      aria-hidden="true"
+                      inert
                       className="pointer-events-none origin-top-left"
                       style={{ width: size.width, transform: `scale(${SCALE})` }}
                     >
