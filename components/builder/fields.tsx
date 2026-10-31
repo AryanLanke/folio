@@ -156,7 +156,12 @@ export function Card({
           </button>
         )}
       </div>
-      {open && <div className="px-5 pb-5">{children}</div>}
+      {/* Folds shut smoothly; while shut, its fields can't be tabbed into */}
+      <div className="fold" data-closed={!open || undefined} inert={!open}>
+        <div>
+          <div className="px-5 pb-5">{children}</div>
+        </div>
+      </div>
     </section>
   );
 }

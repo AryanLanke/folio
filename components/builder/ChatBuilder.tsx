@@ -209,12 +209,12 @@ export default function ChatBuilder({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4" onClick={creating ? undefined : onClose}>
+    <div className="dialog-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4" onClick={creating ? undefined : onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="chat-title"
-        className="flex h-[92dvh] w-full max-w-xl flex-col rounded-t-xl bg-surface shadow-2xl sm:h-[85dvh] sm:rounded-xl"
+        className="dialog-in flex h-[92dvh] w-full max-w-xl flex-col rounded-t-xl bg-surface shadow-2xl sm:h-[85dvh] sm:rounded-xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 border-b border-border p-5">

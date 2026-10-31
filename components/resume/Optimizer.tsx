@@ -189,7 +189,7 @@ export function OptimizePanel({
                   <span className="text-muted"> · {describe(change)}</span>
                 </p>
               ) : (
-                <details className="min-w-0 flex-1">
+                <details className="disclosure min-w-0 flex-1">
                   <summary className="cursor-pointer list-none text-sm [&::-webkit-details-marker]:hidden">
                     <span className="font-semibold">{change.label}</span>
                     <span className="text-muted"> · {describe(change)}</span>

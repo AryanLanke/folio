@@ -62,7 +62,7 @@ export default function Menu({
   return (
     <details
       ref={ref}
-      className={`relative ${className}`}
+      className={`menu relative ${className}`}
       onToggle={(e) => {
         keepOnScreen(e.currentTarget.open);
         onToggle?.(e.currentTarget.open);
@@ -71,7 +71,7 @@ export default function Menu({
       <summary className={`cursor-pointer list-none [&::-webkit-details-marker]:hidden ${buttonClass}`}>{label}</summary>
       <div
         ref={panelRef}
-        className={`absolute z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-surface p-1.5 shadow-2xl ${
+        className={`menu-panel absolute z-30 mt-2 max-h-[70vh] overflow-y-auto rounded-lg border border-border bg-surface p-1.5 shadow-2xl ${
           align === "right" ? "right-0" : "left-0"
         } ${panelClass}`}
         onClick={(e) => {

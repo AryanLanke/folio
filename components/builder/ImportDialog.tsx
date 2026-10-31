@@ -62,12 +62,12 @@ export default function ImportDialog({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={busy ? undefined : onClose}>
+    <div className="dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={busy ? undefined : onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="import-title"
-        className="w-full max-w-lg rounded-xl bg-surface p-6 shadow-2xl"
+        className="dialog-in w-full max-w-lg rounded-xl bg-surface p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id="import-title" className="text-lg font-bold">

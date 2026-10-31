@@ -3,7 +3,7 @@ export default function BackupNudge({ onSave, onDismiss }: { onSave: () => void;
   return (
     <div
       role="status"
-      className="fixed inset-x-3 bottom-3 z-40 rounded-lg border border-border bg-surface p-4 shadow-2xl sm:left-auto sm:right-6 sm:bottom-6 sm:w-96"
+      className="toast-in fixed inset-x-3 bottom-3 z-40 rounded-lg border border-border bg-surface p-4 shadow-2xl sm:left-auto sm:right-6 sm:bottom-6 sm:w-96"
     >
       <p className="text-sm font-bold">Keep a backup of your resume</p>
       <p className="mt-1 text-sm text-muted">

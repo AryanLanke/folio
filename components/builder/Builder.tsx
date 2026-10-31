@@ -211,7 +211,7 @@ export default function Builder() {
 
       <div className="flex min-h-0 flex-1">
         <div
-          className={`w-full overflow-y-auto p-4 sm:p-6 lg:block lg:w-[46%] lg:max-w-[640px] lg:border-r lg:border-border ${
+          className={`mobile-view-in w-full overflow-y-auto p-4 sm:p-6 lg:block lg:w-[46%] lg:max-w-[640px] lg:border-r lg:border-border ${
             mobileView === "edit" ? "block" : "hidden"
           }`}
         >
@@ -229,7 +229,7 @@ export default function Builder() {
           </div>
 
           {editorView === "resume" ? (
-            <>
+            <div key="resume" className="view-in">
               <StartOptions
                 blank={resumeIsEmpty}
                 onChat={() => setChatOpen(true)}
@@ -238,14 +238,16 @@ export default function Builder() {
                 onClear={docs.clear}
               />
               <Editor resume={resume} onChange={update} />
-            </>
+            </div>
           ) : (
-            <CoverLetterEditor resume={resume} onChange={setLetter} onOpenJobMatch={() => showPreview("job")} />
+            <div key="letter" className="view-in">
+              <CoverLetterEditor resume={resume} onChange={setLetter} onOpenJobMatch={() => showPreview("job")} />
+            </div>
           )}
         </div>
 
         <div
-          className={`flex-1 overflow-y-auto bg-canvas p-4 sm:p-8 lg:block ${mobileView === "preview" ? "block" : "hidden"}`}
+          className={`mobile-view-in flex-1 overflow-y-auto bg-canvas p-4 sm:p-8 lg:block ${mobileView === "preview" ? "block" : "hidden"}`}
         >
           <div className="mx-auto mb-4 flex w-full max-w-[816px] flex-wrap items-center justify-between gap-2">
             <Segmented
@@ -283,8 +285,9 @@ export default function Builder() {
             </div>
           )}
 
+          {/* Keyed by resume or letter, so switching between them fades the new one in too */}
           {previewView === "page" && (
-            <div className="view-in">
+            <div key={editorView} className="view-in">
               <PagedPreview
                 paper={paper}
                 toolbar={

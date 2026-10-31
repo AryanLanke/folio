@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import ExampleSheet from "@/components/site/ExampleSheet";
+import PageTransition from "@/components/site/PageTransition";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { EXAMPLES, findExample } from "@/lib/examples";
@@ -27,13 +28,15 @@ export async function generateMetadata({ params }: PageProps<"/examples/[role]">
 // stays instant). Every example is prerendered, so its content is never actually waited on.
 export default function ExamplePage({ params }: PageProps<"/examples/[role]">) {
   return (
-    <div className="flex flex-1 flex-col">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
-        <Suspense>{params.then(({ role }) => <ExampleContent slug={role} />)}</Suspense>
-      </main>
-      <SiteFooter />
-    </div>
+    <PageTransition>
+      <div className="flex flex-1 flex-col">
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
+          <Suspense>{params.then(({ role }) => <ExampleContent slug={role} />)}</Suspense>
+        </main>
+        <SiteFooter />
+      </div>
+    </PageTransition>
   );
 }
 

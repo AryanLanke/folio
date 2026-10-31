@@ -72,6 +72,97 @@ body {
   animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Moving to another page, say opening the editor or going back home: the new page fades in over
+   the old one (see PageTransition). The old page holds still underneath and the new one is
+   opaque, so what both pages share, like the header, never flickers. */
+::view-transition-old(.page-out) {
+  animation: none;
+}
+
+::view-transition-new(.page-in) {
+  background: var(--background);
+  animation: page-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Clicks during a page fade reach the new page instead of being lost */
+::view-transition {
+  pointer-events: none;
+}
+
+/* Answers to questions and other things that fold open slide open and closed instead of
+   jumping. Browsers that can't animate to a height of auto still fade. */
+.disclosure {
+  interpolate-size: allow-keywords;
+}
+
+.disclosure::details-content {
+  block-size: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    block-size 0.3s cubic-bezier(0.2, 0, 0, 1),
+    opacity 0.3s cubic-bezier(0.2, 0, 0, 1),
+    content-visibility 0.3s allow-discrete;
+}
+
+.disclosure[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+
+/* Menus drop in when they open. They close at once, so a closed menu's items are never still
+   there to click or to be read out. */
+.menu[open] .menu-panel {
+  animation: menu-in 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+/* Dialogs: the backdrop fades in and the box rises into place */
+.dialog-backdrop {
+  animation: dialog-backdrop-in 0.2s ease-out;
+}
+
+.dialog-in {
+  animation: dialog-in 0.28s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+}
+
+/* A note in the corner slides up into view */
+.toast-in {
+  animation: toast-in 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
 /* Optimize: while it works, the page goes soft and a band of light with a fine shimmer sweeps
    down it, the way a photo app shows it retouching a picture. Then one last sweep uncovers the
    result. The reveal takes 0.9s (REVEAL_MS in components/resume/Optimizer.tsx). */
@@ -262,10 +353,49 @@ body {
   }
 }
 
+/* An editor section folding shut or open: its height glides between nothing and its contents */
+.fold {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.fold[data-closed] {
+  grid-template-rows: 0fr;
+}
+
+.fold > * {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* On phones, flipping between Edit and Preview brings the other side in the same way */
+@media (width < 64rem) {
+  .mobile-view-in {
+    animation: view-in 0.28s cubic-bezier(0.2, 0, 0, 1);
+  }
+}
+
+/* People who turn animations off get every change at once */
 @media (prefers-reduced-motion: reduce) {
   .view-in,
-  .chip-in {
-    animation: none;
+  .mobile-view-in,
+  .chip-in,
+  .menu-panel,
+  .dialog-backdrop,
+  .dialog-in,
+  .toast-in {
+    animation: none !important;
+  }
+  .disclosure::details-content,
+  .fold {
+    transition: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
 }
 

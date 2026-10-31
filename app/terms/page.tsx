@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PageTransition from "@/components/site/PageTransition";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { DAILY_LIMIT } from "@/lib/enhance";
@@ -50,36 +51,38 @@ const sections = [
 
 export default function TermsPage() {
   return (
-    <div className="flex flex-1 flex-col">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-20">
-        <h1 className="text-4xl font-bold tracking-tight">Terms of use</h1>
-        <p className="mt-4 text-lg leading-8 text-muted">
-          The short version: Folio is free, your resume stays yours, and you should check anything the AI
-          writes before you send it.
-        </p>
+    <PageTransition>
+      <div className="flex flex-1 flex-col">
+        <SiteHeader />
+        <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-20">
+          <h1 className="text-4xl font-bold tracking-tight">Terms of use</h1>
+          <p className="mt-4 text-lg leading-8 text-muted">
+            The short version: Folio is free, your resume stays yours, and you should check anything the AI
+            writes before you send it.
+          </p>
 
-        <div className="mt-12 space-y-10">
-          {sections.map((section) => (
-            <section key={section.title}>
-              <h2 className="text-xl font-bold">{section.title}</h2>
-              {section.body.map((paragraph) => (
-                <p key={paragraph} className="mt-3 leading-7 text-muted">
-                  {paragraph}
-                </p>
-              ))}
-            </section>
-          ))}
-        </div>
+          <div className="mt-12 space-y-10">
+            {sections.map((section) => (
+              <section key={section.title}>
+                <h2 className="text-xl font-bold">{section.title}</h2>
+                {section.body.map((paragraph) => (
+                  <p key={paragraph} className="mt-3 leading-7 text-muted">
+                    {paragraph}
+                  </p>
+                ))}
+              </section>
+            ))}
+          </div>
 
-        <Link
-          href="/builder"
-          className="mt-14 inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
-        >
-          Start building
-        </Link>
-      </main>
-      <SiteFooter />
-    </div>
+          <Link
+            href="/builder"
+            className="mt-14 inline-flex h-12 items-center rounded-full bg-accent px-8 text-base font-bold text-black transition-colors hover:bg-accent-hover"
+          >
+            Start building
+          </Link>
+        </main>
+        <SiteFooter />
+      </div>
+    </PageTransition>
   );
 }
