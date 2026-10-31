@@ -9,7 +9,7 @@ export const maxDuration = 90;
 export async function POST(request: Request) {
   const letterRequest = validateCoverLetter(await request.json().catch(() => null));
   if (!letterRequest) return aiError("bad_request");
-  if (overServerLimit(request)) return aiError("limit");
+  if (await overServerLimit(request)) return aiError("limit");
 
   const draftReply = await chatJson(buildCoverLetterMessages(letterRequest), { maxTokens: 2500, timeoutMs: 30_000, fallback: false });
   if ("error" in draftReply) return aiError(draftReply.error);

@@ -70,7 +70,7 @@ Every template is ATS-safe: one column, real text and standard headings. An ATS 
 
 ## Your data stays yours
 
-No accounts and no database. Your resumes live in your browser, and PDF and Word files are made on your device. AI only sees the text for the action you click, and nothing is stored. More on the [privacy page](https://folio-resumes.vercel.app/privacy).
+No accounts, and your resumes never touch a server's storage. They live in your browser, and PDF and Word files are made on your device. AI only sees the text for the action you click, and that text is never stored. The only thing kept on a server is a daily count of AI requests per address, under a one-way hash, deleted after two days. More on the [privacy page](https://folio-resumes.vercel.app/privacy).
 
 ## Tech stack
 
@@ -80,6 +80,7 @@ No accounts and no database. Your resumes live in your browser, and PDF and Word
 | PDF and Word | [@react-pdf/renderer](https://react-pdf.org) for PDF, [docx](https://docx.js.org) for Word, [JSZip](https://stuk.github.io/jszip) for backup files |
 | Reading uploads | [unpdf](https://github.com/unjs/unpdf) for PDF text, with Word files read as zipped XML |
 | AI | [Groq](https://groq.com) open models; [Vercel AI Gateway](https://vercel.com/ai-gateway) when no Groq key is set |
+| Rate limiting | [Vercel Firewall](https://vercel.com/docs/vercel-firewall) for bursts, plus a daily count per address in [Upstash Redis](https://upstash.com) shared by every server instance |
 | Testing | [Vitest](https://vitest.dev) for unit tests, [Playwright](https://playwright.dev) for browser tests |
 | Quality and hosting | ESLint, GitHub Actions for checks, [Vercel](https://vercel.com) for hosting |
 
@@ -107,7 +108,7 @@ lib/ats.ts                  Plain-text export, the ATS check and score, and "Fix
 lib/library.ts              Multiple resumes
 lib/backup.ts               Backup files with every resume
 lib/storage.ts              Browser storage
-lib/server/ai.ts            The AI provider call shared by every route, with retries when it's busy
+lib/server/ai.ts            The AI provider call shared by every route, with retries when it's busy, and the daily limit per address
 e2e/                        Browser tests (Playwright) that click through the built app
 ```
 
@@ -136,6 +137,8 @@ GROQ_API_KEY=your-key-here
 | `npm run typecheck` | Check TypeScript types |
 | `npm run build` | Build for production |
 | `npm run e2e` | Build, then run the browser tests: a real Chrome clicks through the app (templates, backups, downloads, ATS check, import). Run `npx playwright install chromium` once first |
+
+Locally, the daily AI limit per address is counted in memory. On Vercel it's counted in Upstash Redis, so it holds across server instances and restarts: connecting Upstash for Redis to the project adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`. If Redis doesn't answer, the count falls back to memory rather than blocking anyone.
 
 When Groq is busy, AI features retry: first on a smaller model (`AI_FALLBACK_MODEL`, default `openai/gpt-oss-20b`), which Groq limits separately, then on the main model after a short wait.
 

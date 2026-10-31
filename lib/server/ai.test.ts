@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL } from "@/lib/enhance";
-import { chatJson } from "@/lib/server/ai";
+import { chatJson, overServerLimit, SERVER_LIMIT } from "@/lib/server/ai";
 
 const answer = (content: string) =>
   new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
@@ -89,5 +89,78 @@ describe("chatJson when the AI is busy", () => {
     const models = fakeProvider([busy(), answer("{}")]);
     await chatJson([]);
     expect(models[1]).toBe("llama-3.1-8b-instant");
+  });
+});
+
+describe("overServerLimit", () => {
+  const from = (ip: string) => new Request("https://folio.test/api/enhance", { headers: { "x-forwarded-for": ip } });
+
+  // A stand-in for Upstash's REST API: keeps counts by key and records every command
+  function fakeRedis() {
+    const counts = new Map<string, number>();
+    const commands: string[][] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        const pipeline = JSON.parse(String(init.body)) as string[][];
+        commands.push(...pipeline);
+        const results = pipeline.map(([command, key]) => {
+          if (command !== "INCR") return { result: 1 };
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+          return { result: counts.get(key) };
+        });
+        return Response.json(results);
+      }),
+    );
+    return commands;
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("counts in Redis when it's connected, and stops an address once it passes the daily limit", async () => {
+    vi.stubEnv("KV_REST_API_URL", "https://redis.test");
+    vi.stubEnv("KV_REST_API_TOKEN", "secret");
+    fakeRedis();
+    for (let i = 0; i < SERVER_LIMIT; i++) expect(await overServerLimit(from("203.0.113.1"))).toBe(false);
+    expect(await overServerLimit(from("203.0.113.1"))).toBe(true);
+    // Someone else is unaffected
+    expect(await overServerLimit(from("203.0.113.2"))).toBe(false);
+  });
+
+  it("stores only a hash of the address, and lets each count expire", async () => {
+    vi.stubEnv("KV_REST_API_URL", "https://redis.test");
+    vi.stubEnv("KV_REST_API_TOKEN", "secret");
+    const commands = fakeRedis();
+    await overServerLimit(from("203.0.113.3"));
+    expect(JSON.stringify(commands)).not.toContain("203.0.113.3");
+    expect(commands.map(([command]) => command)).toEqual(["INCR", "EXPIRE"]);
+  });
+
+  it("falls back to counting in memory when Redis doesn't answer, instead of blocking everyone", async () => {
+    vi.stubEnv("KV_REST_API_URL", "https://redis.test");
+    vi.stubEnv("KV_REST_API_TOKEN", "secret");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new Error("network down");
+      }),
+    );
+    for (let i = 0; i < SERVER_LIMIT; i++) expect(await overServerLimit(from("203.0.113.4"))).toBe(false);
+    expect(await overServerLimit(from("203.0.113.4"))).toBe(true);
+  });
+
+  it("counts in memory when Redis isn't connected", async () => {
+    vi.stubEnv("KV_REST_API_URL", "");
+    vi.stubEnv("KV_REST_API_TOKEN", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_URL", "");
+    vi.stubEnv("UPSTASH_REDIS_REST_TOKEN", "");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    for (let i = 0; i < SERVER_LIMIT; i++) expect(await overServerLimit(from("203.0.113.5"))).toBe(false);
+    expect(await overServerLimit(from("203.0.113.5"))).toBe(true);
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

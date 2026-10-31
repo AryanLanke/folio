@@ -78,7 +78,7 @@ const faqs = [
   },
   {
     q: "Where is my data stored?",
-    a: "In your own browser, on your device. Folio has no accounts and no database. Text you choose to send to AI is processed and not stored. See the privacy page for details.",
+    a: "In your own browser, on your device. Folio has no accounts, and your resumes are never stored on a server. Text you choose to send to AI is processed and not stored. See the privacy page for details.",
   },
   {
     q: "Can I use it on my phone?",

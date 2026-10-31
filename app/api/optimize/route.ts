@@ -9,7 +9,7 @@ export const maxDuration = 60;
 export async function POST(request: Request) {
   const optimizeRequest = validateOptimize(await request.json().catch(() => null));
   if (!optimizeRequest) return aiError("bad_request");
-  if (overServerLimit(request)) return aiError("limit");
+  if (await overServerLimit(request)) return aiError("limit");
 
   const reply = await chatJson(buildOptimizeMessages(optimizeRequest), { maxTokens: 5000, timeoutMs: 45_000 });
   if ("error" in reply) return aiError(reply.error);

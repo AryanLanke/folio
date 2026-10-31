@@ -14,7 +14,7 @@ const sections = [
   {
     title: "Your resume stays on your device",
     body: [
-      "Folio has no accounts and no database. Everything you type is saved in your own browser's storage, on your device. We can't see it, and nobody else can either.",
+      "Folio has no accounts, and your resumes are never stored on a server. Everything you type is saved in your own browser's storage, on your device. We can't see it, and nobody else can either.",
       "Because of that, clearing your browser data deletes your resumes. Folio asks your browser to keep them, but browsers can still clear storage on their own; Safari, for example, may clear sites you haven't opened in a while. Use More → Save backup file to keep a copy of all your resumes as a file on your device, and More → Open backup file to bring them back, here or on another device.",
     ],
   },
@@ -31,6 +31,7 @@ const sections = [
       "Voice typing in the chat uses your browser's own speech recognition. In Chrome and Edge, your browser sends the audio to Google or Microsoft to turn it into text. Folio never receives the audio, only the text you send.",
       "That text goes through Folio's server to our AI provider, Groq, to produce a suggestion, and is sent back to you. Folio doesn't store it or log its contents. Groq's terms say it doesn't train on what it receives; it may keep requests for a limited time for its own security and abuse checks.",
       "An uploaded PDF or Word file is read in memory to get its text, then discarded.",
+      "To keep the free AI fair for everyone, Folio counts how many AI requests come from each internet address per day, in a small database run by Upstash. Only the count is kept, next to a scrambled code made from the address that can't be turned back into it, and both are deleted after two days.",
     ],
   },
   // Only described when it's actually switched on

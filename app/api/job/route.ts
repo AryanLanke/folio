@@ -5,7 +5,7 @@ import { aiError, chatJson, overServerLimit } from "@/lib/server/ai";
 export async function POST(request: Request) {
   const description = validateJob(await request.json().catch(() => null));
   if (!description) return aiError("bad_request");
-  if (overServerLimit(request)) return aiError("limit");
+  if (await overServerLimit(request)) return aiError("limit");
 
   const reply = await chatJson(buildJobMessages(description));
   if ("error" in reply) return aiError(reply.error);

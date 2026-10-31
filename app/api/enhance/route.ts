@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const enhanceRequest = validateRequest(body);
   if (typeof enhanceRequest === "string") return aiError("bad_request");
-  if (overServerLimit(request)) return aiError("limit");
+  if (await overServerLimit(request)) return aiError("limit");
 
   // "Another version" should actually come out different, so it gets more variety
   const reply = await chatJson(buildMessages(enhanceRequest), {

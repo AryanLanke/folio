@@ -1,3 +1,4 @@
+import { createHmac } from "node:crypto";
 import { DAILY_LIMIT, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL, DEFAULT_MODEL } from "@/lib/enhance";
 
 // One place for talking to the AI provider, shared by every /api route.
@@ -35,20 +36,60 @@ function provider() {
   return null;
 }
 
-// Best-effort backstop against abuse, on top of the per-browser daily limit. It lives in
-// server memory, so it resets when the server restarts; enough for a free, small-scale tool.
+// A daily cap on AI requests per address, behind the per-browser daily limit (which clearing
+// browser data resets) and the Vercel Firewall's per-minute rate limit. Counted in Upstash Redis
+// when it's connected, so every server instance shares one count. Without it, or when Redis doesn't
+// answer in time, each server counts in its own memory, which resets when the server restarts.
+// Chat turns count here (but not toward the user's visible allowance), so leave room for them.
+export const SERVER_LIMIT = DAILY_LIMIT * 5;
 const usage = new Map<string, { day: string; count: number }>();
-// Chat turns count here (but not toward the user's visible allowance), so leave room for them
-const SERVER_LIMIT = DAILY_LIMIT * 5;
+// Counts outlive their day a little, so one that starts just before midnight UTC isn't cut short
+const COUNT_TTL_SECONDS = 2 * 24 * 60 * 60;
 
-export function overServerLimit(request: Request) {
+// Set by Vercel's Upstash integration; the UPSTASH_ names are what Upstash itself uses
+function redis() {
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  return url && token ? { url, token } : null;
+}
+
+// Adds one to today's count for this address and returns the new count, or null if Redis isn't
+// connected or doesn't answer. The address is stored only as a keyed hash, never as itself.
+async function countInRedis(ip: string, day: string) {
+  const db = redis();
+  if (!db) return null;
+  const key = `ai:${day}:${createHmac("sha256", db.token).update(ip).digest("base64url")}`;
+  try {
+    const response = await fetch(`${db.url}/pipeline`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${db.token}` },
+      body: JSON.stringify([
+        ["INCR", key],
+        ["EXPIRE", key, String(COUNT_TTL_SECONDS)],
+      ]),
+      cache: "no-store",
+      signal: AbortSignal.timeout(1500),
+    });
+    if (!response.ok) return null;
+    const [counted] = (await response.json()) as { result?: unknown }[];
+    return typeof counted?.result === "number" ? counted.result : null;
+  } catch {
+    return null;
+  }
+}
+
+function countInMemory(ip: string, day: string) {
+  const entry = usage.get(ip);
+  const count = (entry?.day === day ? entry.count : 0) + 1;
+  usage.set(ip, { day, count });
+  return count;
+}
+
+export async function overServerLimit(request: Request) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
   const day = new Date().toISOString().slice(0, 10);
-  const entry = usage.get(ip);
-  const count = entry?.day === day ? entry.count : 0;
-  if (count >= SERVER_LIMIT) return true;
-  usage.set(ip, { day, count: count + 1 });
-  return false;
+  const count = (await countInRedis(ip, day)) ?? countInMemory(ip, day);
+  return count > SERVER_LIMIT;
 }
 
 export function aiError(code: AiErrorCode) {

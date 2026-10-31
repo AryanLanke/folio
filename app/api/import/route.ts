@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const clean = text.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").trim();
   // Scanned resumes are images with no text layer
   if (clean.length < 100) return fileError("unreadable", 422);
-  if (overServerLimit(request)) return aiError("limit");
+  if (await overServerLimit(request)) return aiError("limit");
 
   const reply = await chatJson(buildImportMessages(clean.slice(0, MAX_IMPORT_LENGTH)), {
     maxTokens: 6000,
