@@ -13,7 +13,7 @@ function inputClass(warning?: string | null) {
   return `${inputBase} ${warning ? "border-warning/70 focus:border-warning" : "border-border focus:border-accent"}`;
 }
 
-export const smallButton =
+const smallButton =
   "rounded px-2 py-1 text-xs font-semibold text-muted transition-colors hover:bg-surface-hover hover:text-foreground disabled:pointer-events-none disabled:opacity-30";
 
 function Warning({ text }: { text?: string | null }) {

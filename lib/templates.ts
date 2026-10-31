@@ -129,9 +129,9 @@ export const TEMPLATE_SPECS: Record<TemplateName, TemplateSpec> = {
 };
 
 // Base font size in CSS pixels; the PDF uses points (1px = 0.75pt)
-export const FONT_SIZE: Record<ResumeStyle["fontSize"], number> = { small: 11.5, medium: 12.5, large: 13.5 };
+const FONT_SIZE: Record<ResumeStyle["fontSize"], number> = { small: 11.5, medium: 12.5, large: 13.5 };
 
-export const SPACING: Record<ResumeStyle["spacing"], { gap: number; lineHeight: number }> = {
+const SPACING: Record<ResumeStyle["spacing"], { gap: number; lineHeight: number }> = {
   compact: { gap: 0.7, lineHeight: 1.35 },
   normal: { gap: 1, lineHeight: 1.45 },
   relaxed: { gap: 1.3, lineHeight: 1.55 },

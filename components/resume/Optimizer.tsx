@@ -29,7 +29,7 @@ export type Optimized = {
   note: string | null;
 };
 
-// How long the final sweep that uncovers the result takes (matches globals.css)
+// How long the final sweep that uncovers the result takes (matches app/styles/optimize.css)
 export const REVEAL_MS = 900;
 // The effect always runs at least this long, so a quick answer still reads as one smooth pass
 const MIN_EFFECT_MS = 1600;

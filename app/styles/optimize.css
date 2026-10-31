@@ -1,0 +1,164 @@
+/* Optimize: while it works, the page goes soft and a band of light with a fine shimmer sweeps
+   down it, the way a photo app shows it retouching a picture. Then one last sweep uncovers the
+   result. The reveal takes 0.9s (REVEAL_MS in components/resume/Optimizer.tsx). */
+.optimize-effect {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.optimize-effect[data-phase="reveal"] {
+  pointer-events: none;
+}
+
+/* The page itself goes soft (a backdrop blur would mirror text at the edges of the view) */
+.optimize-target {
+  transition: filter 0.5s ease-out;
+}
+
+.optimize-target[data-working] {
+  filter: blur(1.2px) saturate(0.4);
+}
+
+/* Monochrome, like frosted glass: the page dims to a soft grey so a band of white light can
+   sweep across it */
+.optimize-veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(23 23 23 / 0.12);
+  animation: optimize-fade-in 0.35s ease-out;
+}
+
+.optimize-band {
+  position: absolute;
+  inset-inline: 0;
+  top: -32%;
+  height: 32%;
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0),
+    rgb(255 255 255 / 0.55) 36%,
+    rgb(255 255 255 / 0.95) 50%,
+    rgb(255 255 255 / 0.55) 64%,
+    rgb(255 255 255 / 0)
+  );
+  animation: optimize-sweep 1.9s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* The shimmer: a fine grid of white specks and a sparser one of silver, flickering as they
+   drift, like light catching dust */
+.optimize-band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 1) 0 1.1px, transparent 1.7px) 0 0 / 11px 11px,
+    radial-gradient(circle, rgb(120 120 128 / 0.55) 0 0.8px, transparent 1.4px) 5px 4px / 17px 17px;
+  mask-image: linear-gradient(to bottom, transparent, #000 25%, #000 75%, transparent);
+  animation: optimize-glitter 0.8s steps(4) infinite;
+}
+
+/* Lines Optimize changed: a soft marker stroke behind the text, like a highlighter pen */
+.optimize-mark {
+  background-image: linear-gradient(transparent 12%, rgb(191 219 254 / 0.85) 12%, rgb(191 219 254 / 0.85) 92%, transparent 92%);
+  background-repeat: no-repeat;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  animation: optimize-mark-in 0.6s ease-out;
+}
+
+@keyframes optimize-mark-in {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+.optimize-effect[data-phase="reveal"] .optimize-veil {
+  animation: optimize-uncover 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.optimize-effect[data-phase="reveal"] .optimize-band {
+  animation: optimize-sweep-once 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes optimize-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes optimize-sweep {
+  from {
+    top: -32%;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+/* The band's middle rides the edge of the uncovered part */
+@keyframes optimize-sweep-once {
+  from {
+    top: -16%;
+  }
+  to {
+    top: 84%;
+  }
+}
+
+@keyframes optimize-glitter {
+  0% {
+    opacity: 0.5;
+    background-position: 0 0, 6px 4px;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+    background-position: 13px 6px, -13px 15px;
+  }
+}
+
+@keyframes optimize-uncover {
+  from {
+    clip-path: inset(0 0 0 0);
+  }
+  to {
+    clip-path: inset(100% 0 0 0);
+  }
+}
+
+/* No sweeping for people who turn animations off: the page just dims, then clears */
+@media (prefers-reduced-motion: reduce) {
+  .optimize-band {
+    display: none;
+  }
+  .optimize-target {
+    transition: none;
+  }
+  .optimize-mark {
+    animation: none;
+  }
+  .optimize-veil {
+    animation: optimize-breathe 1.6s ease-in-out infinite alternate;
+  }
+  .optimize-effect[data-phase="reveal"] .optimize-veil {
+    animation: optimize-fade-out 0.4s forwards;
+  }
+}
+
+@keyframes optimize-breathe {
+  from {
+    opacity: 0.5;
+  }
+}
+
+@keyframes optimize-fade-out {
+  to {
+    opacity: 0;
+  }
+}

@@ -97,10 +97,6 @@ export function savePaper(paper: PaperSize) {
 
 export type Theme = "dark" | "light";
 
-export function loadTheme(): Theme {
-  return read(THEME_KEY) === "light" ? "light" : "dark";
-}
-
 export function saveTheme(theme: Theme) {
   write(THEME_KEY, theme);
 }

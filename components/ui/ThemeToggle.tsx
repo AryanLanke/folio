@@ -3,7 +3,7 @@
 import { saveTheme } from "@/lib/storage";
 
 // Flips between dark (the default) and light mode, and remembers the choice in this browser. The
-// page cross-fades from one to the other (timing in globals.css); browsers without view
+// page cross-fades from one to the other (timing in app/styles/motion.css); browsers without view
 // transitions, and people who ask for less motion, get the change at once.
 export function switchTheme() {
   const light = document.documentElement.dataset.theme !== "light";

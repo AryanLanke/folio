@@ -95,7 +95,7 @@ export async function overServerLimit(request: Request) {
 
 // Tells Sentry when AI fails in a way people notice ("AI is busy", "didn't come through"), so a
 // rejected key or a provider outage doesn't go unseen. Only what went wrong is sent, never the text.
-export function reportAiProblem(code: AiErrorCode, problem: string) {
+function reportAiProblem(code: AiErrorCode, problem: string) {
   Sentry.captureMessage(`AI ${code}: ${problem}`, {
     level: code === "busy" ? "warning" : "error",
     tags: { ai_error: code },
@@ -122,7 +122,7 @@ type ChatOptions = {
 type ChatResult = { content: string } | { error: AiErrorCode; retryAfterMs?: number; problem?: string };
 
 // How long to wait before asking a busy model again, when the provider doesn't say
-export const RETRY_DELAY_MS = 1500;
+const RETRY_DELAY_MS = 1500;
 // Never wait longer than this for a busy model; the person is watching a spinner
 const MAX_RETRY_DELAY_MS = 8000;
 // Don't start another try with less time than this left; it would only time out
