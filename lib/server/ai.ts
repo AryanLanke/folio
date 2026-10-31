@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import * as Sentry from "@sentry/nextjs";
 import { DAILY_LIMIT, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL, DEFAULT_MODEL } from "@/lib/enhance";
 
 // One place for talking to the AI provider, shared by every /api route.
@@ -92,7 +93,19 @@ export async function overServerLimit(request: Request) {
   return count > SERVER_LIMIT;
 }
 
-export function aiError(code: AiErrorCode) {
+// Tells Sentry when AI fails in a way people notice ("AI is busy", "didn't come through"), so a
+// rejected key or a provider outage doesn't go unseen. Only what went wrong is sent, never the text.
+export function reportAiProblem(code: AiErrorCode, problem: string) {
+  Sentry.captureMessage(`AI ${code}: ${problem}`, {
+    level: code === "busy" ? "warning" : "error",
+    tags: { ai_error: code },
+  });
+}
+
+// The error answer for an AI route. A problem only the route itself spotted (like an answer in the
+// wrong shape) is passed in to be reported; chatJson has already reported its own.
+export function aiError(code: AiErrorCode, problem?: string) {
+  if (problem) reportAiProblem(code, problem);
   const status = { not_configured: 503, busy: 503, failed: 502, limit: 429, bad_request: 400 }[code];
   return Response.json({ error: code }, { status });
 }
@@ -106,7 +119,7 @@ type ChatOptions = {
   // Build with AI, cover letters): the small model drops whole jobs, so waiting is better.
   fallback?: boolean;
 };
-type ChatResult = { content: string } | { error: AiErrorCode; retryAfterMs?: number };
+type ChatResult = { content: string } | { error: AiErrorCode; retryAfterMs?: number; problem?: string };
 
 // How long to wait before asking a busy model again, when the provider doesn't say
 export const RETRY_DELAY_MS = 1500;
@@ -125,10 +138,17 @@ const MAX_WAITS = 2;
 // Groq's free tier limits each model separately (8,000 tokens a minute each), so when the main
 // model is busy the smaller fallback model usually isn't: try it straight away, unless the
 // call asks not to. Then wait as long as the provider asks (within limits) and try the main
-// model again, up to MAX_WAITS times. Everything stays within the one time limit.
+// model again, up to MAX_WAITS times. Everything stays within the one time limit. A failure the
+// person will see is reported to Sentry; one that a retry gets past isn't.
 export async function chatJson(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResult> {
+  const result = await askWithRetries(messages, options);
+  if ("error" in result) reportAiProblem(result.error, result.problem ?? "unknown");
+  return result;
+}
+
+async function askWithRetries(messages: ChatMessage[], options: ChatOptions): Promise<ChatResult> {
   const ai = provider();
-  if (!ai) return { error: "not_configured" };
+  if (!ai) return { error: "not_configured", problem: "no AI key is set" };
 
   const deadline = Date.now() + (options.timeoutMs ?? 20_000);
   const timeLeft = () => deadline - Date.now();
@@ -148,7 +168,7 @@ export async function chatJson(messages: ChatMessage[], options: ChatOptions = {
     result = await chatOnce(ai, ai.model, messages, options, timeLeft());
     if (!isBusy(result)) return result;
   }
-  return { error: "busy" };
+  return { error: "busy", problem: "still busy after retrying" };
 }
 
 function isBusy(result: ChatResult): result is { error: "busy"; retryAfterMs?: number } {
@@ -185,17 +205,20 @@ async function chatOnce(
       }),
       signal: AbortSignal.timeout(timeoutMs),
     });
-  } catch {
-    return { error: "failed" };
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === "TimeoutError";
+    return { error: "failed", problem: timedOut ? `${model} timed out` : `couldn't reach ${model}` };
   }
 
   // 401/403: bad key, or Vercel AI Gateway still waiting for a card to unlock free credits
-  if (response.status === 401 || response.status === 403) return { error: "not_configured" };
+  if (response.status === 401 || response.status === 403) {
+    return { error: "not_configured", problem: `key rejected (HTTP ${response.status})` };
+  }
   // Rate limits, or the free allowance running out
   if (response.status === 402 || response.status === 429) return { error: "busy", retryAfterMs: retryAfterMs(response) };
-  if (!response.ok) return { error: "failed" };
+  if (!response.ok) return { error: "failed", problem: `HTTP ${response.status} from ${model}` };
 
   const data = await response.json().catch(() => null);
   const content = data?.choices?.[0]?.message?.content;
-  return typeof content === "string" ? { content } : { error: "failed" };
+  return typeof content === "string" ? { content } : { error: "failed", problem: `unreadable answer from ${model}` };
 }

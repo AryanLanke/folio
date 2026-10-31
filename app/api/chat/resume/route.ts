@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const draftReply = await chatJson(buildDraftMessages(turns), { maxTokens: 6000, timeoutMs: 45_000, fallback: false });
   if ("error" in draftReply) return aiError(draftReply.error);
   const draft = parseImport(draftReply.content);
-  if (!draft) return aiError("failed");
+  if (!draft) return aiError("failed", "Build with AI resume: answer wasn't in the expected shape");
 
   const checkedReply = await chatJson(buildDraftCheckMessages(turns, draftReply.content), {
     maxTokens: 6000,

@@ -15,5 +15,5 @@ export async function POST(request: Request) {
   if ("error" in reply) return aiError(reply.error);
 
   const result = parseResult(reply.content, enhanceRequest.kind);
-  return result ? Response.json(result) : aiError("failed");
+  return result ? Response.json(result) : aiError("failed", "enhance: answer wasn't in the expected shape");
 }

@@ -1,3 +1,4 @@
+import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
@@ -52,4 +53,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Sentry error reporting (see instrumentation.ts). The browser reports through /sentry-tunnel on
+// Folio's own address, so the Content-Security-Policy above needs no change. When SENTRY_AUTH_TOKEN,
+// SENTRY_ORG and SENTRY_PROJECT are set (on Vercel), builds upload source maps so reports show the
+// real code; they're deleted from the build afterwards, so the site never serves them.
+export default withSentryConfig(nextConfig, {
+  tunnelRoute: "/sentry-tunnel",
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+  silent: !process.env.CI,
+  telemetry: false,
+  // Only errors are reported, so there's no navigation tracing to hook up
+  suppressOnRouterTransitionStartWarning: true,
+});

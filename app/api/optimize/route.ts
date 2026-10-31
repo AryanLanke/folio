@@ -15,5 +15,5 @@ export async function POST(request: Request) {
   if ("error" in reply) return aiError(reply.error);
 
   const result = parseOptimize(reply.content, optimizeRequest);
-  return result ? Response.json(result) : aiError("failed");
+  return result ? Response.json(result) : aiError("failed", "optimize: answer wasn't in the expected shape");
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { backupFileName, makeBackup } from "@/lib/backup";
+import { reportError } from "@/lib/client/report";
 import { saveBlob } from "@/lib/export/text";
 import { FEEDBACK_URL } from "@/lib/site";
 import { loadLibrary, loadResume, markBackedUp } from "@/lib/storage";
@@ -29,8 +30,10 @@ function saveEverything() {
 export default function ErrorScreen({ error, retry }: { error: unknown; retry: () => void }) {
   const [backup, setBackup] = useState<"idle" | "saved" | "none">("idle");
 
+  // React catches the error to show this screen, so it has to be reported to Sentry by hand
   useEffect(() => {
     console.error(error);
+    reportError(error);
   }, [error]);
 
   return (

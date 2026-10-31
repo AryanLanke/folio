@@ -14,7 +14,7 @@ export async function POST(request: Request) {
   const draftReply = await chatJson(buildCoverLetterMessages(letterRequest), { maxTokens: 2500, timeoutMs: 30_000, fallback: false });
   if ("error" in draftReply) return aiError(draftReply.error);
   const draft = parseCoverLetter(draftReply.content);
-  if (!draft) return aiError("failed");
+  if (!draft) return aiError("failed", "cover letter: answer wasn't in the expected shape");
 
   const checkedReply = await chatJson(buildFactCheckMessages(letterRequest.resumeText, draft), {
     maxTokens: 2500,

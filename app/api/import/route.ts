@@ -64,5 +64,5 @@ export async function POST(request: Request) {
   if ("error" in reply) return aiError(reply.error);
 
   const resume = parseImport(reply.content);
-  return resume ? Response.json({ resume }) : aiError("failed");
+  return resume ? Response.json({ resume }) : aiError("failed", "import: answer wasn't in the expected shape");
 }

@@ -11,5 +11,5 @@ export async function POST(request: Request) {
   if ("error" in reply) return aiError(reply.error);
 
   const analysis = parseJobAnalysis(reply.content);
-  return analysis ? Response.json(analysis) : aiError("failed");
+  return analysis ? Response.json(analysis) : aiError("failed", "job match: answer wasn't in the expected shape");
 }

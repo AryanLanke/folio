@@ -1,6 +1,10 @@
+import * as Sentry from "@sentry/nextjs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL } from "@/lib/enhance";
-import { chatJson, overServerLimit, SERVER_LIMIT } from "@/lib/server/ai";
+import { aiError, chatJson, overServerLimit, SERVER_LIMIT } from "@/lib/server/ai";
+
+vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }));
+const reported = vi.mocked(Sentry.captureMessage);
 
 const answer = (content: string) =>
   new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
@@ -58,7 +62,7 @@ describe("chatJson when the AI is busy", () => {
     const models = fakeProvider([busy(), busy(), busy(), busy()]);
     const reply = chatJson([], { timeoutMs: 45_000 });
     await vi.runAllTimersAsync();
-    expect(await reply).toEqual({ error: "busy" });
+    expect(await reply).toEqual({ error: "busy", problem: "still busy after retrying" });
     expect(models).toEqual([DEFAULT_GROQ_MODEL, DEFAULT_GROQ_FALLBACK_MODEL, DEFAULT_GROQ_MODEL, DEFAULT_GROQ_MODEL]);
   });
 
@@ -74,13 +78,13 @@ describe("chatJson when the AI is busy", () => {
     const models = fakeProvider([busy(), busy(30)]);
     const reply = chatJson([], { timeoutMs: 12_000 });
     await vi.runAllTimersAsync();
-    expect(await reply).toEqual({ error: "busy" });
+    expect(await reply).toEqual({ error: "busy", problem: "still busy after retrying" });
     expect(models).toHaveLength(2);
   });
 
   it("doesn't retry other errors", async () => {
     const models = fakeProvider([new Response("{}", { status: 500 })]);
-    expect(await chatJson([])).toEqual({ error: "failed" });
+    expect(await chatJson([])).toEqual({ error: "failed", problem: `HTTP 500 from ${DEFAULT_GROQ_MODEL}` });
     expect(models).toHaveLength(1);
   });
 
@@ -89,6 +93,53 @@ describe("chatJson when the AI is busy", () => {
     const models = fakeProvider([busy(), answer("{}")]);
     await chatJson([]);
     expect(models[1]).toBe("llama-3.1-8b-instant");
+  });
+});
+
+describe("reporting AI failures to Sentry", () => {
+  beforeEach(() => {
+    vi.stubEnv("GROQ_API_KEY", "test-key");
+    vi.stubEnv("AI_MODEL", "");
+    vi.stubEnv("AI_FALLBACK_MODEL", "");
+    reported.mockClear();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+  });
+
+  it("reports a failure people will see once, with what went wrong but not what they wrote", async () => {
+    fakeProvider([new Response("{}", { status: 401 })]);
+    await chatJson([{ role: "user", content: "My private resume text" }]);
+    expect(reported).toHaveBeenCalledTimes(1);
+    expect(reported.mock.calls[0][0]).toBe("AI not_configured: key rejected (HTTP 401)");
+    expect(JSON.stringify(reported.mock.calls)).not.toContain("My private resume text");
+  });
+
+  it("says when the provider couldn't be reached", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("fetch failed");
+      }),
+    );
+    await chatJson([]);
+    expect(reported.mock.calls[0][0]).toBe(`AI failed: couldn't reach ${DEFAULT_GROQ_MODEL}`);
+  });
+
+  it("doesn't report a busy model that a retry gets past", async () => {
+    fakeProvider([busy(), answer('{"ok":true}')]);
+    await chatJson([]);
+    expect(reported).not.toHaveBeenCalled();
+  });
+
+  it("reports a problem a route spotted, but not its everyday refusals", () => {
+    aiError("failed", "enhance: answer wasn't in the expected shape");
+    aiError("limit");
+    aiError("bad_request");
+    expect(reported).toHaveBeenCalledTimes(1);
+    expect(reported.mock.calls[0][1]).toMatchObject({ level: "error", tags: { ai_error: "failed" } });
   });
 });
 

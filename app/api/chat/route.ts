@@ -11,5 +11,5 @@ export async function POST(request: Request) {
   if ("error" in reply) return aiError(reply.error);
 
   const next = parseInterviewReply(reply.content);
-  return next ? Response.json(next) : aiError("failed");
+  return next ? Response.json(next) : aiError("failed", "Build with AI chat: answer wasn't in the expected shape");
 }

@@ -81,6 +81,7 @@ No accounts, and your resumes never touch a server's storage. They live in your 
 | Reading uploads | [unpdf](https://github.com/unjs/unpdf) for PDF text, with Word files read as zipped XML |
 | AI | [Groq](https://groq.com) open models; [Vercel AI Gateway](https://vercel.com/ai-gateway) when no Groq key is set |
 | Rate limiting | [Vercel Firewall](https://vercel.com/docs/vercel-firewall) for bursts, plus a daily count per address in [Upstash Redis](https://upstash.com) shared by every server instance |
+| Error monitoring | [Sentry](https://sentry.io) for crashes in the browser and server, and for AI failures people would notice. Errors only: no tracing, no session replays, no resume text |
 | Testing | [Vitest](https://vitest.dev) for unit tests, [Playwright](https://playwright.dev) for browser tests |
 | Quality and hosting | ESLint, GitHub Actions for checks, [Vercel](https://vercel.com) for hosting |
 
@@ -139,6 +140,8 @@ GROQ_API_KEY=your-key-here
 | `npm run e2e` | Build, then run the browser tests: a real Chrome clicks through the app (templates, backups, downloads, ATS check, import). Run `npx playwright install chromium` once first |
 
 Locally, the daily AI limit per address is counted in memory. On Vercel it's counted in Upstash Redis, so it holds across server instances and restarts: connecting Upstash for Redis to the project adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`. If Redis doesn't answer, the count falls back to memory rather than blocking anyone.
+
+Error reporting is off unless `NEXT_PUBLIC_SENTRY_DSN` is set. On Vercel, also set `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` and `SENTRY_PROJECT` so builds upload source maps, and reports show the real code instead of minified lines. Browser reports go through the `/sentry-tunnel` route on Folio's own address.
 
 When Groq is busy, AI features retry: first on a smaller model (`AI_FALLBACK_MODEL`, default `openai/gpt-oss-20b`), which Groq limits separately, then on the main model after a short wait.
 

@@ -45,6 +45,17 @@ const sections = [
         },
       ]
     : []),
+  // Only described when error reporting is actually switched on
+  ...(process.env.NEXT_PUBLIC_SENTRY_DSN
+    ? [
+        {
+          title: "Error reports",
+          body: [
+            "When something in Folio breaks, or AI fails to answer, Folio sends an error report to Sentry, a service that helps us find and fix bugs. A report says what went wrong and where in Folio's code, the page's address, and your browser and device type. It doesn't include your resumes, what you type, or your internet address.",
+          ],
+        },
+      ]
+    : []),
   {
     title: "Questions",
     body: [`Email ${FEEDBACK_EMAIL} with any question about privacy, or to report a bug or suggest an idea.`],
